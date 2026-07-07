@@ -15,12 +15,14 @@ import KpiClientesTotales from '~/components/widgets/KpiClientesTotales.vue'
 import KpiLeadsActivos from '~/components/widgets/KpiLeadsActivos.vue'
 import KpiTicketsAbiertos from '~/components/widgets/KpiTicketsAbiertos.vue'
 import ChartLeadsPorEstado from '~/components/widgets/ChartLeadsPorEstado.vue'
+import KpiTasaConversion from '~/components/widgets/KpiTasaConversion.vue'
 
 const componentMap: Record<string, any> = {
   WidgetsKpiClientesTotales: KpiClientesTotales,
   WidgetsKpiLeadsActivos: KpiLeadsActivos,
   WidgetsKpiTicketsAbiertos: KpiTicketsAbiertos,
   WidgetsChartLeadsPorEstado: ChartLeadsPorEstado,
+  WidgetsKpiTasaConversion: KpiTasaConversion,
 }
 
 const { misWidgets, cargarMisWidgets } = useDashboardWidgets()
