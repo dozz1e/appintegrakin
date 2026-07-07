@@ -10,6 +10,7 @@ const { can } = usePermissions()
 const funnel = ref<FunnelItem[]>([])
 const performance = ref<PerformanceVendedor[]>([])
 const cargando = ref(true)
+const errorCarga = ref('')
 
 const labelsEstado: Record<string, string> = {
   nuevo: 'Nuevo', contactado: 'Contactado', cotizado: 'Cotizado',
@@ -17,11 +18,16 @@ const labelsEstado: Record<string, string> = {
 }
 
 onMounted(async () => {
-  funnel.value = await fetchFunnel()
-  if (can('reportes', 'view_all')) {
-    performance.value = await fetchPerformance()
+  try {
+    funnel.value = await fetchFunnel()
+    if (can('reportes', 'view_all')) {
+      performance.value = await fetchPerformance()
+    }
+  } catch (e: any) {
+    errorCarga.value = e.message ?? 'No se pudieron cargar los reportes'
+  } finally {
+    cargando.value = false
   }
-  cargando.value = false
 })
 
 const funnelData = computed(() =>
@@ -57,6 +63,7 @@ const performanceXFormatter = (i: number) => performanceData.value[i]?.vendedor 
     <SharedPageHeader titulo="Reportes" />
 
     <p v-if="cargando" class="text-gray-400">Cargando...</p>
+    <p v-else-if="errorCarga" class="text-red-600">{{ errorCarga }}</p>
 
     <template v-else>
       <div class="grid grid-cols-4 gap-4 mb-6">
@@ -82,6 +89,7 @@ const performanceXFormatter = (i: number) => performanceData.value[i]?.vendedor 
         <BarChart
           :data="funnelData"
           :categories="funnelCategorias"
+          :y-axis="['total']"
           :height="280"
           :x-formatter="funnelXFormatter"
           x-label="Estado"
@@ -93,6 +101,7 @@ const performanceXFormatter = (i: number) => performanceData.value[i]?.vendedor 
         <BarChart
           :data="performanceData"
           :categories="performanceCategorias"
+          :y-axis="['leads_ganados', 'tickets_resueltos']"
           :height="320"
           :x-formatter="performanceXFormatter"
           x-label="Vendedor"
