@@ -31,10 +31,15 @@ const onSubmit = async (payload: Record<string, unknown>) => {
   if (!lead.value) return
   guardando.value = true
   try {
-    lead.value = await updateLead(lead.value.id, payload)
+    lead.value = await updateLead(lead.value.id, payload, lead.value.version)
     success('Lead actualizado')
-  } catch (e) {
-    error('No se pudo guardar el cambio. Intenta de nuevo.')
+  } catch (e: any) {
+    if (e.message === 'CONFLICTO_VERSION') {
+      error('Alguien más modificó este lead mientras lo tenías abierto. Se recargaron los datos actuales, revisa e intenta de nuevo.')
+      lead.value = await getLead(route.params.id as string)
+    } else {
+      error('No se pudo guardar el cambio. Intenta de nuevo.')
+    }
   } finally {
     guardando.value = false
   }

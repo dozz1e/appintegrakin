@@ -14,6 +14,7 @@ export interface Lead {
   created_by: string | null
   created_at: string
   updated_at: string
+  version: number
 }
 
 export const useLeads = () => {
@@ -39,14 +40,22 @@ export const useLeads = () => {
     return data as Lead
   }
 
-  const updateLead = async (id: string, payload: Partial<Lead>) => {
-    const { data, error } = await supabase
+  const updateLead = async (id: string, payload: Partial<Lead>, expectedVersion?: number) => {
+    let query = supabase
       .from('leads')
       .update({ ...payload, updated_at: new Date().toISOString() })
       .eq('id', id)
-      .select()
-      .single()
+
+    if (expectedVersion !== undefined) query = query.eq('version', expectedVersion)
+
+    const { data, error } = await query.select().maybeSingle()
     if (error) throw error
+
+    // si se pidió chequeo de versión y no volvió ninguna fila, alguien más
+    // ya guardó cambios sobre este registro mientras estaba abierto
+    if (expectedVersion !== undefined && !data) {
+      throw new Error('CONFLICTO_VERSION')
+    }
     return data as Lead
   }
 

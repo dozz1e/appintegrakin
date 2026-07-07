@@ -13,6 +13,7 @@ export interface Cliente {
   created_by: string | null
   created_at: string
   updated_at: string
+  version: number
 }
 
 export const useClientes = () => {
@@ -47,14 +48,20 @@ export const useClientes = () => {
     return data as Cliente
   }
 
-  const updateCliente = async (id: string, payload: Partial<Cliente>) => {
-    const { data, error } = await supabase
+  const updateCliente = async (id: string, payload: Partial<Cliente>, expectedVersion?: number) => {
+    let query = supabase
       .from('clientes')
       .update({ ...payload, updated_at: new Date().toISOString() })
       .eq('id', id)
-      .select()
-      .single()
+
+    if (expectedVersion !== undefined) query = query.eq('version', expectedVersion)
+
+    const { data, error } = await query.select().maybeSingle()
     if (error) throw error
+
+    if (expectedVersion !== undefined && !data) {
+      throw new Error('CONFLICTO_VERSION')
+    }
     return data as Cliente
   }
 

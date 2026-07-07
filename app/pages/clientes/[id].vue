@@ -30,10 +30,15 @@ const onSubmit = async (payload: Record<string, unknown>) => {
   if (!cliente.value) return
   guardando.value = true
   try {
-    cliente.value = await updateCliente(cliente.value.id, payload)
+    cliente.value = await updateCliente(cliente.value.id, payload, cliente.value.version)
     success('Cliente actualizado')
-  } catch (e) {
-    error('No se pudo guardar el cambio. Intenta de nuevo.')
+  } catch (e: any) {
+    if (e.message === 'CONFLICTO_VERSION') {
+      error('Alguien más modificó este cliente mientras lo tenías abierto. Se recargaron los datos actuales, revisa e intenta de nuevo.')
+      cliente.value = await getCliente(route.params.id as string)
+    } else {
+      error('No se pudo guardar el cambio. Intenta de nuevo.')
+    }
   } finally {
     guardando.value = false
   }

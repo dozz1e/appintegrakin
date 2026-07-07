@@ -31,10 +31,15 @@ const onSubmit = async (payload: Record<string, unknown>) => {
   if (!ticket.value) return
   guardando.value = true
   try {
-    ticket.value = await updateTicket(ticket.value.id, payload)
+    ticket.value = await updateTicket(ticket.value.id, payload, ticket.value.version)
     success('Ticket actualizado')
-  } catch (e) {
-    error('No se pudo guardar el cambio. Intenta de nuevo.')
+  } catch (e: any) {
+    if (e.message === 'CONFLICTO_VERSION') {
+      error('Alguien más modificó este ticket mientras lo tenías abierto. Se recargaron los datos actuales, revisa e intenta de nuevo.')
+      ticket.value = await getTicket(route.params.id as string)
+    } else {
+      error('No se pudo guardar el cambio. Intenta de nuevo.')
+    }
   } finally {
     guardando.value = false
   }
