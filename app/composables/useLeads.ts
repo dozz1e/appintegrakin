@@ -74,5 +74,57 @@ export const useLeads = () => {
     return data as string // id del cliente creado
   }
 
-  return { fetchLeads, getLead, createLead, updateLead, cambiarEstado, asignarLead, convertirACliente }
+  // Importación masiva con deduplicación por teléfono/email. No hay unique
+  // constraint en la tabla para estos campos, así que la dedupe se hace acá:
+  // se trae lo que el usuario ya puede ver (RLS aplica solo) y se descartan
+  // coincidencias antes del insert.
+  const importLeads = async (filas: Record<string, string>[]) => {
+    const user = useSupabaseUser()
+
+    const { data: existentes, error: errorExistentes } = await supabase
+      .from('leads')
+      .select('telefono, email')
+    if (errorExistentes) throw errorExistentes
+
+    const telefonosExistentes = new Set((existentes ?? []).map((l) => l.telefono).filter(Boolean))
+    const emailsExistentes = new Set((existentes ?? []).map((l) => l.email?.toLowerCase()).filter(Boolean))
+
+    let omitidos = 0
+    const candidatos = filas
+      .filter((f) => f.nombre?.trim())
+      .filter((f) => {
+        const tel = f.telefono?.trim()
+        const mail = f.email?.trim().toLowerCase()
+        const esDuplicado = (tel && telefonosExistentes.has(tel)) || (mail && emailsExistentes.has(mail))
+        if (esDuplicado) omitidos++
+        return !esDuplicado
+      })
+      .map((f) => ({
+        nombre: f.nombre.trim(),
+        telefono: f.telefono?.trim() || null,
+        email: f.email?.trim() || null,
+        origen: f.origen?.trim() || 'importacion',
+        estado: 'nuevo' as EstadoLead,
+        owner_id: user.value?.sub,
+        created_by: user.value?.sub,
+      }))
+
+    if (!candidatos.length) return { insertados: 0, omitidos: filas.length }
+
+    const { data, error } = await supabase.from('leads').insert(candidatos).select()
+    if (error) throw error
+
+    return { insertados: data?.length ?? 0, omitidos }
+  }
+
+  return {
+    fetchLeads,
+    getLead,
+    createLead,
+    updateLead,
+    cambiarEstado,
+    asignarLead,
+    convertirACliente,
+    importLeads,
+  }
 }

@@ -23,6 +23,7 @@
     "nuxt": "^4.4.8",
     "nuxt-charts": "2.1.4",
     "nuxt-clarity-analytics": "0.0.9",
+    "papaparse": "^5.4.1",
     "pinia": "^3.0.4",
     "vue": "^3.5.38",
     "vue-router": "^5.1.0",
@@ -30,5 +31,8 @@
   },
   "overrides": {
     "ajv": "^8.20.0"
+  },
+  "devDependencies": {
+    "@types/papaparse": "^5.3.14"
   }
 }

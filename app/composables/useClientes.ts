@@ -70,5 +70,37 @@ export const useClientes = () => {
     if (error) throw error
   }
 
-  return { fetchClientes, getCliente, createCliente, updateCliente, deleteCliente }
+  // Importación masiva con deduplicación por RUT (columna unique en la tabla).
+  // Filas sin rut o sin razón social se descartan antes de intentar el insert.
+  // ignoreDuplicates hace que Postgres salte silenciosamente los rut que ya
+  // existen, en vez de fallar el batch completo por un conflicto de unique.
+  const importClientes = async (filas: Record<string, string>[]) => {
+    const user = useSupabaseUser()
+
+    const candidatos = filas
+      .filter((f) => f.razon_social?.trim())
+      .map((f) => ({
+        rut: f.rut?.trim() || null,
+        razon_social: f.razon_social.trim(),
+        nombre_contacto: f.nombre_contacto?.trim() || null,
+        telefono: f.telefono?.trim() || null,
+        email: f.email?.trim() || null,
+        owner_id: user.value?.sub,
+        created_by: user.value?.sub,
+      }))
+
+    if (!candidatos.length) return { insertados: 0, omitidos: filas.length }
+
+    const { data, error } = await supabase
+      .from('clientes')
+      .upsert(candidatos, { onConflict: 'rut', ignoreDuplicates: true })
+      .select()
+
+    if (error) throw error
+
+    const insertados = data?.length ?? 0
+    return { insertados, omitidos: filas.length - insertados }
+  }
+
+  return { fetchClientes, getCliente, createCliente, updateCliente, deleteCliente, importClientes }
 }
