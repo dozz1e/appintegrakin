@@ -1,0 +1,50 @@
+<script setup lang="ts">
+definePageMeta({
+  middleware: 'permission',
+  permiso: { resource: 'tickets', actions: ['create'] },
+})
+
+const route = useRoute()
+const router = useRouter()
+const { createTicket } = useTickets()
+const { getCliente } = useClientes()
+const { success, error } = useToast()
+
+const clienteIdFijo = route.query.cliente_id as string | undefined
+const clienteNombreFijo = ref<string>()
+const cargando = ref(false)
+
+onMounted(async () => {
+  if (clienteIdFijo) {
+    const cliente = await getCliente(clienteIdFijo)
+    clienteNombreFijo.value = cliente.razon_social
+  }
+})
+
+const onSubmit = async (payload: Record<string, unknown>) => {
+  cargando.value = true
+  try {
+    const ticket = await createTicket(payload)
+    success('Ticket creado correctamente')
+    await router.push(`/tickets/${ticket.id}`)
+  } catch (e) {
+    error('No se pudo crear el ticket. Intenta de nuevo.')
+  } finally {
+    cargando.value = false
+  }
+}
+</script>
+
+<template>
+  <div class="p-6 max-w-lg">
+    <SharedPageHeader titulo="Nuevo ticket" volver-a="/tickets" />
+    <SharedCard>
+      <TicketsTicketForm
+        :cargando="cargando"
+        :cliente-id-fijo="clienteIdFijo"
+        :cliente-nombre-fijo="clienteNombreFijo"
+        @submit="onSubmit"
+      />
+    </SharedCard>
+  </div>
+</template>
