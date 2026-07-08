@@ -1,0 +1,123 @@
+<script setup lang="ts">
+import type { Notificacion } from '~/composables/useNotificaciones'
+
+const { fetchNotificaciones, marcarLeida, marcarTodasLeidas, suscribirNotificaciones } = useNotificaciones()
+const router = useRouter()
+
+const notificaciones = ref<Notificacion[]>([])
+const abierto = ref(false)
+const cargando = ref(true)
+const contenedor = ref<HTMLElement | null>(null)
+let dejarDeEscuchar: (() => void) | null = null
+
+const noLeidas = computed(() => notificaciones.value.filter((n) => !n.leida).length)
+
+const etiquetaTipo: Record<Notificacion['tipo'], string> = {
+  lead_asignado: '🧲',
+  ticket_asignado: '🎫',
+  tarea_asignada: '✅',
+  tarea_vencida: '⏰',
+}
+
+const rutaEntidad: Record<Notificacion['entidad_tipo'], string> = {
+  lead: '/leads',
+  cliente: '/clientes',
+  ticket: '/tickets',
+  tarea: '', // las tareas no tienen página propia, se resuelve por su entidad relacionada si hace falta
+}
+
+function formatearFecha(fecha: string) {
+  return new Date(fecha).toLocaleString('es-CL', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
+}
+
+async function cargar() {
+  cargando.value = true
+  notificaciones.value = await fetchNotificaciones()
+  cargando.value = false
+}
+
+onMounted(async () => {
+  await cargar()
+  dejarDeEscuchar = suscribirNotificaciones((nueva) => {
+    notificaciones.value = [nueva, ...notificaciones.value]
+  })
+  document.addEventListener('click', onClickFuera)
+})
+
+onUnmounted(() => {
+  dejarDeEscuchar?.()
+  document.removeEventListener('click', onClickFuera)
+})
+
+function onClickFuera(e: MouseEvent) {
+  if (contenedor.value && !contenedor.value.contains(e.target as Node)) abierto.value = false
+}
+
+async function onClickNotificacion(n: Notificacion) {
+  if (!n.leida) {
+    await marcarLeida(n.id)
+    n.leida = true
+  }
+  abierto.value = false
+  const base = rutaEntidad[n.entidad_tipo]
+  if (base) router.push(`${base}/${n.entidad_id}`)
+}
+
+async function onMarcarTodas() {
+  await marcarTodasLeidas()
+  notificaciones.value = notificaciones.value.map((n) => ({ ...n, leida: true }))
+}
+</script>
+
+<template>
+  <div ref="contenedor" class="relative">
+    <button
+      class="relative w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-50 transition-colors"
+      @click="abierto = !abierto"
+    >
+      <span class="text-lg">🔔</span>
+      <span
+        v-if="noLeidas > 0"
+        class="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] font-semibold rounded-full min-w-[16px] h-4 px-1 flex items-center justify-center"
+      >
+        {{ noLeidas > 9 ? '9+' : noLeidas }}
+      </span>
+    </button>
+
+    <div
+      v-if="abierto"
+      class="absolute right-0 mt-2 w-80 bg-white border border-gray-100 rounded-xl shadow-lg z-50 max-h-96 overflow-y-auto"
+    >
+      <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+        <p class="text-sm font-semibold text-gray-700">Notificaciones</p>
+        <button
+          v-if="noLeidas > 0"
+          class="text-xs text-[#1075B5] hover:underline"
+          @click="onMarcarTodas"
+        >
+          Marcar todas como leídas
+        </button>
+      </div>
+
+      <p v-if="cargando" class="text-xs text-gray-400 px-4 py-3">Cargando...</p>
+      <p v-else-if="!notificaciones.length" class="text-xs text-gray-400 px-4 py-3">Sin notificaciones todavía.</p>
+
+      <button
+        v-for="n in notificaciones"
+        v-else
+        :key="n.id"
+        class="w-full text-left px-4 py-3 flex gap-3 border-b border-gray-50 hover:bg-gray-50 transition-colors"
+        :class="{ 'bg-[#EAF4FA]/40': !n.leida }"
+        @click="onClickNotificacion(n)"
+      >
+        <span class="text-base shrink-0">{{ etiquetaTipo[n.tipo] }}</span>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-medium text-gray-800 truncate">{{ n.titulo }}</p>
+          <p v-if="n.mensaje" class="text-xs text-gray-500 truncate">{{ n.mensaje }}</p>
+          <p class="text-[11px] text-gray-400 mt-0.5">{{ formatearFecha(n.created_at) }}</p>
+        </div>
+        <span v-if="!n.leida" class="w-2 h-2 rounded-full bg-[#1075B5] shrink-0 mt-1.5" />
+      </button>
+    </div>
+  </div>
+</template>
