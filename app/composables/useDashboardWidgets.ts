@@ -4,6 +4,7 @@ export interface MiWidget {
   key: string
   label: string
   component: string
+  resource: string
   tipo: 'kpi' | 'chart'
   orden: number
   config: Record<string, unknown>
@@ -14,6 +15,7 @@ export interface WidgetCatalogo {
   key: string
   label: string
   component: string
+  resource: string
   tipo: 'kpi' | 'chart'
   descripcion: string | null
 }
