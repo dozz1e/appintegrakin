@@ -8,7 +8,7 @@ definePageMeta({
 
 const route = useRoute()
 const router = useRouter()
-const { getLead, updateLead, convertirACliente } = useLeads()
+const { getLead, updateLead, deleteLead, convertirACliente } = useLeads()
 const { can } = usePermissions()
 const { success, error } = useToast()
 
@@ -17,6 +17,8 @@ const cargando = ref(true)
 const guardando = ref(false)
 const convirtiendo = ref(false)
 const errorConversion = ref('')
+const confirmandoEliminar = ref(false)
+const eliminando = ref(false)
 
 const rutConversion = ref('')
 const razonSocialConversion = ref('')
@@ -62,6 +64,20 @@ const onConvertir = async () => {
     error(errorConversion.value)
   } finally {
     convirtiendo.value = false
+  }
+}
+
+async function onConfirmarEliminar() {
+  if (!lead.value) return
+  eliminando.value = true
+  try {
+    await deleteLead(lead.value.id)
+    success('Lead eliminado')
+    await router.push('/leads')
+  } catch (e) {
+    error('No se pudo eliminar el lead. Intenta de nuevo.')
+    eliminando.value = false
+    confirmandoEliminar.value = false
   }
 }
 </script>
@@ -123,8 +139,34 @@ const onConvertir = async () => {
       <div class="mt-6">
         <LeadsLeadTimeline :lead-id="lead.id" />
       </div>
+
+      <div v-if="can('leads', 'delete')" class="mt-6">
+        <SharedCard>
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-sm font-semibold text-gray-700">Eliminar lead</h2>
+              <p class="text-xs text-gray-400 mt-1">Esta acción no se puede deshacer.</p>
+            </div>
+            <button
+              type="button"
+              class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+              @click="confirmandoEliminar = true"
+            >
+              Eliminar lead
+            </button>
+          </div>
+        </SharedCard>
+      </div>
+
+      <SharedConfirmDialog
+        :open="confirmandoEliminar"
+        titulo="Eliminar lead"
+        :mensaje="`¿Eliminar a ${lead.nombre}? Esta acción no se puede deshacer.`"
+        :cargando="eliminando"
+        @confirmar="onConfirmarEliminar"
+        @cancelar="confirmandoEliminar = false"
+      />
     </template>
     <p v-else class="text-red-600">Lead no encontrado</p>
   </div>
-  
 </template>

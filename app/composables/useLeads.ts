@@ -59,6 +59,11 @@ export const useLeads = () => {
     return data as Lead
   }
 
+  const deleteLead = async (id: string) => {
+    const { error } = await supabase.from('leads').delete().eq('id', id)
+    if (error) throw error
+  }
+
   const cambiarEstado = (id: string, estado: EstadoLead) => updateLead(id, { estado })
 
   // requiere permiso leads.assign (se valida por RLS del lado servidor)
@@ -122,6 +127,7 @@ export const useLeads = () => {
     getLead,
     createLead,
     updateLead,
+    deleteLead,
     cambiarEstado,
     asignarLead,
     convertirACliente,
