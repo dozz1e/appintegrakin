@@ -109,6 +109,7 @@ const navCrm = [
         </div>
 
         <div class="flex items-center gap-3">
+          <SharedNotificationBell />
           <SharedAvatar v-if="perfil?.full_name || perfil?.email" :nombre="perfil.full_name || perfil.email || '?'" />
           <div class="text-right hidden sm:block">
             <p class="text-sm font-medium text-gray-700 leading-tight">

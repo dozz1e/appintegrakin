@@ -1,75 +1,30 @@
-# Nuxt Minimal Starter
+# Integrakin CRM
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+CRM interno para Integrakin SpA — Nuxt 4 + Supabase + Vercel.
+
+📄 **Documentación completa del proyecto (arquitectura, permisos, gotchas,
+roadmap):** [`docs/CONTEXTO_PROYECTO.md`](./docs/CONTEXTO_PROYECTO.md)
 
 ## Setup
 
-Make sure to install dependencies:
-
 ```bash
-# npm
-npm install
-
-# pnpm
-pnpm install
-
-# yarn
-yarn install
-
-# bun
-bun install
+npm install --legacy-peer-deps
 ```
 
-## Development Server
+Crear `.env` con las credenciales de Supabase (ver `@nuxtjs/supabase` en
+`nuxt.config.ts`).
 
-Start the development server on `http://localhost:3000`:
+## Desarrollo
 
 ```bash
-# npm
 npm run dev
-
-# pnpm
-pnpm dev
-
-# yarn
-yarn dev
-
-# bun
-bun run dev
 ```
 
-## Production
-
-Build the application for production:
-
+Si agregás componentes o composables nuevos y no aparecen:
 ```bash
-# npm
-npm run build
-
-# pnpm
-pnpm build
-
-# yarn
-yarn build
-
-# bun
-bun run build
+rm -rf .nuxt && npm run dev
 ```
 
-Locally preview production build:
+## Producción
 
-```bash
-# npm
-npm run preview
-
-# pnpm
-pnpm preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
-```
-
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+Desplegado en Vercel, deploy automático desde `master`.
