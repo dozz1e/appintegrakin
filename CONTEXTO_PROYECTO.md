@@ -75,11 +75,9 @@ clientes/nuevo.vue
 leads/index.vue                — Kanban (LeadKanban) + import/export CSV
 leads/[id].vue                 — detalle + timeline de interacciones + tareas
 leads/nuevo.vue
-leads/pipeline.vue             — ⚠️ HUÉRFANA, ver "Limpieza pendiente"
 tickets/index.vue              — Kanban (TicketBoard)
 tickets/[id].vue               — detalle (optimistic locking)
 tickets/nuevo.vue
-tickets/pipeline.vue           — ⚠️ HUÉRFANA, ver "Limpieza pendiente"
 reportes/index.vue             — funnel + performance por vendedor
 ```
 
@@ -87,14 +85,10 @@ reportes/index.vue             — funnel + performance por vendedor
 ```
 useAuditoria, useAuth, useBusquedaGlobal, useClientes, useCsv,
 useDashboardWidgets, useErrorLog, useFeatures, useLeadInteracciones,
-useLeads, useLeadsPipeline, useMiPerfil, useNotificaciones, usePermissions,
-useReportes, useSuperadmin, useTareas, useTickets, useTicketsPipeline,
+useLeads, useMiPerfil, useNotificaciones, usePermissions,
+useReportes, useSuperadmin, useTareas, useTickets,
 useToast, useUsuarios
 ```
-Nota: `useLeadsPipeline.ts` y `useTicketsPipeline.ts` fueron un diseño mío
-temprano (antes de ver que ya existían `LeadKanban.vue`/`TicketBoard.vue` con
-su propia lógica inline). Verificar si siguen en uso real o son redundantes
-con la lógica que vive directamente en esos componentes.
 
 ### Componentes (`app/components/`)
 ```
@@ -226,18 +220,6 @@ el cliente. Solo se puebla vía SQL Editor de Supabase.
     quedaron creados solo ahí sin llegar al repo real. Ante la duda, correr
     `git status --short` (archivos `??` = sin trackear, nunca commiteados).
 
-## Limpieza pendiente (dead code detectado)
-
-- **`app/pages/leads/pipeline.vue`** y **`app/pages/tickets/pipeline.vue`**
-  son huérfanas: usan `<PageHeader>` sin el prefijo `Shared` (no resuelve a
-  ningún componente real), no están linkeadas desde el sidebar, y fueron
-  reemplazadas por la lógica real en `LeadKanban.vue`/`TicketBoard.vue`
-  dentro de `leads/index.vue` y `tickets/index.vue`. **Se pueden borrar.**
-- `useLeadsPipeline.ts`/`useTicketsPipeline.ts` — verificar si siguen en uso
-  o son redundantes con la lógica ya inline en los componentes Kanban reales.
-- `README.md` sigue siendo el default de Nuxt starter, nunca se actualizó
-  con info real del proyecto.
-
 ## Roadmap — estado actual
 
 1. ✅ Pipeline visual de leads (Kanban, 6 estados, colores, drag & drop)
@@ -261,8 +243,6 @@ el cliente. Solo se puebla vía SQL Editor de Supabase.
   `fecha_vencimiento < now() and completada = false`).
 - Segunda pasada de dedupe por `email` en importación de clientes sin RUT
   (`NULL` no deduplica contra otro `NULL` vía unique constraint).
-- Borrar las páginas huérfanas `pipeline.vue` (ver "Limpieza pendiente").
-- Actualizar `README.md` con info real del proyecto.
 
 ## Otros proyectos relacionados (contexto de fondo, no parte de este repo)
 
