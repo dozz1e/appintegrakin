@@ -74,6 +74,16 @@ const navCrm = [
             Dashboards
           </NuxtLink>
           <NuxtLink
+            v-if="can('dashboard_widgets', 'assign')"
+            to="/admin/permisos"
+            class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+            :class="esActivo('/admin/permisos')
+              ? 'bg-[#EAF4FA] text-[#0C5D91]'
+              : 'text-gray-600 hover:bg-gray-50'"
+          >
+            Permisos
+          </NuxtLink>
+          <NuxtLink
             v-if="can('auditoria', 'view_all')"
             to="/admin/auditoria"
             class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors"

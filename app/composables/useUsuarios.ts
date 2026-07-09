@@ -1,5 +1,6 @@
 // composables/useUsuarios.ts
-// Lectura de profiles - usado para selectores de "asignar a" en leads/tickets.
+// Lectura de profiles - usado para selectores de "asignar a" en leads/tickets,
+// y para las pantallas de administración de dashboards/permisos.
 // No incluye create/update/delete: eso se maneja fuera del cliente (ver migración
 // 20260702000900_profiles_rls.sql).
 
@@ -7,6 +8,7 @@ export interface Usuario {
   id: string
   full_name: string | null
   email: string | null
+  role_id: string | null
   role: { name: string } | null
 }
 
@@ -16,7 +18,7 @@ export const useUsuarios = () => {
   const fetchUsuarios = async () => {
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, full_name, email, role:roles(name)')
+      .select('id, full_name, email, role_id, role:roles(name)')
       .eq('active', true)
       .order('full_name')
     if (error) throw error
