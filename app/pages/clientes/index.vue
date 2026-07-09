@@ -6,7 +6,7 @@ definePageMeta({
   permiso: { resource: 'clientes', actions: ['view', 'view_all'] },
 })
 
-const { fetchClientes, importClientes } = useClientes()
+const { fetchClientes, importClientes, deleteCliente } = useClientes()
 const { can } = usePermissions()
 const { parsearCSV, descargarCSV } = useCsv()
 const { success, error } = useToast()
@@ -15,6 +15,8 @@ const clientes = ref<Cliente[]>([])
 const cargando = ref(true)
 const importando = ref(false)
 const inputArchivo = ref<HTMLInputElement | null>(null)
+const clienteAEliminar = ref<Cliente | null>(null)
+const eliminando = ref(false)
 
 onMounted(async () => {
   clientes.value = await fetchClientes()
@@ -47,6 +49,25 @@ async function onArchivoSeleccionado(e: Event) {
   } finally {
     importando.value = false
     if (inputArchivo.value) inputArchivo.value.value = ''
+  }
+}
+
+async function onConfirmarEliminar() {
+  if (!clienteAEliminar.value) return
+  eliminando.value = true
+  try {
+    await deleteCliente(clienteAEliminar.value.id)
+    clientes.value = clientes.value.filter((c) => c.id !== clienteAEliminar.value!.id)
+    success('Cliente eliminado')
+  } catch (e: any) {
+    if (e.code === '23503') {
+      error('No se puede eliminar: el cliente tiene leads o tickets asociados. Resuélvelos primero.')
+    } else {
+      error('No se pudo eliminar el cliente. Intenta de nuevo.')
+    }
+  } finally {
+    eliminando.value = false
+    clienteAEliminar.value = null
   }
 }
 </script>
@@ -83,6 +104,15 @@ async function onArchivoSeleccionado(e: Event) {
     </SharedPageHeader>
 
     <p v-if="cargando" class="text-gray-400">Cargando...</p>
-    <ClientesClienteTable v-else :clientes="clientes" />
+    <ClientesClienteTable v-else :clientes="clientes" @eliminar="clienteAEliminar = $event" />
+
+    <SharedConfirmDialog
+      :open="!!clienteAEliminar"
+      titulo="Eliminar cliente"
+      :mensaje="`¿Eliminar a ${clienteAEliminar?.razon_social}? Esta acción no se puede deshacer.`"
+      :cargando="eliminando"
+      @confirmar="onConfirmarEliminar"
+      @cancelar="clienteAEliminar = null"
+    />
   </div>
 </template>

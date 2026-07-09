@@ -2,6 +2,7 @@
 import type { Cliente } from '~/composables/useClientes'
 
 defineProps<{ clientes: Cliente[] }>()
+defineEmits<{ eliminar: [cliente: Cliente] }>()
 const { can } = usePermissions()
 </script>
 
@@ -31,9 +32,19 @@ const { can } = usePermissions()
           <td class="py-3 px-4 text-gray-500">{{ c.telefono || '—' }}</td>
           <td class="py-3 px-4 text-gray-500">{{ c.email || '—' }}</td>
           <td class="py-3 px-4 text-right">
-            <NuxtLink :to="`/clientes/${c.id}`" class="text-[#1075B5] hover:underline font-medium">
-              {{ can('clientes', 'edit') ? 'Editar' : 'Ver' }}
-            </NuxtLink>
+            <div class="flex items-center justify-end gap-3">
+              <NuxtLink :to="`/clientes/${c.id}`" class="text-[#1075B5] hover:underline font-medium">
+                {{ can('clientes', 'edit') ? 'Editar' : 'Ver' }}
+              </NuxtLink>
+              <button
+                v-if="can('clientes', 'delete')"
+                type="button"
+                class="text-red-600 hover:underline font-medium"
+                @click="$emit('eliminar', c)"
+              >
+                Eliminar
+              </button>
+            </div>
           </td>
         </tr>
         <tr v-if="clientes.length === 0">
