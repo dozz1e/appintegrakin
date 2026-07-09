@@ -48,14 +48,18 @@
 20260702000900_rls_profiles.sql
 20260703000000_superadmin_features.sql
 20260704000000_dashboard_widgets.sql
+20260705000000_tareas.sql
+20260705000100_lead_interacciones.sql
 20260707010000_optimistic_locking.sql
 20260707020000_notificaciones.sql
 20260708000000_notificaciones_realtime.sql
 ```
-Nota: las migraciones de `tareas` y `lead_interacciones` se corrieron a mano
-en el SQL Editor de Supabase y **no quedaron como archivo de migración en el
-repo** — si se recrea la base desde cero, hay que agregarlas manualmente (ver
-sección de schema más abajo para la definición completa).
+Nota: las 5 migraciones desde `tareas` hasta `notificaciones_realtime` se
+crearon originalmente a mano en el SQL Editor de Supabase; ya quedaron
+versionadas (esquema/funciones/triggers extraídos de la base real vía
+`information_schema`/`pg_constraint`/`pg_policies`/`pg_trigger`/`pg_proc`,
+no reaplicadas contra prod porque ya existen ahí). Aún faltaba comitear los
+archivos al repo — ver `git status` si esto sigue pendiente.
 
 ### Páginas (`app/pages/`)
 ```
@@ -164,11 +168,12 @@ el cliente. Solo se puebla vía SQL Editor de Supabase.
   owner_id, created_by, version`. Estados (`tickets_estado_check`): `abierto,
   en_proceso, esperando_cliente, resuelto, cerrado`. Prioridad: `baja, media,
   alta, urgente`.
-- **`tareas`** (genérica, no tiene migración commiteada — ver nota arriba):
-  `entidad_tipo (lead/cliente/ticket), entidad_id, titulo, fecha_vencimiento,
-  completada, owner_id, created_by`.
-- **`lead_interacciones`** (idem, sin migración commiteada): `lead_id, canal
-  (correo/texto/telefono), nota, created_by`.
+- **`tareas`** (ver `20260705000000_tareas.sql`): `entidad_tipo
+  (lead/cliente/ticket), entidad_id, titulo, fecha_vencimiento, completada,
+  owner_id, created_by`. Sin trigger de `updated_at` (columna con default
+  `now()` pero no se actualiza sola).
+- **`lead_interacciones`** (ver `20260705000100_lead_interacciones.sql`):
+  `lead_id, canal (correo/texto/telefono), nota, created_by`.
 - **`notificaciones`**: `usuario_id, tipo, entidad_tipo, entidad_id, mensaje,
   leida, created_at` + triggers de asignación (lead/ticket/tarea) + Realtime
   habilitado (`alter publication supabase_realtime add table notificaciones`).
@@ -256,8 +261,6 @@ el cliente. Solo se puebla vía SQL Editor de Supabase.
   `fecha_vencimiento < now() and completada = false`).
 - Segunda pasada de dedupe por `email` en importación de clientes sin RUT
   (`NULL` no deduplica contra otro `NULL` vía unique constraint).
-- Migrar `tareas` y `lead_interacciones` a archivos de migración versionados
-  (hoy solo existen en la base real, corridas a mano).
 - Borrar las páginas huérfanas `pipeline.vue` (ver "Limpieza pendiente").
 - Actualizar `README.md` con info real del proyecto.
 
