@@ -15,7 +15,9 @@ update dashboard_widgets set resource = 'leads'    where key = 'kpi.tasa_convers
 
 alter table dashboard_widgets alter column resource set not null;
 
-create or replace function mis_widgets()
+drop function mis_widgets();
+
+create function mis_widgets()
 returns table (key text, label text, component text, resource text, tipo text, orden int, config jsonb)
 language sql
 security definer
