@@ -1,6 +1,10 @@
+<!-- app/pages/index.vue -->
 <script setup lang="ts">
 // Home = dashboard personal. Cada usuario ve solo los widgets que le
-// asignó la dueña o el superadmin (tabla user_dashboard_widgets).
+// asignó la dueña o el superadmin (tabla user_dashboard_widgets) Y que
+// además puede ver según sus permisos actuales (si se le asignó un widget
+// y luego se le revocó el acceso a esa página, el widget deja de mostrarse
+// sin que haya que ir a desasignarlo a mano).
 //
 // El componente se resuelve con un mapa explícito, NO con <component :is="string">
 // dependiendo del registro global de Nuxt (por defecto Nuxt NO registra los
@@ -26,12 +30,15 @@ const componentMap: Record<string, any> = {
 }
 
 const { misWidgets, cargarMisWidgets } = useDashboardWidgets()
+const { can } = usePermissions()
 const cargando = ref(true)
 
 onMounted(async () => {
   await cargarMisWidgets()
   cargando.value = false
 })
+
+const widgetsVisibles = computed(() => misWidgets.value.filter((w) => can(w.resource, 'view') || can(w.resource, 'view_all')))
 </script>
 
 <template>
@@ -40,19 +47,19 @@ onMounted(async () => {
 
     <p v-if="cargando" class="text-gray-400">Cargando...</p>
 
-    <p v-else-if="misWidgets.length === 0" class="text-gray-400 text-sm">
+    <p v-else-if="widgetsVisibles.length === 0" class="text-gray-400 text-sm">
       Todavía no tienes ningún widget asignado. Pídele a tu administrador que te active
       alguno desde el panel de dashboards.
     </p>
 
-    <p v-else-if="misWidgets.some((w) => !componentMap[w.component])" class="text-red-500 text-sm">
+    <p v-else-if="widgetsVisibles.some((w) => !componentMap[w.component])" class="text-red-500 text-sm">
       Un widget asignado no tiene componente registrado en el mapa (revisa la consola).
     </p>
 
     <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       <component
         :is="componentMap[w.component]"
-        v-for="w in misWidgets"
+        v-for="w in widgetsVisibles"
         :key="w.key"
         v-bind="w.config"
       />
