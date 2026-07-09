@@ -67,6 +67,11 @@ export const useTickets = () => {
     return data as Ticket
   }
 
+  const deleteTicket = async (id: string) => {
+    const { error } = await supabase.from('tickets').delete().eq('id', id)
+    if (error) throw error
+  }
+
   const cambiarEstado = (id: string, estado: EstadoTicket) => updateTicket(id, { estado })
 
   // requiere permiso tickets.assign - RLS lo valida server-side, esto es solo el wrapper
@@ -78,6 +83,7 @@ export const useTickets = () => {
     getTicket,
     createTicket,
     updateTicket,
+    deleteTicket,
     cambiarEstado,
     asignarTecnico,
   }

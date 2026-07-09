@@ -8,7 +8,7 @@ definePageMeta({
 })
 
 const route = useRoute()
-const { getTicket, updateTicket, asignarTecnico } = useTickets()
+const { getTicket, updateTicket, deleteTicket, asignarTecnico } = useTickets()
 const { fetchUsuariosPorRol } = useUsuarios()
 const { can } = usePermissions()
 const { success, error } = useToast()
@@ -18,6 +18,8 @@ const tecnicos = ref<Usuario[]>([])
 const cargando = ref(true)
 const guardando = ref(false)
 const asignando = ref(false)
+const confirmandoEliminar = ref(false)
+const eliminando = ref(false)
 
 onMounted(async () => {
   ticket.value = await getTicket(route.params.id as string)
@@ -57,6 +59,20 @@ const onAsignar = async (tecnicoId: string) => {
     asignando.value = false
   }
 }
+
+async function onConfirmarEliminar() {
+  if (!ticket.value) return
+  eliminando.value = true
+  try {
+    await deleteTicket(ticket.value.id)
+    success('Ticket eliminado')
+    await navigateTo('/tickets')
+  } catch (e) {
+    error('No se pudo eliminar el ticket. Intenta de nuevo.')
+    eliminando.value = false
+    confirmandoEliminar.value = false
+  }
+}
 </script>
 
 <template>
@@ -88,6 +104,33 @@ const onAsignar = async (tecnicoId: string) => {
           </select>
         </SharedCard>
       </div>
+
+      <div v-if="can('tickets', 'delete')" class="mt-6">
+        <SharedCard>
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-sm font-semibold text-gray-700">Eliminar ticket</h2>
+              <p class="text-xs text-gray-400 mt-1">Esta acción no se puede deshacer.</p>
+            </div>
+            <button
+              type="button"
+              class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+              @click="confirmandoEliminar = true"
+            >
+              Eliminar ticket
+            </button>
+          </div>
+        </SharedCard>
+      </div>
+
+      <SharedConfirmDialog
+        :open="confirmandoEliminar"
+        titulo="Eliminar ticket"
+        :mensaje="`¿Eliminar &quot;${ticket.titulo}&quot;? Esta acción no se puede deshacer.`"
+        :cargando="eliminando"
+        @confirmar="onConfirmarEliminar"
+        @cancelar="confirmandoEliminar = false"
+      />
     </template>
     <p v-else class="text-red-600">Ticket no encontrado</p>
   </div>
