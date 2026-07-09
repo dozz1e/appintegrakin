@@ -8,7 +8,7 @@ definePageMeta({
 })
 
 const route = useRoute()
-const { getCliente, updateCliente } = useClientes()
+const { getCliente, updateCliente, deleteCliente } = useClientes()
 const { fetchTicketsPorCliente } = useTickets()
 const { can } = usePermissions()
 const { success, error } = useToast()
@@ -17,6 +17,8 @@ const cliente = ref<Cliente | null>(null)
 const tickets = ref<Ticket[]>([])
 const cargando = ref(true)
 const guardando = ref(false)
+const confirmandoEliminar = ref(false)
+const eliminando = ref(false)
 
 onMounted(async () => {
   cliente.value = await getCliente(route.params.id as string)
@@ -43,6 +45,24 @@ const onSubmit = async (payload: Record<string, unknown>) => {
     guardando.value = false
   }
 }
+
+async function onConfirmarEliminar() {
+  if (!cliente.value) return
+  eliminando.value = true
+  try {
+    await deleteCliente(cliente.value.id)
+    success('Cliente eliminado')
+    await navigateTo('/clientes')
+  } catch (e: any) {
+    if (e.code === '23503') {
+      error('No se puede eliminar: el cliente tiene leads o tickets asociados. Resuélvelos primero.')
+    } else {
+      error('No se pudo eliminar el cliente. Intenta de nuevo.')
+    }
+    eliminando.value = false
+    confirmandoEliminar.value = false
+  }
+}
 </script>
 
 <template>
@@ -58,6 +78,24 @@ const onSubmit = async (payload: Record<string, unknown>) => {
           @submit="can('clientes', 'edit') ? onSubmit($event) : undefined"
         />
       </SharedCard>
+
+      <div v-if="can('clientes', 'delete')" class="mt-6">
+        <SharedCard>
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-sm font-semibold text-gray-700">Eliminar cliente</h2>
+              <p class="text-xs text-gray-400 mt-1">Esta acción no se puede deshacer.</p>
+            </div>
+            <button
+              type="button"
+              class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+              @click="confirmandoEliminar = true"
+            >
+              Eliminar cliente
+            </button>
+          </div>
+        </SharedCard>
+      </div>
 
       <div v-if="can('tickets', 'view') || can('tickets', 'view_all')" class="mt-6">
         <SharedCard>
@@ -86,6 +124,15 @@ const onSubmit = async (payload: Record<string, unknown>) => {
           <p v-else class="text-sm text-gray-400">Sin tickets todavía</p>
         </SharedCard>
       </div>
+
+      <SharedConfirmDialog
+        :open="confirmandoEliminar"
+        titulo="Eliminar cliente"
+        :mensaje="`¿Eliminar a ${cliente.razon_social}? Esta acción no se puede deshacer.`"
+        :cargando="eliminando"
+        @confirmar="onConfirmarEliminar"
+        @cancelar="confirmandoEliminar = false"
+      />
     </template>
     <p v-else class="text-red-600">Cliente no encontrado</p>
   </div>
