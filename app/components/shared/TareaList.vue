@@ -71,9 +71,7 @@ function esVencida(tarea: Tarea) {
 
 function formatearFecha(fecha: string) {
   const d = new Date(fecha)
-  const esDefaultLocal = d.getHours() === 23 && d.getMinutes() === 59
-  const esSinHoraLegado = d.getUTCHours() === 0 && d.getUTCMinutes() === 0
-  const esDefault = esDefaultLocal || esSinHoraLegado
+  const esDefault = d.getHours() === 23 && d.getMinutes() === 59
   const base = d.toLocaleDateString('es-CL', { day: '2-digit', month: 'short' })
   if (esDefault) return base
   return `${base}, ${d.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}`
