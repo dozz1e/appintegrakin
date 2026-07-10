@@ -53,6 +53,7 @@
 20260707010000_optimistic_locking.sql
 20260707020000_notificaciones.sql
 20260708000000_notificaciones_realtime.sql
+20260710000000_notificacion_tarea_vencida.sql
 ```
 Nota: las 5 migraciones desde `tareas` hasta `notificaciones_realtime` se
 crearon originalmente a mano en el SQL Editor de Supabase; ya quedaron
@@ -165,13 +166,23 @@ el cliente. Solo se puebla vía SQL Editor de Supabase.
 - **`tareas`** (ver `20260705000000_tareas.sql`): `entidad_tipo
   (lead/cliente/ticket), entidad_id, titulo, fecha_vencimiento, completada,
   owner_id, created_by`. Sin trigger de `updated_at` (columna con default
-  `now()` pero no se actualiza sola).
+  `now()` pero no se actualiza sola). Desde `20260710000000_...` también
+  tiene `notificada_vencida boolean` (evita duplicar el aviso de vencida,
+  ver más abajo). `fecha_vencimiento` es `timestamptz` (fecha **y hora**):
+  `TareaList.vue` (compartido clientes/leads/tickets) combina un
+  `<input type="date">` + `<input type="time">` en un timestamp real vía
+  `new Date(anio, mes-1, dia, horas, minutos).toISOString()`. Si se omite
+  la hora, el default es **23:59 hora local** — no medianoche — para que
+  una tarea "de hoy" no se marque vencida apenas empieza el día. Esa misma
+  convención (23:59 local = "sin hora elegida") es la que decide si
+  `formatearFecha` le muestra la hora al usuario o no.
 - **`lead_interacciones`** (ver `20260705000100_lead_interacciones.sql`):
   `lead_id, canal (correo/texto/telefono), nota, created_by`.
 - **`notificaciones`**: `usuario_id, tipo, entidad_tipo, entidad_id, mensaje,
   leida, created_at` + triggers de asignación (lead/ticket/tarea) + Realtime
   habilitado (`alter publication supabase_realtime add table notificaciones`).
-  Falta el tipo `tarea_vencida` (requiere cron, no trigger — ver pendientes).
+  El tipo `tarea_vencida` se genera vía `pg_cron` (ver más abajo), no por
+  trigger — "vencer" no es un evento de escritura.
 - **`audit_log`**: `tabla, registro_id, usuario_id, accion, datos_anteriores,
   datos_nuevos` — ya tiene UI de consulta en `/admin/auditoria`.
 - **`kame_tokens`**: token OAuth de Kame ERP, expira cada 24h.
@@ -219,6 +230,15 @@ el cliente. Solo se puebla vía SQL Editor de Supabase.
     siempre que se entregaron y se subieron a git — ya pasó que archivos
     quedaron creados solo ahí sin llegar al repo real. Ante la duda, correr
     `git status --short` (archivos `??` = sin trackear, nunca commiteados).
+11. `tareas.fecha_vencimiento`: **23:59 hora local es el sentinel de "sin
+    hora elegida"**, no `null` ni ningún flag separado. Si algún día se
+    necesita distinguir de verdad "sin hora" de "el usuario eligió 23:59
+    a propósito", hace falta una columna nueva — hoy son indistinguibles
+    a propósito (se descartó un heurístico basado en medianoche UTC por
+    colisionar con tareas reales a las 20:00 en Chile, GMT-4).
+12. `push` a `origin/master` requiere autenticación HTTPS interactiva que
+    este entorno no puede resolver solo (no hay `gh` CLI ni credential
+    helper configurado) — pedirle al usuario que lo corra él mismo.
 
 ## Roadmap — estado actual
 
@@ -228,7 +248,8 @@ el cliente. Solo se puebla vía SQL Editor de Supabase.
 4. ✅ Reportes y analytics (funnel + performance por vendedor)
 5. ✅ Búsqueda global (clientes/leads/tickets, dropdown con debounce)
 6. ✅ Importación/exportación CSV con deduplicación (rut / teléfono-email)
-7. ✅ Notificaciones in-app (Realtime, campanita) — falta `tarea_vencida` (cron)
+7. ✅ Notificaciones in-app (Realtime, campanita), incluyendo `tarea_vencida`
+   vía `pg_cron` (job `notificar-tareas-vencidas`, corre cada hora)
 8. 🟡 Auditoría — ya existe **visor** de `audit_log` en `/admin/auditoria`,
    pero falta el testing activo de seguridad de RLS (intentar escalar
    permisos, acceso cross-vendedor, etc.)
@@ -246,12 +267,26 @@ el cliente. Solo se puebla vía SQL Editor de Supabase.
     bloquea su borrado. Ninguna de las tres entidades limpia
     `tareas`/`notificaciones` huérfanas al eliminar (decisión explícita del
     spec, ver `docs/superpowers/specs/2026-07-09-eliminar-*-design.md`).
+13. ✅ Notificación de `tarea_vencida` vía `pg_cron` —
+    `fn_notificar_tareas_vencidas()` (`security definer`) corre cada hora,
+    notifica una sola vez por tarea (columna `tareas.notificada_vencida`)
+    a `coalesce(owner_id, created_by)`, con un trigger que resetea el flag
+    si la tarea se reabre o se reprograma (ver
+    `docs/superpowers/specs/2026-07-10-notificacion-tarea-vencida-design.md`).
+    Al aplicarla se generó, correctamente, un aviso real para una tarea que
+    ya estaba vencida desde antes del cambio — se dejó tal cual (decisión
+    del usuario, es información legítima).
+14. ✅ Selector de hora en tareas/recordatorios — `TareaList.vue` (compartido
+    clientes/leads/tickets) agrega `<input type="time">` junto al de fecha,
+    con el default 23:59-hora-local descrito en el gotcha #11 (ver
+    `docs/superpowers/specs/2026-07-10-fecha-hora-tareas-design.md`). Se
+    hizo un backfill puntual de 3 tareas antiguas (creadas antes de este
+    cambio, guardadas a medianoche UTC) para que sigan mostrando solo la
+    fecha en vez de una hora inventada.
 
 ## Pendientes sueltos
 
 - Probar optimistic locking (dos pestañas, mismo registro) con usuarios reales.
-- Notificación de `tarea_vencida` vía cron (pg_cron o job externo que revise
-  `fecha_vencimiento < now() and completada = false`).
 - Segunda pasada de dedupe por `email` en importación de clientes sin RUT
   (`NULL` no deduplica contra otro `NULL` vía unique constraint).
 
