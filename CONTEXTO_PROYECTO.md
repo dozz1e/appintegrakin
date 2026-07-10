@@ -5,7 +5,7 @@
 > cuenta nueva de Claude (pegarlo como primer mensaje) o para cualquier
 > desarrollador que se sume.
 >
-> Última actualización: julio 2026.
+> Última actualización: 10 de julio de 2026.
 
 ## Stack y dependencias reales
 
@@ -95,8 +95,8 @@ useToast, useUsuarios
 clientes/ClienteForm.vue, clientes/ClienteTable.vue
 leads/LeadForm.vue, leads/LeadKanban.vue, leads/LeadTimeline.vue
 tickets/TicketBoard.vue, tickets/TicketForm.vue
-shared/AppLogo, Avatar, Badge, Card, GlobalSearch, NotificationBell,
-       PageHeader, TareaList, ToastContainer
+shared/AppLogo, Avatar, Badge, Card, ConfirmDialog, GlobalSearch,
+       NotificationBell, PageHeader, TareaList, ToastContainer
 widgets/ChartLeadsPorEstado, KpiCard, KpiClientesTotales, KpiLeadsActivos,
         KpiTasaConversion, KpiTicketsAbiertos
 ```
@@ -235,6 +235,17 @@ el cliente. Solo se puebla vía SQL Editor de Supabase.
 9. ⬜ Testing automatizado de `has_permission()` / permisos efectivos
 10. 🟡 Documentación — este documento es la base; falta manual de uso por rol
     para la dueña y su equipo (no técnico)
+11. ✅ Eliminar clientes/leads/tickets desde la UI — `deleteCliente`/
+    `deleteLead`/`deleteTicket` (mismo patrón en los tres composables) +
+    componente `SharedConfirmDialog` (modal de confirmación reutilizable,
+    montado en un `Teleport` a `body`). Clientes: eliminar desde el listado
+    (`ClienteTable.vue`) y desde el detalle, con manejo especial del error
+    de foreign key (`e.code === '23503'`, cliente con leads/tickets
+    asociados) en ambas páginas. Leads y tickets: solo desde el detalle
+    (no hay tabla de listado, son Kanban), sin caso especial de FK — nada
+    bloquea su borrado. Ninguna de las tres entidades limpia
+    `tareas`/`notificaciones` huérfanas al eliminar (decisión explícita del
+    spec, ver `docs/superpowers/specs/2026-07-09-eliminar-*-design.md`).
 
 ## Pendientes sueltos
 
