@@ -15,6 +15,7 @@ const guardando = ref(false)
 
 const titulo = ref('')
 const fechaVencimiento = ref('')
+const horaVencimiento = ref('')
 
 async function cargar() {
   cargando.value = true
@@ -24,6 +25,15 @@ async function cargar() {
 
 onMounted(cargar)
 
+// Si se omite la hora, la tarea vence al final del día elegido (23:59) en
+// vez de a medianoche — evita que una tarea "para hoy" se marque vencida
+// apenas empieza el día.
+function construirFechaVencimiento(fecha: string, hora: string): string {
+  const [anio, mes, dia] = fecha.split('-').map(Number)
+  const [horas, minutos] = hora ? hora.split(':').map(Number) : [23, 59]
+  return new Date(anio, mes - 1, dia, horas, minutos, 0).toISOString()
+}
+
 async function onSubmit() {
   if (!titulo.value.trim()) return
   guardando.value = true
@@ -32,10 +42,11 @@ async function onSubmit() {
       props.entidadTipo,
       props.entidadId,
       titulo.value.trim(),
-      fechaVencimiento.value || null
+      fechaVencimiento.value ? construirFechaVencimiento(fechaVencimiento.value, horaVencimiento.value) : null
     )
     titulo.value = ''
     fechaVencimiento.value = ''
+    horaVencimiento.value = ''
     await cargar()
     success('Tarea creada')
   } catch (e) {
@@ -59,7 +70,11 @@ function esVencida(tarea: Tarea) {
 }
 
 function formatearFecha(fecha: string) {
-  return new Date(fecha).toLocaleDateString('es-CL', { day: '2-digit', month: 'short' })
+  const d = new Date(fecha)
+  const esDefault = d.getHours() === 23 && d.getMinutes() === 59
+  const base = d.toLocaleDateString('es-CL', { day: '2-digit', month: 'short' })
+  if (esDefault) return base
+  return `${base}, ${d.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}`
 }
 </script>
 
@@ -76,6 +91,11 @@ function formatearFecha(fecha: string) {
       <input
         v-model="fechaVencimiento"
         type="date"
+        class="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30"
+      />
+      <input
+        v-model="horaVencimiento"
+        type="time"
         class="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30"
       />
       <button
