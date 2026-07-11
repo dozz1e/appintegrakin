@@ -1,0 +1,54 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Design tokens. #1075B5 / #0C5D91 / #EAF4FA are the real Integrakin brand
+ * blue anchors (kept as literal hex for fidelity); everything else is
+ * generated in OKLCH.
+ */
+:root {
+  color-scheme: light;
+
+  --color-bg: oklch(97% 0.004 250);
+  --color-surface: oklch(100% 0 0);
+  --color-surface-2: oklch(98% 0.004 250);
+  --color-border: oklch(92% 0.006 250);
+  --color-border-strong: oklch(85% 0.008 250);
+
+  --color-ink: oklch(27% 0.02 260);
+  --color-ink-secondary: oklch(45% 0.02 260);
+  --color-ink-muted: oklch(50% 0.02 260);
+  --color-ink-on-primary: oklch(100% 0 0);
+
+  --color-primary: #1075b5;
+  --color-primary-ink: #0c5d91;
+  --color-primary-subtle: #eaf4fa;
+  --color-primary-hover: color-mix(in oklch, #1075b5 88%, black);
+  --color-primary-active: color-mix(in oklch, #1075b5 76%, black);
+  --color-primary-ring: color-mix(in oklch, #1075b5 45%, transparent);
+
+  --color-success-bg: oklch(96% 0.03 150);
+  --color-success-text: oklch(40% 0.1 150);
+  --color-warning-bg: oklch(96% 0.045 85);
+  --color-warning-text: oklch(45% 0.13 75);
+  --color-danger: oklch(52% 0.19 25);
+  --color-danger-hover: oklch(46% 0.19 25);
+  --color-danger-bg: oklch(96% 0.03 25);
+  --color-danger-text: oklch(45% 0.17 25);
+  --color-violet-bg: oklch(96% 0.03 305);
+  --color-violet-text: oklch(45% 0.15 305);
+  --color-neutral-bg: oklch(95% 0.004 260);
+  --color-neutral-text: oklch(45% 0.02 260);
+
+  --color-overlay: oklch(20% 0.01 260 / 0.4);
+}
+
+* {
+  border-color: var(--color-border);
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-ink);
+}

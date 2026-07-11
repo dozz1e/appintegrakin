@@ -2,20 +2,20 @@
 //
 // Un solo lugar para decidir qué color le corresponde a cada estado.
 // Auto-importado por Nuxt (igual que composables/, pero para funciones puras
-// sin estado). Devuelve clases de Tailwind con color arbitrario (#1075B5 es
-// el primario de la marca), no depende de tailwind.config.
+// sin estado). Devuelve clases de Tailwind atadas a los tokens de diseño
+// (ver app/assets/css/main.css y tailwind.config.ts), con soporte claro/oscuro.
 
 export interface EstiloEstado {
   label: string
   clases: string // clases completas para el badge
 }
 
-const PRIMARIO_BG = 'bg-[#EAF4FA] text-[#0C5D91]'
-const VERDE_BG = 'bg-green-50 text-green-700'
-const AMBAR_BG = 'bg-amber-50 text-amber-700'
-const ROJO_BG = 'bg-red-50 text-red-700'
-const MORADO_BG = 'bg-purple-50 text-purple-700'
-const GRIS_BG = 'bg-gray-100 text-gray-600'
+const PRIMARIO_BG = 'bg-primary-subtle text-primary-ink'
+const VERDE_BG = 'bg-success-bg text-success-text'
+const AMBAR_BG = 'bg-warning-bg text-warning-text'
+const ROJO_BG = 'bg-danger-bg text-danger-text'
+const MORADO_BG = 'bg-violet-bg text-violet-text'
+const GRIS_BG = 'bg-neutral-bg text-neutral-text'
 
 export function colorLead(estado: string): EstiloEstado {
   const mapa: Record<string, EstiloEstado> = {

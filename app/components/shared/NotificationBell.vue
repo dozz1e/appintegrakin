@@ -72,13 +72,13 @@ async function onMarcarTodas() {
 <template>
   <div ref="contenedor" class="relative">
     <button
-      class="relative w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-50 transition-colors"
+      class="relative w-9 h-9 flex items-center justify-center rounded-full text-ink-secondary hover:bg-surface-2 hover:text-ink transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-ring"
       @click="abierto = !abierto"
     >
       <span class="text-lg">🔔</span>
       <span
         v-if="noLeidas > 0"
-        class="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] font-semibold rounded-full min-w-[16px] h-4 px-1 flex items-center justify-center"
+        class="absolute -top-0.5 -right-0.5 bg-danger text-ink-onprimary text-[10px] font-semibold rounded-full min-w-[16px] h-4 px-1 flex items-center justify-center"
       >
         {{ noLeidas > 9 ? '9+' : noLeidas }}
       </span>
@@ -86,37 +86,37 @@ async function onMarcarTodas() {
 
     <div
       v-if="abierto"
-      class="absolute right-0 mt-2 w-80 bg-white border border-gray-100 rounded-xl shadow-lg z-50 max-h-96 overflow-y-auto"
+      class="absolute right-0 mt-2 w-80 bg-surface border border-border rounded-xl shadow-lg z-50 max-h-96 overflow-y-auto"
     >
-      <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-        <p class="text-sm font-semibold text-gray-700">Notificaciones</p>
+      <div class="flex items-center justify-between px-4 py-3 border-b border-border">
+        <p class="text-sm font-semibold text-ink">Notificaciones</p>
         <button
           v-if="noLeidas > 0"
-          class="text-xs text-[#1075B5] hover:underline"
+          class="text-xs text-primary hover:underline"
           @click="onMarcarTodas"
         >
           Marcar todas como leídas
         </button>
       </div>
 
-      <p v-if="cargando" class="text-xs text-gray-400 px-4 py-3">Cargando...</p>
-      <p v-else-if="!notificaciones.length" class="text-xs text-gray-400 px-4 py-3">Sin notificaciones todavía.</p>
+      <p v-if="cargando" class="text-xs text-ink-muted px-4 py-3">Cargando...</p>
+      <p v-else-if="!notificaciones.length" class="text-xs text-ink-muted px-4 py-3">Sin notificaciones todavía.</p>
 
       <button
         v-for="n in notificaciones"
         v-else
         :key="n.id"
-        class="w-full text-left px-4 py-3 flex gap-3 border-b border-gray-50 hover:bg-gray-50 transition-colors"
-        :class="{ 'bg-[#EAF4FA]/40': !n.leida }"
+        class="w-full text-left px-4 py-3 flex gap-3 border-b border-border hover:bg-surface-2 transition-colors duration-150"
+        :class="{ 'bg-primary-subtle/60': !n.leida }"
         @click="onClickNotificacion(n)"
       >
         <span class="text-base shrink-0">{{ etiquetaTipo[n.tipo] }}</span>
         <div class="flex-1 min-w-0">
-          <p class="text-sm font-medium text-gray-800 truncate">{{ n.titulo }}</p>
-          <p v-if="n.mensaje" class="text-xs text-gray-500 truncate">{{ n.mensaje }}</p>
-          <p class="text-[11px] text-gray-400 mt-0.5">{{ formatearFecha(n.created_at) }}</p>
+          <p class="text-sm font-medium text-ink truncate">{{ n.titulo }}</p>
+          <p v-if="n.mensaje" class="text-xs text-ink-secondary truncate">{{ n.mensaje }}</p>
+          <p class="text-[11px] text-ink-muted mt-0.5">{{ formatearFecha(n.created_at) }}</p>
         </div>
-        <span v-if="!n.leida" class="w-2 h-2 rounded-full bg-[#1075B5] shrink-0 mt-1.5" />
+        <span v-if="!n.leida" class="w-2 h-2 rounded-full bg-primary shrink-0 mt-1.5" />
       </button>
     </div>
   </div>

@@ -8,11 +8,11 @@ defineProps<{ titulo: string; volverA?: string }>()
       <NuxtLink
         v-if="volverA"
         :to="volverA"
-        class="text-xs text-gray-400 hover:text-[#1075B5] mb-1 inline-block"
+        class="text-xs text-ink-muted hover:text-primary mb-1 inline-block transition-colors duration-150"
       >
         ← Volver
       </NuxtLink>
-      <h1 class="text-xl font-semibold text-gray-800">{{ titulo }}</h1>
+      <h1 class="text-xl font-semibold text-ink">{{ titulo }}</h1>
     </div>
     <slot name="accion" />
   </div>

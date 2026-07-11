@@ -2,9 +2,9 @@
 const { toasts, quitar } = useToast()
 
 const estilos: Record<string, string> = {
-  success: 'bg-white border-green-200 text-green-700',
-  error: 'bg-white border-red-200 text-red-700',
-  info: 'bg-white border-[#BEE0F2] text-[#0C5D91]',
+  success: 'bg-surface border-success-text/30 text-success-text',
+  error: 'bg-surface border-danger-text/30 text-danger-text',
+  info: 'bg-surface border-primary/30 text-primary-ink',
 }
 
 const iconos: Record<string, string> = {
