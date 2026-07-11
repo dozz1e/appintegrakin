@@ -49,6 +49,8 @@ onMounted(async () => {
 })
 
 const widgetsVisibles = computed(() => misWidgets.value.filter((w) => can(w.resource, 'view') || can(w.resource, 'view_all')))
+const kpisVisibles = computed(() => widgetsVisibles.value.filter((w) => w.tipo === 'kpi'))
+const chartsVisibles = computed(() => widgetsVisibles.value.filter((w) => w.tipo === 'chart'))
 </script>
 
 <template>
@@ -66,13 +68,28 @@ const widgetsVisibles = computed(() => misWidgets.value.filter((w) => can(w.reso
       Un widget asignado no tiene componente registrado en el mapa (revisa la consola).
     </p>
 
-    <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      <component
-        :is="componentMap[w.component]"
-        v-for="w in widgetsVisibles"
-        :key="w.key"
-        v-bind="w.config"
-      />
-    </div>
+    <template v-else>
+      <div
+        v-if="kpisVisibles.length"
+        class="grid gap-4 mb-6"
+        :style="{ gridTemplateColumns: `repeat(${Math.min(kpisVisibles.length, 7)}, minmax(0, 1fr))` }"
+      >
+        <component
+          :is="componentMap[w.component]"
+          v-for="w in kpisVisibles"
+          :key="w.key"
+          v-bind="w.config"
+        />
+      </div>
+
+      <div v-if="chartsVisibles.length" class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <component
+          :is="componentMap[w.component]"
+          v-for="w in chartsVisibles"
+          :key="w.key"
+          v-bind="w.config"
+        />
+      </div>
+    </template>
   </div>
 </template>
