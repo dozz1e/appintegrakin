@@ -18,7 +18,6 @@ const navCrm = [
   { path: '/clientes', label: 'Clientes', permiso: ['view', 'view_all'] as const, resource: 'clientes' },
   { path: '/leads', label: 'Leads', permiso: ['view', 'view_all'] as const, resource: 'leads' },
   { path: '/tickets', label: 'Tickets', permiso: ['view', 'view_all'] as const, resource: 'tickets' },
-  { path: '/reportes', label: 'Reportes', permiso: ['view', 'view_all'] as const, resource: 'reportes' },
 ]
 </script>
 
