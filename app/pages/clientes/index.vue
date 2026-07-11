@@ -17,6 +17,12 @@ const importando = ref(false)
 const inputArchivo = ref<HTMLInputElement | null>(null)
 const clienteAEliminar = ref<Cliente | null>(null)
 const eliminando = ref(false)
+const vista = ref<'lista' | 'detalle'>('lista')
+
+function onActualizado(actualizado: Cliente) {
+  const idx = clientes.value.findIndex((c) => c.id === actualizado.id)
+  if (idx !== -1) clientes.value[idx] = actualizado
+}
 
 onMounted(async () => {
   clientes.value = await fetchClientes()
@@ -78,6 +84,14 @@ async function onConfirmarEliminar() {
       <template #accion>
         <div class="flex items-center gap-2">
           <button
+            type="button"
+            :title="vista === 'lista' ? 'Ver detalle' : 'Ver como lista'"
+            class="border border-gray-200 text-gray-600 hover:bg-gray-50 w-9 h-9 flex items-center justify-center rounded-lg transition-colors"
+            @click="vista = vista === 'lista' ? 'detalle' : 'lista'"
+          >
+            <Icon :name="vista === 'lista' ? 'mdi:card-account-details-outline' : 'mdi:view-list'" class="w-5 h-5" />
+          </button>
+          <button
             class="border border-gray-200 text-gray-600 hover:bg-gray-50 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
             @click="onExportar"
           >
@@ -104,7 +118,8 @@ async function onConfirmarEliminar() {
     </SharedPageHeader>
 
     <p v-if="cargando" class="text-gray-400">Cargando...</p>
-    <ClientesClienteTable v-else :clientes="clientes" @eliminar="clienteAEliminar = $event" />
+    <ClientesClienteTable v-else-if="vista === 'lista'" :clientes="clientes" @eliminar="clienteAEliminar = $event" />
+    <ClientesClienteSplitView v-else :clientes="clientes" @actualizado="onActualizado" />
 
     <SharedConfirmDialog
       :open="!!clienteAEliminar"
