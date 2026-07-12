@@ -76,7 +76,7 @@ async function onConfirmarEliminar() {
 </script>
 
 <template>
-  <div class="p-6 max-w-2xl">
+  <div class="p-6 max-w-4xl">
     <p v-if="cargando" class="text-gray-400">Cargando...</p>
     <template v-else-if="ticket">
       <SharedPageHeader :titulo="ticket.titulo" volver-a="/tickets">
@@ -85,42 +85,42 @@ async function onConfirmarEliminar() {
         </template>
       </SharedPageHeader>
 
-      <SharedCard>
-        <TicketsTicketForm :model-value="ticket" :cargando="guardando" @submit="onSubmit" />
-      </SharedCard>
-
-      <div v-if="can('tickets', 'assign')" class="mt-6">
-        <SharedCard titulo="Técnico asignado">
-          <select
-            :value="ticket.owner_id ?? ''"
-            :disabled="asignando"
-            class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30 focus:border-[#1075B5]"
-            @change="onAsignar(($event.target as HTMLSelectElement).value)"
-          >
-            <option value="" disabled>Sin asignar</option>
-            <option v-for="t in tecnicos" :key="t.id" :value="t.id">
-              {{ t.full_name || t.email }}
-            </option>
-          </select>
-        </SharedCard>
-      </div>
-
-      <div v-if="can('tickets', 'delete')" class="mt-6">
+      <div class="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] gap-6 items-start">
         <SharedCard>
-          <div class="flex items-center justify-between">
-            <div>
-              <h2 class="text-sm font-semibold text-gray-700">Eliminar ticket</h2>
-              <p class="text-xs text-gray-400 mt-1">Esta acción no se puede deshacer.</p>
-            </div>
-            <button
-              type="button"
-              class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors"
-              @click="confirmandoEliminar = true"
-            >
-              Eliminar ticket
-            </button>
-          </div>
+          <TicketsTicketForm :model-value="ticket" :cargando="guardando" @submit="onSubmit" />
         </SharedCard>
+
+        <div class="space-y-6">
+          <SharedCard v-if="can('tickets', 'assign')" titulo="Técnico asignado">
+            <select
+              :value="ticket.owner_id ?? ''"
+              :disabled="asignando"
+              class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30 focus:border-[#1075B5]"
+              @change="onAsignar(($event.target as HTMLSelectElement).value)"
+            >
+              <option value="" disabled>Sin asignar</option>
+              <option v-for="t in tecnicos" :key="t.id" :value="t.id">
+                {{ t.full_name || t.email }}
+              </option>
+            </select>
+          </SharedCard>
+
+          <SharedCard v-if="can('tickets', 'delete')">
+            <div class="flex items-center justify-between">
+              <div>
+                <h2 class="text-sm font-semibold text-gray-700">Eliminar ticket</h2>
+                <p class="text-xs text-gray-400 mt-1">Esta acción no se puede deshacer.</p>
+              </div>
+              <button
+                type="button"
+                class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+                @click="confirmandoEliminar = true"
+              >
+                Eliminar ticket
+              </button>
+            </div>
+          </SharedCard>
+        </div>
       </div>
 
       <SharedConfirmDialog
