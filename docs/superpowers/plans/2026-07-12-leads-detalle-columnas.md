@@ -30,6 +30,12 @@
 
 Reemplazar el bloque completo de `<template>` (líneas 85-172) por:
 
+> **Nota post-implementación:** tras este task, el usuario pidió que la
+> página use todo el ancho de pantalla disponible en vez de un límite fijo.
+> El contenedor final quedó como `<div class="p-6">` (sin `max-w`), no
+> `max-w-6xl` como muestra el bloque de abajo. Ver la sección "Decisiones
+> de producto" (punto 3) de la spec para el valor vigente.
+
 ```html
 <template>
   <div class="p-6 max-w-6xl">

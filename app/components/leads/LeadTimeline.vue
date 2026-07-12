@@ -50,7 +50,7 @@ function formatearFecha(fecha: string) {
 
 <template>
   <SharedCard titulo="Historial de interacciones">
-    <div class="flex gap-2 mb-4">
+    <div class="flex flex-wrap gap-2 mb-4">
       <select
         v-model="canal"
         class="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30"
@@ -63,7 +63,7 @@ function formatearFecha(fecha: string) {
         v-model="nota"
         type="text"
         placeholder="¿Qué respondió el cliente?"
-        class="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30"
+        class="flex-1 min-w-0 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30"
         @keyup.enter="onSubmit"
       />
       <button

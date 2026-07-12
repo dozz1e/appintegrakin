@@ -58,7 +58,8 @@ Estado actual (`app/pages/leads/[id].vue`):
 ### `app/pages/leads/[id].vue`
 
 Cambiar el contenedor raíz de `<div class="p-6 max-w-lg">` a
-`<div class="p-6 max-w-6xl">`.
+`<div class="p-6">` (sin `max-w`), para usar todo el ancho de pantalla
+disponible en desktop.
 
 Envolver el contenido (una vez cargado el lead) en un grid:
 
