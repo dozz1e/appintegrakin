@@ -252,6 +252,14 @@ por:
 
 No se toca ninguna otra parte del archivo (`<script setup>` líneas 1-33 sin cambios: `registros`, `cargando`, `expandido`, `colorAccion`, `labelAccion`, `toggle` siguen igual).
 
+> **Nota post-revisión:** el bloque de arriba llama `calcularDiff(...)` dos
+> veces (una en el `v-if` del `<ul>`, otra en el `v-for`). El revisor del
+> Task 2 marcó esto como hallazgo Important (aunque plan-mandated, ya que
+> es exactamente este código). Se decidió corregirlo: la versión final
+> envuelve el resultado en un array de un elemento con `v-for` para
+> calcularlo una sola vez por fila expandida — ver la sección "Diseño" de
+> la spec para el snippet vigente, o el commit `a57f830`.
+
 - [ ] **Step 2: Verificar que el build pasa**
 
 Run: `npm run build`
