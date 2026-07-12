@@ -8,7 +8,7 @@ definePageMeta({
 })
 
 const route = useRoute()
-const { getCliente, updateCliente, deleteCliente } = useClientes()
+const { getCliente, updateCliente, deleteCliente, subirImagenCliente } = useClientes()
 const { fetchTicketsPorCliente } = useTickets()
 const { can } = usePermissions()
 const { success, error } = useToast()
@@ -28,11 +28,19 @@ onMounted(async () => {
   cargando.value = false
 })
 
-const onSubmit = async (payload: Record<string, unknown>) => {
+const onSubmit = async (payload: Record<string, unknown>, archivoImagen?: File | null) => {
   if (!cliente.value) return
   guardando.value = true
   try {
-    cliente.value = await updateCliente(cliente.value.id, payload, cliente.value.version)
+    let payloadFinal = payload
+    if (archivoImagen) {
+      const imagen_url = await subirImagenCliente(cliente.value.id, archivoImagen)
+      payloadFinal = { ...payload, imagen_url }
+    } else if (archivoImagen === null) {
+      payloadFinal = { ...payload, imagen_url: null }
+    }
+
+    cliente.value = await updateCliente(cliente.value.id, payloadFinal, cliente.value.version)
     success('Cliente actualizado')
   } catch (e: any) {
     if (e.message === 'CONFLICTO_VERSION') {
@@ -75,7 +83,7 @@ async function onConfirmarEliminar() {
         <ClientesClienteForm
           :model-value="cliente"
           :cargando="guardando"
-          @submit="can('clientes', 'edit') ? onSubmit($event) : undefined"
+          @submit="(payload, archivoImagen) => (can('clientes', 'edit') ? onSubmit(payload, archivoImagen) : undefined)"
         />
       </SharedCard>
 

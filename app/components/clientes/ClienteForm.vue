@@ -2,7 +2,7 @@
 import type { Cliente } from '~/composables/useClientes'
 
 const props = defineProps<{ modelValue?: Partial<Cliente>; cargando?: boolean }>()
-const emit = defineEmits<{ submit: [payload: Partial<Cliente>] }>()
+const emit = defineEmits<{ submit: [payload: Partial<Cliente>, archivoImagen?: File | null] }>()
 
 const form = reactive<Partial<Cliente>>({
   rut: props.modelValue?.rut ?? '',
@@ -14,6 +14,40 @@ const form = reactive<Partial<Cliente>>({
 
 const errores = reactive<Record<string, string>>({})
 
+const TAMANO_MAXIMO_BYTES = 3 * 1024 * 1024
+const inputImagen = ref<HTMLInputElement | null>(null)
+const previewImagen = ref<string | null>(props.modelValue?.imagen_url ?? null)
+const archivoImagen = ref<File | null>(null)
+const imagenQuitada = ref(false)
+const errorImagen = ref('')
+
+function onSeleccionarImagen(e: Event) {
+  const archivo = (e.target as HTMLInputElement).files?.[0]
+  if (!archivo) return
+
+  if (!archivo.type.startsWith('image/')) {
+    errorImagen.value = 'El archivo debe ser una imagen'
+    return
+  }
+  if (archivo.size > TAMANO_MAXIMO_BYTES) {
+    errorImagen.value = 'La imagen no puede pesar más de 3 MB'
+    return
+  }
+
+  errorImagen.value = ''
+  imagenQuitada.value = false
+  archivoImagen.value = archivo
+  previewImagen.value = URL.createObjectURL(archivo)
+}
+
+function onQuitarImagen() {
+  archivoImagen.value = null
+  previewImagen.value = null
+  errorImagen.value = ''
+  imagenQuitada.value = true
+  if (inputImagen.value) inputImagen.value.value = ''
+}
+
 const validar = () => {
   errores.razon_social = form.razon_social ? '' : 'La razón social es obligatoria'
   errores.email = form.email && !/^\S+@\S+\.\S+$/.test(form.email) ? 'Email inválido' : ''
@@ -22,12 +56,35 @@ const validar = () => {
 
 const onSubmit = () => {
   if (!validar()) return
-  emit('submit', { ...form })
+  const archivo = archivoImagen.value ?? (imagenQuitada.value ? null : undefined)
+  emit('submit', { ...form }, archivo)
 }
 </script>
 
 <template>
   <form class="space-y-4" @submit.prevent="onSubmit">
+    <div>
+      <label class="block text-sm font-medium mb-1 text-gray-700">Foto</label>
+      <div class="flex items-center gap-3">
+        <label
+          class="w-16 h-16 rounded-full border border-gray-200 bg-gray-50 flex items-center justify-center overflow-hidden cursor-pointer shrink-0 hover:bg-gray-100 transition-colors"
+        >
+          <img v-if="previewImagen" :src="previewImagen" alt="Foto del cliente" class="w-full h-full object-cover" />
+          <Icon v-else name="mdi:image-outline" class="w-6 h-6 text-gray-300" />
+          <input ref="inputImagen" type="file" accept="image/*" class="hidden" @change="onSeleccionarImagen" />
+        </label>
+        <button
+          v-if="previewImagen"
+          type="button"
+          class="text-sm text-red-600 hover:underline font-medium"
+          @click="onQuitarImagen"
+        >
+          Quitar foto
+        </button>
+      </div>
+      <p v-if="errorImagen" class="text-sm text-red-600 mt-1">{{ errorImagen }}</p>
+    </div>
+
     <div>
       <label class="block text-sm font-medium mb-1 text-gray-700">Razón social *</label>
       <input

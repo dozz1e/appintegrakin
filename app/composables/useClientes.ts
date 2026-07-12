@@ -103,5 +103,14 @@ export const useClientes = () => {
     return { insertados, omitidos: filas.length - insertados }
   }
 
-  return { fetchClientes, getCliente, createCliente, updateCliente, deleteCliente, importClientes }
+  const subirImagenCliente = async (clienteId: string, archivo: File) => {
+    const path = `${clienteId}/${Date.now()}-${archivo.name}`
+    const { error } = await supabase.storage.from('clientes-imagenes').upload(path, archivo)
+    if (error) throw error
+
+    const { data } = supabase.storage.from('clientes-imagenes').getPublicUrl(path)
+    return data.publicUrl
+  }
+
+  return { fetchClientes, getCliente, createCliente, updateCliente, deleteCliente, importClientes, subirImagenCliente }
 }

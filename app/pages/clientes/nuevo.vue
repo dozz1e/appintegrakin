@@ -4,16 +4,26 @@ definePageMeta({
   permiso: { resource: 'clientes', actions: ['create'] },
 })
 
-const { createCliente } = useClientes()
+const { createCliente, updateCliente, subirImagenCliente } = useClientes()
 const router = useRouter()
 const { success, error } = useToast()
 const cargando = ref(false)
 
-const onSubmit = async (payload: Record<string, unknown>) => {
+const onSubmit = async (payload: Record<string, unknown>, archivoImagen?: File | null) => {
   cargando.value = true
   try {
     const cliente = await createCliente(payload)
     success('Cliente creado correctamente')
+
+    if (archivoImagen) {
+      try {
+        const imagen_url = await subirImagenCliente(cliente.id, archivoImagen)
+        await updateCliente(cliente.id, { imagen_url })
+      } catch (e) {
+        error('Cliente creado, pero no se pudo subir la imagen. Puedes intentarlo de nuevo editando el cliente.')
+      }
+    }
+
     await router.push(`/clientes/${cliente.id}`)
   } catch (e) {
     error('No se pudo crear el cliente. Intenta de nuevo.')
