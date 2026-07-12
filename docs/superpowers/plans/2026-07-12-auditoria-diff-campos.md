@@ -101,7 +101,7 @@ export function calcularDiff(
     const campos = new Set([...Object.keys(datosAnteriores), ...Object.keys(datosNuevos)])
     return [...campos]
       .filter((campo) => !CAMPOS_EXCLUIDOS.has(campo))
-      .filter((campo) => datosAnteriores[campo] !== datosNuevos[campo])
+      .filter((campo) => formatearValor(datosAnteriores[campo]) !== formatearValor(datosNuevos[campo]))
       .map((campo) => ({
         campo,
         etiqueta: etiquetaDe(campo),

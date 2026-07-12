@@ -136,7 +136,7 @@ export function calcularDiff(
     const campos = new Set([...Object.keys(datosAnteriores), ...Object.keys(datosNuevos)])
     return [...campos]
       .filter((campo) => !CAMPOS_EXCLUIDOS.has(campo))
-      .filter((campo) => datosAnteriores[campo] !== datosNuevos[campo])
+      .filter((campo) => formatearValor(datosAnteriores[campo]) !== formatearValor(datosNuevos[campo]))
       .map((campo) => ({
         campo,
         etiqueta: etiquetaDe(campo),
@@ -149,10 +149,13 @@ export function calcularDiff(
 }
 ```
 
-Nota: la comparación `datosAnteriores[campo] !== datosNuevos[campo]`
-funciona porque todas las columnas de las 3 tablas auditadas son
-escalares (texto, uuid, timestamptz, integer) — no hay que serializar ni
-comparar objetos anidados.
+Nota: la comparación usa los valores ya formateados con `formatearValor`
+(no los valores crudos) para que `null`, `undefined` y `''` se traten
+como equivalentes — evita mostrar un campo como "cambiado" cuando ambos
+lados se ven igual ("(vacío)" en los dos). Funciona sin ambigüedad porque
+todas las columnas de las 3 tablas auditadas son escalares (texto, uuid,
+timestamptz, integer) — no hay que serializar ni comparar objetos
+anidados.
 
 ### `app/pages/admin/auditoria/index.vue`
 
