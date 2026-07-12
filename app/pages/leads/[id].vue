@@ -83,7 +83,7 @@ async function onConfirmarEliminar() {
 </script>
 
 <template>
-  <div class="p-6 max-w-lg">
+  <div class="p-6 max-w-6xl">
     <p v-if="cargando" class="text-gray-400">Cargando...</p>
     <template v-else-if="lead">
       <SharedPageHeader :titulo="lead.nombre" volver-a="/leads">
@@ -92,70 +92,66 @@ async function onConfirmarEliminar() {
         </template>
       </SharedPageHeader>
 
-      <SharedCard>
-        <LeadsLeadForm :model-value="lead" :cargando="guardando" @submit="onSubmit" />
-      </SharedCard>
+      <div class="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr_1fr] gap-6 items-start">
+        <div class="space-y-6">
+          <SharedCard>
+            <LeadsLeadForm :model-value="lead" :cargando="guardando" @submit="onSubmit" />
+          </SharedCard>
 
-      <div v-if="lead.cliente_id" class="mt-6">
-        <SharedCard>
-          <p class="text-sm text-gray-600">
-            Este lead ya fue convertido en cliente.
-            <NuxtLink :to="`/clientes/${lead.cliente_id}`" class="text-[#1075B5] hover:underline font-medium">
-              Ver cliente
-            </NuxtLink>
-          </p>
-        </SharedCard>
-      </div>
+          <SharedCard v-if="lead.cliente_id">
+            <p class="text-sm text-gray-600">
+              Este lead ya fue convertido en cliente.
+              <NuxtLink :to="`/clientes/${lead.cliente_id}`" class="text-[#1075B5] hover:underline font-medium">
+                Ver cliente
+              </NuxtLink>
+            </p>
+          </SharedCard>
 
-      <div v-else-if="puedeConvertir" class="mt-6">
-        <SharedCard titulo="Convertir a cliente">
-          <div class="space-y-3">
-            <input
-              v-model="razonSocialConversion"
-              type="text"
-              placeholder="Razón social"
-              class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30 focus:border-[#1075B5]"
-            />
-            <input
-              v-model="rutConversion"
-              type="text"
-              placeholder="RUT (opcional)"
-              class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30 focus:border-[#1075B5]"
-            />
-            <button
-              :disabled="convirtiendo || !razonSocialConversion"
-              class="bg-[#1075B5] hover:bg-[#0C5D91] text-white px-4 py-2.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
-              @click="onConvertir"
-            >
-              {{ convirtiendo ? 'Convirtiendo...' : 'Convertir a cliente' }}
-            </button>
-            <p v-if="errorConversion" class="text-sm text-red-600">{{ errorConversion }}</p>
-          </div>
-        </SharedCard>
-      </div>
-      <div class="mt-6">
-        <SharedTareaList entidad-tipo="lead" :entidad-id="lead.id" />
-      </div>
-      <div class="mt-6">
-        <LeadsLeadTimeline :lead-id="lead.id" />
-      </div>
-
-      <div v-if="can('leads', 'delete')" class="mt-6">
-        <SharedCard>
-          <div class="flex items-center justify-between">
-            <div>
-              <h2 class="text-sm font-semibold text-gray-700">Eliminar lead</h2>
-              <p class="text-xs text-gray-400 mt-1">Esta acción no se puede deshacer.</p>
+          <SharedCard v-else-if="puedeConvertir" titulo="Convertir a cliente">
+            <div class="space-y-3">
+              <input
+                v-model="razonSocialConversion"
+                type="text"
+                placeholder="Razón social"
+                class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30 focus:border-[#1075B5]"
+              />
+              <input
+                v-model="rutConversion"
+                type="text"
+                placeholder="RUT (opcional)"
+                class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30 focus:border-[#1075B5]"
+              />
+              <button
+                :disabled="convirtiendo || !razonSocialConversion"
+                class="bg-[#1075B5] hover:bg-[#0C5D91] text-white px-4 py-2.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+                @click="onConvertir"
+              >
+                {{ convirtiendo ? 'Convirtiendo...' : 'Convertir a cliente' }}
+              </button>
+              <p v-if="errorConversion" class="text-sm text-red-600">{{ errorConversion }}</p>
             </div>
-            <button
-              type="button"
-              class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors"
-              @click="confirmandoEliminar = true"
-            >
-              Eliminar lead
-            </button>
-          </div>
-        </SharedCard>
+          </SharedCard>
+
+          <SharedCard v-if="can('leads', 'delete')">
+            <div class="flex items-center justify-between">
+              <div>
+                <h2 class="text-sm font-semibold text-gray-700">Eliminar lead</h2>
+                <p class="text-xs text-gray-400 mt-1">Esta acción no se puede deshacer.</p>
+              </div>
+              <button
+                type="button"
+                class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+                @click="confirmandoEliminar = true"
+              >
+                Eliminar lead
+              </button>
+            </div>
+          </SharedCard>
+        </div>
+
+        <LeadsLeadTimeline :lead-id="lead.id" />
+
+        <SharedTareaList entidad-tipo="lead" :entidad-id="lead.id" />
       </div>
 
       <SharedConfirmDialog
