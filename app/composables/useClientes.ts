@@ -8,6 +8,7 @@ export interface Cliente {
   nombre_contacto: string | null
   telefono: string | null
   email: string | null
+  direccion: string | null
   imagen_url: string | null
   kame_id: string | null
   owner_id: string | null
@@ -86,6 +87,7 @@ export const useClientes = () => {
         nombre_contacto: f.nombre_contacto?.trim() || null,
         telefono: f.telefono?.trim() || null,
         email: f.email?.trim() || null,
+        direccion: f.direccion?.trim() || null,
         owner_id: user.value?.sub,
         created_by: user.value?.sub,
       }))

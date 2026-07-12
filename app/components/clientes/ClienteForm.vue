@@ -10,6 +10,7 @@ const form = reactive<Partial<Cliente>>({
   nombre_contacto: props.modelValue?.nombre_contacto ?? '',
   telefono: props.modelValue?.telefono ?? '',
   email: props.modelValue?.email ?? '',
+  direccion: props.modelValue?.direccion ?? '',
 })
 
 const errores = reactive<Record<string, string>>({})
@@ -131,6 +132,15 @@ const onSubmit = () => {
         />
         <p v-if="errores.email" class="text-sm text-red-600 mt-1">{{ errores.email }}</p>
       </div>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium mb-1 text-gray-700">Dirección</label>
+      <input
+        v-model="form.direccion"
+        type="text"
+        class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30 focus:border-[#1075B5]"
+      />
     </div>
 
     <button

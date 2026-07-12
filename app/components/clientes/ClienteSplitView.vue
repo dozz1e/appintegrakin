@@ -149,6 +149,10 @@ function seleccionar(c: Cliente) {
               <p class="text-xs text-gray-400 mb-1">Email</p>
               <p class="text-gray-700">{{ seleccionado.email || '—' }}</p>
             </div>
+            <div class="col-span-2">
+              <p class="text-xs text-gray-400 mb-1">Dirección</p>
+              <p class="text-gray-700">{{ seleccionado.direccion || '—' }}</p>
+            </div>
           </div>
 
           <NuxtLink
