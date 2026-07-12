@@ -80,31 +80,33 @@ function formatearFecha(fecha: string) {
 
 <template>
   <SharedCard titulo="Tareas y recordatorios">
-    <div class="flex gap-2 mb-4">
+    <div class="mb-4 space-y-2">
       <input
         v-model="titulo"
         type="text"
         placeholder="Ej: Llamar en 3 días"
-        class="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30"
+        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30"
         @keyup.enter="onSubmit"
       />
-      <input
-        v-model="fechaVencimiento"
-        type="date"
-        class="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30"
-      />
-      <input
-        v-model="horaVencimiento"
-        type="time"
-        class="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30"
-      />
-      <button
-        :disabled="guardando || !titulo.trim()"
-        class="bg-[#1075B5] hover:bg-[#0C5D91] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
-        @click="onSubmit"
-      >
-        Agregar
-      </button>
+      <div class="flex flex-wrap gap-2">
+        <input
+          v-model="fechaVencimiento"
+          type="date"
+          class="flex-1 min-w-0 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30"
+        />
+        <input
+          v-model="horaVencimiento"
+          type="time"
+          class="flex-1 min-w-0 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30"
+        />
+        <button
+          :disabled="guardando || !titulo.trim()"
+          class="w-full sm:w-auto bg-[#1075B5] hover:bg-[#0C5D91] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+          @click="onSubmit"
+        >
+          Agregar
+        </button>
+      </div>
     </div>
 
     <p v-if="cargando" class="text-sm text-gray-400">Cargando tareas...</p>
@@ -123,10 +125,10 @@ function formatearFecha(fecha: string) {
           class="w-4 h-4 accent-[#1075B5]"
           @change="onToggle(t)"
         />
-        <span class="flex-1 text-sm" :class="t.completada ? 'line-through text-gray-400' : 'text-gray-700'">
+        <span class="flex-1 min-w-0 text-sm truncate" :class="t.completada ? 'line-through text-gray-400' : 'text-gray-700'">
           {{ t.titulo }}
         </span>
-        <span v-if="t.fecha_vencimiento" class="text-xs" :class="esVencida(t) ? 'text-red-600 font-medium' : 'text-gray-400'">
+        <span v-if="t.fecha_vencimiento" class="text-xs shrink-0" :class="esVencida(t) ? 'text-red-600 font-medium' : 'text-gray-400'">
           {{ formatearFecha(t.fecha_vencimiento) }}
         </span>
       </li>

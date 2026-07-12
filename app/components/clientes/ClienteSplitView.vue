@@ -3,18 +3,15 @@ import type { Cliente } from '~/composables/useClientes'
 import type { Ticket } from '~/composables/useTickets'
 
 const props = defineProps<{ clientes: Cliente[] }>()
-const emit = defineEmits<{ actualizado: [cliente: Cliente] }>()
+const emit = defineEmits<{ eliminar: [cliente: Cliente] }>()
 
-const { updateCliente, getCliente } = useClientes()
 const { fetchTicketsPorCliente } = useTickets()
 const { can } = usePermissions()
-const { success, error } = useToast()
 
 const busqueda = ref('')
 const seleccionadoId = ref<string | null>(null)
 const ticketsSeleccionado = ref<Ticket[]>([])
 const tabActiva = ref<'info' | 'tickets'>('info')
-const guardando = ref(false)
 
 const puedeVerTickets = computed(() => can('tickets', 'view') || can('tickets', 'view_all'))
 
@@ -42,25 +39,6 @@ watch(seleccionadoId, async (id) => {
 
 function seleccionar(c: Cliente) {
   seleccionadoId.value = c.id
-}
-
-async function onSubmit(payload: Partial<Cliente>) {
-  if (!seleccionado.value) return
-  guardando.value = true
-  try {
-    const actualizado = await updateCliente(seleccionado.value.id, payload, seleccionado.value.version)
-    emit('actualizado', actualizado)
-    success('Cliente actualizado')
-  } catch (e: any) {
-    if (e.message === 'CONFLICTO_VERSION') {
-      error('Alguien más modificó este cliente mientras lo tenías abierto. Se recargaron los datos actuales, revisa e intenta de nuevo.')
-      emit('actualizado', await getCliente(seleccionado.value.id))
-    } else {
-      error('No se pudo guardar el cambio. Intenta de nuevo.')
-    }
-  } finally {
-    guardando.value = false
-  }
 }
 </script>
 
@@ -100,18 +78,22 @@ async function onSubmit(payload: Partial<Cliente>) {
 
     <div v-else class="flex-1 min-w-0">
       <div class="bg-white border border-gray-100 rounded-2xl shadow-sm p-5">
-        <div class="flex items-center gap-3 mb-4">
-          <SharedAvatar :nombre="seleccionado.razon_social" size="md" />
-          <div>
-            <h2 class="text-lg font-semibold text-gray-800">{{ seleccionado.razon_social }}</h2>
-            <p v-if="seleccionado.nombre_contacto" class="text-xs text-gray-400">{{ seleccionado.nombre_contacto }}</p>
+        <div class="flex items-center justify-between gap-3 mb-4">
+          <div class="flex items-center gap-3">
+            <SharedAvatar :nombre="seleccionado.razon_social" size="md" />
+            <div>
+              <h2 class="text-lg font-semibold text-gray-800">{{ seleccionado.razon_social }}</h2>
+              <p v-if="seleccionado.nombre_contacto" class="text-xs text-gray-400">{{ seleccionado.nombre_contacto }}</p>
+            </div>
           </div>
-        </div>
-
-        <div class="grid grid-cols-3 gap-3 text-sm text-gray-600 mb-4">
-          <p v-if="seleccionado.rut"><span class="text-gray-400">RUT:</span> {{ seleccionado.rut }}</p>
-          <p v-if="seleccionado.telefono"><span class="text-gray-400">Teléfono:</span> {{ seleccionado.telefono }}</p>
-          <p v-if="seleccionado.email"><span class="text-gray-400">Email:</span> {{ seleccionado.email }}</p>
+          <button
+            v-if="can('clientes', 'delete')"
+            type="button"
+            class="text-red-600 hover:underline text-sm font-medium shrink-0"
+            @click="emit('eliminar', seleccionado)"
+          >
+            Eliminar
+          </button>
         </div>
 
         <div v-if="puedeVerTickets" class="grid grid-cols-3 gap-3 mb-4">
@@ -149,13 +131,34 @@ async function onSubmit(payload: Partial<Cliente>) {
           </button>
         </div>
 
-        <ClientesClienteForm
-          v-if="tabActiva === 'info'"
-          :key="seleccionado.id"
-          :model-value="seleccionado"
-          :cargando="guardando"
-          @submit="can('clientes', 'edit') ? onSubmit($event) : undefined"
-        />
+        <div v-if="tabActiva === 'info'" class="space-y-4">
+          <div class="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <p class="text-xs text-gray-400 mb-1">RUT</p>
+              <p class="text-gray-700">{{ seleccionado.rut || '—' }}</p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-400 mb-1">Nombre de contacto</p>
+              <p class="text-gray-700">{{ seleccionado.nombre_contacto || '—' }}</p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-400 mb-1">Teléfono</p>
+              <p class="text-gray-700">{{ seleccionado.telefono || '—' }}</p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-400 mb-1">Email</p>
+              <p class="text-gray-700">{{ seleccionado.email || '—' }}</p>
+            </div>
+          </div>
+
+          <NuxtLink
+            :to="`/clientes/${seleccionado.id}`"
+            class="inline-flex items-center gap-1 text-sm text-[#1075B5] hover:underline font-medium"
+          >
+            <Icon name="mdi:pencil-outline" class="w-4 h-4" />
+            {{ can('clientes', 'edit') ? 'Editar cliente' : 'Ver detalle' }}
+          </NuxtLink>
+        </div>
 
         <div v-else>
           <div class="flex items-center justify-between mb-3">
