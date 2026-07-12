@@ -1,5 +1,14 @@
 <script setup lang="ts">
-const props = defineProps<{ nombre: string; size?: 'sm' | 'md' }>()
+const props = defineProps<{ nombre: string; size?: 'sm' | 'md'; imagenUrl?: string | null }>()
+
+const errorImagen = ref(false)
+
+watch(
+  () => props.imagenUrl,
+  () => {
+    errorImagen.value = false
+  }
+)
 
 const paleta = [
   'bg-blue-100 text-blue-700',
@@ -25,7 +34,16 @@ const tamano = computed(() => (props.size === 'sm' ? 'w-7 h-7 text-xs' : 'w-9 h-
 </script>
 
 <template>
+  <img
+    v-if="imagenUrl && !errorImagen"
+    :src="imagenUrl"
+    :alt="nombre"
+    class="inline-block rounded-full object-cover shrink-0"
+    :class="tamano"
+    @error="errorImagen = true"
+  />
   <span
+    v-else
     class="inline-flex items-center justify-center rounded-full font-medium shrink-0"
     :class="[colorClase, tamano]"
   >

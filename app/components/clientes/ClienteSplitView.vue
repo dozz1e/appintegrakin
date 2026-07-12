@@ -59,7 +59,7 @@ function seleccionar(c: Cliente) {
           :class="c.id === seleccionadoId ? 'bg-[#EAF4FA]' : 'hover:bg-gray-50'"
           @click="seleccionar(c)"
         >
-          <SharedAvatar :nombre="c.razon_social" size="sm" />
+          <SharedAvatar :nombre="c.razon_social" :imagen-url="c.imagen_url" size="sm" />
           <div class="min-w-0">
             <p class="text-sm font-medium text-gray-800 truncate">{{ c.razon_social }}</p>
             <p v-if="c.nombre_contacto" class="text-xs text-gray-400 truncate">{{ c.nombre_contacto }}</p>
@@ -80,7 +80,7 @@ function seleccionar(c: Cliente) {
       <div class="bg-white border border-gray-100 rounded-2xl shadow-sm p-5">
         <div class="flex items-center justify-between gap-3 mb-4">
           <div class="flex items-center gap-3">
-            <SharedAvatar :nombre="seleccionado.razon_social" size="md" />
+            <SharedAvatar :nombre="seleccionado.razon_social" :imagen-url="seleccionado.imagen_url" size="md" />
             <div>
               <h2 class="text-lg font-semibold text-gray-800">{{ seleccionado.razon_social }}</h2>
               <p v-if="seleccionado.nombre_contacto" class="text-xs text-gray-400">{{ seleccionado.nombre_contacto }}</p>

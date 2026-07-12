@@ -8,6 +8,7 @@ export interface Cliente {
   nombre_contacto: string | null
   telefono: string | null
   email: string | null
+  imagen_url: string | null
   kame_id: string | null
   owner_id: string | null
   created_by: string | null
