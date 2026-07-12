@@ -54,24 +54,26 @@ const toggle = (id: string) => {
             <span class="text-xs text-gray-400">{{ new Date(r.created_at).toLocaleString('es-CL') }}</span>
           </div>
 
-          <div v-if="expandido === r.id" class="mt-3 text-xs">
-            <ul v-if="calcularDiff(r.accion, r.datos_anteriores, r.datos_nuevos).length" class="divide-y divide-gray-50">
-              <li
-                v-for="d in calcularDiff(r.accion, r.datos_anteriores, r.datos_nuevos)"
-                :key="d.campo"
-                class="py-1.5 flex items-center gap-2"
-              >
-                <span class="font-medium text-gray-600 w-40 flex-shrink-0">{{ d.etiqueta }}</span>
-                <template v-if="r.accion === 'update'">
-                  <span class="text-gray-400">{{ d.anterior }}</span>
-                  <Icon name="mdi:arrow-right" class="w-3.5 h-3.5 text-gray-300 flex-shrink-0" />
-                  <span class="text-gray-700">{{ d.nuevo }}</span>
-                </template>
-                <span v-else class="text-gray-700">{{ d.valor }}</span>
-              </li>
-            </ul>
-            <p v-else class="text-gray-400">Sin cambios visibles en los campos</p>
-          </div>
+          <template v-for="diff in expandido === r.id ? [calcularDiff(r.accion, r.datos_anteriores, r.datos_nuevos)] : []" :key="`${r.id}-diff`">
+            <div class="mt-3 text-xs">
+              <ul v-if="diff.length" class="divide-y divide-gray-50">
+                <li
+                  v-for="d in diff"
+                  :key="d.campo"
+                  class="py-1.5 flex items-center gap-2"
+                >
+                  <span class="font-medium text-gray-600 w-40 flex-shrink-0">{{ d.etiqueta }}</span>
+                  <template v-if="r.accion === 'update'">
+                    <span class="text-gray-400">{{ d.anterior }}</span>
+                    <Icon name="mdi:arrow-right" class="w-3.5 h-3.5 text-gray-300 flex-shrink-0" />
+                    <span class="text-gray-700">{{ d.nuevo }}</span>
+                  </template>
+                  <span v-else class="text-gray-700">{{ d.valor }}</span>
+                </li>
+              </ul>
+              <p v-else class="text-gray-400">Sin cambios visibles en los campos</p>
+            </div>
+          </template>
         </li>
       </ul>
     </div>
