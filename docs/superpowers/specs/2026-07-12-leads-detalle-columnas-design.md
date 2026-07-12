@@ -44,8 +44,10 @@ Estado actual (`app/pages/leads/[id].vue`):
    (mismo orden que la columna 1/2/3 de izquierda a derecha, para no
    introducir un reordenamiento adicional entre vista ancha y angosta).
 3. **El contenedor de la página deja de ser `max-w-lg`** (muy angosto
-   para 3 columnas) y pasa a un ancho mayor (ej. `max-w-6xl`) para dar
-   espacio a las 3 columnas en pantallas grandes.
+   para 3 columnas). En vez de un ancho máximo fijo, usa todo el ancho de
+   pantalla disponible en desktop (sin `max-w`, manteniendo el padding
+   `p-6` existente), para aprovechar el espacio completo en las 3
+   columnas.
 4. **Sin cambios funcionales**: ningún composable, permiso, validación ni
    lógica de negocio cambia. `LeadsLeadTimeline` y `SharedTareaList` se
    usan exactamente igual que hoy (mismas props), solo cambia dónde

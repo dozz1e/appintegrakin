@@ -83,7 +83,7 @@ async function onConfirmarEliminar() {
 </script>
 
 <template>
-  <div class="p-6 max-w-6xl">
+  <div class="p-6">
     <p v-if="cargando" class="text-gray-400">Cargando...</p>
     <template v-else-if="lead">
       <SharedPageHeader :titulo="lead.nombre" volver-a="/leads">

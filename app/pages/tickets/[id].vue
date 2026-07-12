@@ -76,7 +76,7 @@ async function onConfirmarEliminar() {
 </script>
 
 <template>
-  <div class="p-6 max-w-lg">
+  <div class="p-6 max-w-2xl">
     <p v-if="cargando" class="text-gray-400">Cargando...</p>
     <template v-else-if="ticket">
       <SharedPageHeader :titulo="ticket.titulo" volver-a="/tickets">
