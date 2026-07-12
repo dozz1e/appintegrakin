@@ -54,15 +54,23 @@ const toggle = (id: string) => {
             <span class="text-xs text-gray-400">{{ new Date(r.created_at).toLocaleString('es-CL') }}</span>
           </div>
 
-          <div v-if="expandido === r.id" class="mt-3 grid grid-cols-2 gap-4 text-xs">
-            <div v-if="r.datos_anteriores">
-              <p class="font-semibold text-gray-400 mb-1">Antes</p>
-              <pre class="bg-gray-50 rounded-lg p-2 overflow-x-auto text-gray-600">{{ JSON.stringify(r.datos_anteriores, null, 2) }}</pre>
-            </div>
-            <div v-if="r.datos_nuevos">
-              <p class="font-semibold text-gray-400 mb-1">Después</p>
-              <pre class="bg-gray-50 rounded-lg p-2 overflow-x-auto text-gray-600">{{ JSON.stringify(r.datos_nuevos, null, 2) }}</pre>
-            </div>
+          <div v-if="expandido === r.id" class="mt-3 text-xs">
+            <ul v-if="calcularDiff(r.accion, r.datos_anteriores, r.datos_nuevos).length" class="divide-y divide-gray-50">
+              <li
+                v-for="d in calcularDiff(r.accion, r.datos_anteriores, r.datos_nuevos)"
+                :key="d.campo"
+                class="py-1.5 flex items-center gap-2"
+              >
+                <span class="font-medium text-gray-600 w-40 flex-shrink-0">{{ d.etiqueta }}</span>
+                <template v-if="r.accion === 'update'">
+                  <span class="text-gray-400">{{ d.anterior }}</span>
+                  <Icon name="mdi:arrow-right" class="w-3.5 h-3.5 text-gray-300 flex-shrink-0" />
+                  <span class="text-gray-700">{{ d.nuevo }}</span>
+                </template>
+                <span v-else class="text-gray-700">{{ d.valor }}</span>
+              </li>
+            </ul>
+            <p v-else class="text-gray-400">Sin cambios visibles en los campos</p>
           </div>
         </li>
       </ul>
