@@ -16,6 +16,7 @@ let debounceHandle: ReturnType<typeof setTimeout> | null = null
 let sincronizando = false
 
 function setTerminoSincronizado(valor: string) {
+  if (termino.value === valor) return
   sincronizando = true
   termino.value = valor
 }
@@ -38,14 +39,14 @@ onUnmounted(() => {
 })
 
 watch(termino, (nuevo) => {
+  if (debounceHandle) clearTimeout(debounceHandle)
+
   // escritura programática (prefill al montar o selección de un resultado) -
   // no dispara ni la búsqueda ni la limpieza de integridad, solo tipeo real
   if (sincronizando) {
     sincronizando = false
     return
   }
-
-  if (debounceHandle) clearTimeout(debounceHandle)
 
   // el usuario está editando el texto tras haber elegido un cliente -
   // el id ya no corresponde a lo que se ve en pantalla, se limpia
