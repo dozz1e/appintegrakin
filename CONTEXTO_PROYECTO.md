@@ -65,6 +65,9 @@
 20260713000000_productos.sql
 20260713000100_productos_rls.sql
 20260713000200_productos_permisos.sql
+20260713000300_ventas.sql
+20260713000400_ventas_rls.sql
+20260713000500_ventas_permisos.sql
 ```
 Nota: las 5 migraciones desde `tareas` hasta `notificaciones_realtime` se
 crearon originalmente a mano en el SQL Editor de Supabase; ya quedaron
@@ -107,12 +110,12 @@ useAuditoria, useAuth, useBusquedaGlobal, useClientes, useCsv,
 useDashboardWidgets, useErrorLog, useFeatures, useLeadInteracciones,
 useLeads, useMiPerfil, useNotificaciones, usePermisosOverrides,
 usePermissions, useProductos, useReportes, useSuperadmin, useTareas,
-useTickets, useToast, useUsuarios
+useTickets, useToast, useUsuarios, useVentas
 ```
 
 ### Componentes (`app/components/`)
 ```
-clientes/ClienteForm.vue, clientes/ClienteSplitView.vue
+clientes/ClienteForm.vue, clientes/ClienteSplitView.vue, clientes/VentaList.vue
 leads/LeadForm.vue, leads/LeadKanban.vue, leads/LeadTimeline.vue
 tickets/TicketBoard.vue, tickets/TicketForm.vue
 productos/ProductoForm.vue
@@ -216,6 +219,20 @@ el cliente. Solo se puebla vía SQL Editor de Supabase.
   rol `dueña` — el resto de roles se activa manualmente desde
   `/admin/permisos`. 561 productos reales importados desde el Excel del
   usuario (vía CSV, mismo proceso ya usado para los 1893 clientes).
+- **`ventas`** (ver `20260713000300_ventas.sql`, nuevo módulo): `cliente_id,
+  producto_id, valor, fecha, owner_id, created_by, version`. Primera
+  conexión de `productos` con otra entidad. `fecha` es `timestamptz`
+  (fecha y hora), combinada en `ClientesVentaList.vue` igual que
+  `fecha_vencimiento` de tareas pero **sin** default de hora — hora vacía
+  es error de validación, no se omite. **Con `owner_id`** (a diferencia de
+  `productos`) — RLS igual que `tickets` (propio vs `view_all`). UI: nueva
+  pestaña "Ventas" en `ClienteSplitView.vue` (antes solo tenía
+  Información/Tickets), formulario de alta + historial de solo lectura, sin
+  editar/borrar. Sin precio de lista en `productos` — el valor se tipea a
+  mano en cada venta. Permisos propios (`ventas.view/view_all/create/edit/
+  delete`); seed inicial: `dueña` (todo), rol `ventas` y `post_venta`
+  (view+create+edit), `finanzas`/`operaciones` (view_all), `logistica`
+  (view).
 - **`tareas`** (ver `20260705000000_tareas.sql`): `entidad_tipo
   (lead/cliente/ticket), entidad_id, titulo, fecha_vencimiento, completada,
   owner_id, created_by`. Sin trigger de `updated_at` (columna con default
@@ -240,8 +257,8 @@ el cliente. Solo se puebla vía SQL Editor de Supabase.
   datos_nuevos` — UI en `/admin/auditoria` con filtros (usuario/tabla/acción/
   rango de fechas), paginación "Cargar más" y diff real de campos
   cambiados (ya no JSON crudo). Tablas auditadas: `clientes`, `leads`,
-  `tickets`, `productos` (lista fija en el selector de la UI, no una
-  consulta a la base).
+  `tickets`, `productos`, `ventas` (lista fija en el selector de la UI, no
+  una consulta a la base).
 - **`dashboard_widgets`/`user_dashboard_widgets`**: catálogo de widgets
   (KPI/chart) asignables por usuario. Incluye los widgets que antes vivían
   en `/reportes` (`kpi.total_leads`, `kpi.leads_ganados`,
