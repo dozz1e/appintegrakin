@@ -147,9 +147,9 @@ vez, visible en toda la app autenticada.
 
 ## Fuera de alcance
 
-- No se toca el cron de Supabase ni la tabla `notificaciones` — ese
-  sistema sigue manejando el aviso de tarea *ya vencida* vía campana;
-  este alert cubre únicamente el tramo *antes* de vencer.
+- No se toca el cron de Supabase ni la tabla `notificaciones` — sigue
+  funcionando en paralelo, sin cambios (ver "Extensión: tareas
+  vencidas" más abajo sobre por qué ahora se solapa parcialmente).
 - No se toca `TareaList.vue` — sigue mostrando solo vencidas dentro
   del detalle, sin cambios.
 - No se instala daisyUI.
@@ -157,6 +157,41 @@ vez, visible en toda la app autenticada.
   explícita: solo en memoria).
 - Umbral de 30 min queda fijo en código (`UMBRAL_MINUTOS`), no
   configurable por el usuario.
+- No se agregan alerts de asignación (lead/ticket/tarea asignada) a
+  este sistema — esos ya tienen tratamiento en tiempo real vía la
+  campana (`NotificationBell.vue` + Realtime), agregarlos acá
+  duplicaría ese aviso sin necesidad.
+
+## Extensión: tareas vencidas (2026-07-13, agregado tras la primera implementación)
+
+El diseño original solo cubría el tramo *antes* de vencer. Se pidió
+extenderlo para que la misma tarjeta pase a mostrar la tarea como
+*vencida* en vez de desaparecer, hasta que se marque completada.
+
+- `refrescarTareasProximas()` en `useTareas.ts`: se quita la condición
+  `msRestante > 0`. El filtro queda `msRestante <=
+  UMBRAL_MINUTOS_PROXIMAS * 60_000` (sin piso), así que ahora incluye
+  tanto las próximas a vencer como las ya vencidas, sin límite de
+  tiempo hacia atrás — se van solas cuando `marcarCompletada` las saca
+  de `fetchMisTareasPendientes` (`completada = false` en el query).
+- `RecordatorioAlert.vue`: calcula `esVencida = fecha_vencimiento <
+  ahora`. Si es vencida usa los tokens `danger` (`bg-danger-bg
+  border-danger-text/40 text-danger-text`) en vez de `warning`, ícono
+  ⚠️ en vez de ⏰, y `formatearHora` devuelve "hace X min/horas" en vez
+  de "en X min/horas" (mismo cálculo, `Math.abs` del tiempo restante
+  negativo).
+- El botón ✕ y el comportamiento de descarte (solo en memoria) no
+  cambian: si se cerró estando "próxima" y después vence, sigue oculta
+  para ese id hasta recargar.
+- `RecordatorioAlertContainer.vue` no cambia — ya itera sobre
+  `tareasProximas` sin filtrar por estado.
+- Nota sobre solapamiento con la campana: una tarea vencida hace >1h
+  puede aparecer en este alert (siempre, mientras no esté completada)
+  *y además* haber generado una notificación `tarea_vencida` en la
+  campana (una sola vez, cuando el cron horario la detectó). Son
+  sistemas independientes con distinto propósito (aviso persistente
+  vs. registro histórico de notificaciones) — no se unifican en esta
+  extensión.
 
 ## Testing (manual, sin suite automatizada)
 
@@ -174,6 +209,11 @@ vez, visible en toda la app autenticada.
 6. Dos tareas próximas a la vez: se apilan verticalmente, cerrar una
    no afecta la otra.
 7. Tarea que pasa de "próxima" a "vencida" mientras el alert está
-   visible: en el siguiente poll (≤60s) el alert desaparece de esta
-   lista (pasa a ser responsabilidad de la campana de notificaciones
-   una vez que el cron horario la detecte).
+   visible: en el siguiente poll (≤60s) el alert cambia a rojo
+   (⚠️, "Venció hace X min"), sin desaparecer.
+8. Tarea con `fecha_vencimiento` ya pasada desde antes (no pasó por
+   el estado "próxima" mientras la app estaba abierta): al refrescar,
+   aparece directamente en rojo.
+9. Marcar como completada una tarea vencida que tiene el alert
+   visible (desde `TareaList.vue`): en el siguiente poll desaparece
+   del alert global.
