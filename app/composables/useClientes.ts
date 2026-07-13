@@ -40,6 +40,25 @@ export const useClientes = () => {
     return data as Cliente
   }
 
+  // Búsqueda acotada para el picker de cliente (ClienteBuscador.vue) - no
+  // reutiliza useBusquedaGlobal porque ese busca en paralelo sobre
+  // clientes/leads/tickets con límite bajo (5), pensado para el buscador
+  // global, no para un picker dedicado a clientes.
+  const buscarClientes = async (termino: string): Promise<Cliente[]> => {
+    const q = termino.trim().replace(/[%_]/g, (m) => `\\${m}`)
+    if (q.length < 2) return []
+
+    const { data, error } = await supabase
+      .from('clientes')
+      .select('*')
+      .or(`razon_social.ilike.%${q}%,nombre_contacto.ilike.%${q}%,rut.ilike.%${q}%`)
+      .order('razon_social', { ascending: true })
+      .limit(8)
+
+    if (error) throw error
+    return data as Cliente[]
+  }
+
   const createCliente = async (payload: Partial<Cliente>) => {
     const { data, error } = await supabase
       .from('clientes')
@@ -114,5 +133,5 @@ export const useClientes = () => {
     return data.publicUrl
   }
 
-  return { fetchClientes, getCliente, createCliente, updateCliente, deleteCliente, importClientes, subirImagenCliente }
+  return { fetchClientes, getCliente, createCliente, updateCliente, deleteCliente, importClientes, subirImagenCliente, buscarClientes }
 }
