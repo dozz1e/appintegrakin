@@ -1,14 +1,16 @@
 <script setup lang="ts">
 import type { Cliente } from '~/composables/useClientes'
 import type { Ticket } from '~/composables/useTickets'
+import type { Usuario } from '~/composables/useUsuarios'
 
-const props = defineProps<{ clientes: Cliente[] }>()
+const props = defineProps<{ clientes: Cliente[]; usuarios: Usuario[] }>()
 const emit = defineEmits<{ eliminar: [cliente: Cliente] }>()
 
 const { fetchTicketsPorCliente } = useTickets()
 const { can } = usePermissions()
 
 const busqueda = ref('')
+const filtroVendedor = ref('')
 const seleccionadoId = ref<string | null>(null)
 const ticketsSeleccionado = ref<Ticket[]>([])
 const tabActiva = ref<'info' | 'tickets'>('info')
@@ -17,10 +19,12 @@ const puedeVerTickets = computed(() => can('tickets', 'view') || can('tickets', 
 
 const clientesFiltrados = computed(() => {
   const q = busqueda.value.trim().toLowerCase()
-  if (!q) return props.clientes
-  return props.clientes.filter(
-    (c) => c.razon_social.toLowerCase().includes(q) || (c.nombre_contacto ?? '').toLowerCase().includes(q)
-  )
+  return props.clientes.filter((c) => {
+    if (q && !c.razon_social.toLowerCase().includes(q) && !(c.nombre_contacto ?? '').toLowerCase().includes(q)) return false
+    if (filtroVendedor.value === 'sin_asignar' && c.owner_id !== null) return false
+    if (filtroVendedor.value && filtroVendedor.value !== 'sin_asignar' && c.owner_id !== filtroVendedor.value) return false
+    return true
+  })
 })
 
 const seleccionado = computed(() => props.clientes.find((c) => c.id === seleccionadoId.value) ?? null)
@@ -49,8 +53,16 @@ function seleccionar(c: Cliente) {
         v-model="busqueda"
         type="text"
         placeholder="Buscar cliente..."
-        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30 focus:border-[#1075B5]"
+        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mb-2 focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30 focus:border-[#1075B5]"
       />
+      <select
+        v-model="filtroVendedor"
+        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30"
+      >
+        <option value="">Todos los vendedores</option>
+        <option value="sin_asignar">Sin asignar</option>
+        <option v-for="u in usuarios" :key="u.id" :value="u.id">{{ u.full_name || u.email }}</option>
+      </select>
       <ul class="space-y-1">
         <li
           v-for="c in clientesFiltrados"

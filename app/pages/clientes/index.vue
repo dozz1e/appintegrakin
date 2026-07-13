@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Cliente } from '~/composables/useClientes'
+import type { Usuario } from '~/composables/useUsuarios'
 
 definePageMeta({
   middleware: 'permission',
@@ -7,11 +8,13 @@ definePageMeta({
 })
 
 const { fetchClientes, importClientes, deleteCliente } = useClientes()
+const { fetchUsuarios } = useUsuarios()
 const { can } = usePermissions()
 const { parsearCSV, descargarCSV } = useCsv()
 const { success, error } = useToast()
 
 const clientes = ref<Cliente[]>([])
+const usuarios = ref<Usuario[]>([])
 const cargando = ref(true)
 const importando = ref(false)
 const inputArchivo = ref<HTMLInputElement | null>(null)
@@ -20,6 +23,7 @@ const eliminando = ref(false)
 
 onMounted(async () => {
   clientes.value = await fetchClientes()
+  usuarios.value = await fetchUsuarios()
   cargando.value = false
 })
 
@@ -105,7 +109,7 @@ async function onConfirmarEliminar() {
     </SharedPageHeader>
 
     <p v-if="cargando" class="text-gray-400">Cargando...</p>
-    <ClientesClienteSplitView v-else :clientes="clientes" @eliminar="clienteAEliminar = $event" />
+    <ClientesClienteSplitView v-else :clientes="clientes" :usuarios="usuarios" @eliminar="clienteAEliminar = $event" />
 
     <SharedConfirmDialog
       :open="!!clienteAEliminar"
