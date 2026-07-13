@@ -95,6 +95,7 @@ const toggle = (id: string) => {
         <option value="clientes">Clientes</option>
         <option value="leads">Leads</option>
         <option value="tickets">Tickets</option>
+        <option value="productos">Productos</option>
       </select>
 
       <select v-model="filtroAccion" class="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30">
