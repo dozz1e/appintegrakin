@@ -108,12 +108,18 @@ const abierto = ref(false)
 const contenedor = ref<HTMLElement | null>(null)
 
 let debounceHandle: ReturnType<typeof setTimeout> | null = null
+let sincronizando = false
+
+function setTerminoSincronizado(valor: string) {
+  sincronizando = true
+  termino.value = valor
+}
 
 onMounted(async () => {
   if (props.modelValue) {
     try {
       const cliente = await getCliente(props.modelValue)
-      termino.value = cliente.razon_social
+      setTerminoSincronizado(cliente.razon_social)
     } catch {
       // el id ya no existe o no es visible por RLS - se deja el input vacío
     }
@@ -121,9 +127,19 @@ onMounted(async () => {
   document.addEventListener('click', onClickFuera)
 })
 
-onUnmounted(() => document.removeEventListener('click', onClickFuera))
+onUnmounted(() => {
+  document.removeEventListener('click', onClickFuera)
+  if (debounceHandle) clearTimeout(debounceHandle)
+})
 
 watch(termino, (nuevo) => {
+  // escritura programática (prefill al montar o selección de un resultado) -
+  // no dispara ni la búsqueda ni la limpieza de integridad, solo tipeo real
+  if (sincronizando) {
+    sincronizando = false
+    return
+  }
+
   if (debounceHandle) clearTimeout(debounceHandle)
 
   // el usuario está editando el texto tras haber elegido un cliente -
@@ -150,7 +166,7 @@ watch(termino, (nuevo) => {
 })
 
 function elegir(cliente: Cliente) {
-  termino.value = cliente.razon_social
+  setTerminoSincronizado(cliente.razon_social)
   abierto.value = false
   resultados.value = []
   emit('update:modelValue', cliente.id)
@@ -202,6 +218,8 @@ function onClickFuera(e: MouseEvent) {
 ```
 
 Nota: `v-for` y `v-else` nunca van en el mismo elemento (Vue no lo soporta de forma confiable) — el `v-for` va adentro de un `<template v-else>` que cierra la cadena `v-if/v-else-if/v-else`, mismo patrón exacto que ya usa `GlobalSearch.vue` para sus tres grupos de resultados.
+
+Nota sobre `sincronizando`: `termino` se escribe programáticamente en dos lugares (`onMounted` al precargar, `elegir()` al elegir un resultado). Sin el flag, esas escrituras disparan igual el `watch(termino, ...)` como si el usuario hubiera tipeado — el precargado se autoborraría al instante (dispara la limpieza de integridad) y elegir un resultado reabriría el dropdown con una búsqueda nueva. `setTerminoSincronizado` marca `sincronizando = true` antes de escribir; el primer disparo del `watch` lo consume (lo vuelve a `false`) y sale sin ejecutar ni la limpieza ni la búsqueda — solo el tipeo real del usuario llega a esa lógica. (Encontrado en la revisión de Task 2, no en la primera versión de este plan — ver `.superpowers/sdd/task-2-report.md`.)
 
 - [ ] **Step 2: Verificar que compila**
 
