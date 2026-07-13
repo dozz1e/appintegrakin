@@ -111,6 +111,7 @@ let debounceHandle: ReturnType<typeof setTimeout> | null = null
 let sincronizando = false
 
 function setTerminoSincronizado(valor: string) {
+  if (termino.value === valor) return
   sincronizando = true
   termino.value = valor
 }
@@ -133,14 +134,14 @@ onUnmounted(() => {
 })
 
 watch(termino, (nuevo) => {
+  if (debounceHandle) clearTimeout(debounceHandle)
+
   // escritura programática (prefill al montar o selección de un resultado) -
   // no dispara ni la búsqueda ni la limpieza de integridad, solo tipeo real
   if (sincronizando) {
     sincronizando = false
     return
   }
-
-  if (debounceHandle) clearTimeout(debounceHandle)
 
   // el usuario está editando el texto tras haber elegido un cliente -
   // el id ya no corresponde a lo que se ve en pantalla, se limpia
@@ -220,6 +221,8 @@ function onClickFuera(e: MouseEvent) {
 Nota: `v-for` y `v-else` nunca van en el mismo elemento (Vue no lo soporta de forma confiable) — el `v-for` va adentro de un `<template v-else>` que cierra la cadena `v-if/v-else-if/v-else`, mismo patrón exacto que ya usa `GlobalSearch.vue` para sus tres grupos de resultados.
 
 Nota sobre `sincronizando`: `termino` se escribe programáticamente en dos lugares (`onMounted` al precargar, `elegir()` al elegir un resultado). Sin el flag, esas escrituras disparan igual el `watch(termino, ...)` como si el usuario hubiera tipeado — el precargado se autoborraría al instante (dispara la limpieza de integridad) y elegir un resultado reabriría el dropdown con una búsqueda nueva. `setTerminoSincronizado` marca `sincronizando = true` antes de escribir; el primer disparo del `watch` lo consume (lo vuelve a `false`) y sale sin ejecutar ni la limpieza ni la búsqueda — solo el tipeo real del usuario llega a esa lógica. (Encontrado en la revisión de Task 2, no en la primera versión de este plan — ver `.superpowers/sdd/task-2-report.md`.)
+
+Dos ajustes más sobre el mismo guard, encontrados en una segunda ronda de revisión: (1) `setTerminoSincronizado` corta al principio si `valor` ya es igual a `termino.value` — Vue no dispara `watch` en una escritura que no cambia el valor (ej. el usuario tipeó la razón social completa y exacta, y después clickea ese mismo resultado), así que sin este corte el flag quedaba en `true` sin que nada lo resetee, y la siguiente tecla real del usuario quedaba absorbida por el guard en vez de disparar la limpieza de integridad. (2) `clearTimeout(debounceHandle)` se movió al principio del `watch`, antes del chequeo de `sincronizando` — así una búsqueda real pendiente siempre se cancela, incluso cuando la escritura que sigue resulta ser programática.
 
 - [ ] **Step 2: Verificar que compila**
 
