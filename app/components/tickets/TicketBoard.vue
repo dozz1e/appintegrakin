@@ -32,6 +32,10 @@ function onDragChange(evt: any, estadoDestino: EstadoTicket) {
     emit('cambiar-estado', ticket.id, estadoDestino)
   }
 }
+
+function formatearFecha(fecha: string) {
+  return new Date(fecha).toLocaleString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' })
+}
 </script>
 
 <template>
@@ -65,6 +69,8 @@ function onDragChange(evt: any, estadoDestino: EstadoTicket) {
               </NuxtLink>
               <SharedBadge :label="colorPrioridad(ticket.prioridad).label" :clases="colorPrioridad(ticket.prioridad).clases" />
             </div>
+            <p class="text-xs text-gray-400">{{ ticket.clientes?.razon_social ?? 'Cliente no disponible' }}</p>
+            <p class="text-[11px] text-gray-300 mt-0.5">{{ formatearFecha(ticket.created_at) }}</p>
           </div>
         </template>
       </draggable>
