@@ -13,9 +13,10 @@ const busqueda = ref('')
 const filtroVendedor = ref('')
 const seleccionadoId = ref<string | null>(null)
 const ticketsSeleccionado = ref<Ticket[]>([])
-const tabActiva = ref<'info' | 'tickets'>('info')
+const tabActiva = ref<'info' | 'tickets' | 'ventas'>('info')
 
 const puedeVerTickets = computed(() => can('tickets', 'view') || can('tickets', 'view_all'))
+const puedeVerVentas = computed(() => can('ventas', 'view') || can('ventas', 'view_all'))
 
 const clientesFiltrados = computed(() => {
   const q = busqueda.value.trim().toLowerCase()
@@ -141,6 +142,15 @@ function seleccionar(c: Cliente) {
           >
             Tickets
           </button>
+          <button
+            v-if="puedeVerVentas"
+            type="button"
+            class="text-sm font-medium pb-2 border-b-2 transition-colors"
+            :class="tabActiva === 'ventas' ? 'border-[#1075B5] text-[#1075B5]' : 'border-transparent text-gray-400 hover:text-gray-600'"
+            @click="tabActiva = 'ventas'"
+          >
+            Ventas
+          </button>
         </div>
 
         <div v-if="tabActiva === 'info'" class="space-y-4">
@@ -176,7 +186,7 @@ function seleccionar(c: Cliente) {
           </NuxtLink>
         </div>
 
-        <div v-else>
+        <div v-else-if="tabActiva === 'tickets'">
           <div class="flex items-center justify-between mb-3">
             <p class="text-sm font-semibold text-gray-700">Tickets de servicio técnico</p>
             <NuxtLink
@@ -200,6 +210,11 @@ function seleccionar(c: Cliente) {
             </li>
           </ul>
           <p v-else class="text-sm text-gray-400">Sin tickets todavía</p>
+        </div>
+
+        <div v-else-if="tabActiva === 'ventas'">
+          <p class="text-sm font-semibold text-gray-700 mb-3">Ventas</p>
+          <ClientesVentaList :cliente-id="seleccionado.id" />
         </div>
       </div>
     </div>
