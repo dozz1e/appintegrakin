@@ -33,6 +33,10 @@ function onDragChange(evt: any, estadoDestino: EstadoLead) {
     emit('cambiar-estado', lead.id, estadoDestino)
   }
 }
+
+function formatearFecha(fecha: string) {
+  return new Date(fecha).toLocaleString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' })
+}
 </script>
 
 <template>
@@ -67,6 +71,7 @@ function onDragChange(evt: any, estadoDestino: EstadoLead) {
               </NuxtLink>
             </div>
             <p class="text-xs text-gray-400 ml-9">{{ lead.telefono || lead.email || 'Sin contacto' }}</p>
+            <p class="text-[11px] text-gray-300 ml-9 mt-0.5">{{ formatearFecha(lead.created_at) }}</p>
           </div>
         </template>
       </draggable>
