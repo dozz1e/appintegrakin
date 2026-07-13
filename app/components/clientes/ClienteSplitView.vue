@@ -21,7 +21,13 @@ const puedeVerVentas = computed(() => can('ventas', 'view') || can('ventas', 'vi
 const clientesFiltrados = computed(() => {
   const q = busqueda.value.trim().toLowerCase()
   return props.clientes.filter((c) => {
-    if (q && !c.razon_social.toLowerCase().includes(q) && !(c.nombre_contacto ?? '').toLowerCase().includes(q)) return false
+    if (
+      q &&
+      !c.razon_social.toLowerCase().includes(q) &&
+      !(c.nombre_contacto ?? '').toLowerCase().includes(q) &&
+      !(c.rut ?? '').toLowerCase().includes(q)
+    )
+      return false
     if (filtroVendedor.value === 'sin_asignar' && c.owner_id !== null) return false
     if (filtroVendedor.value && filtroVendedor.value !== 'sin_asignar' && c.owner_id !== filtroVendedor.value) return false
     return true
@@ -53,7 +59,7 @@ function seleccionar(c: Cliente) {
       <input
         v-model="busqueda"
         type="text"
-        placeholder="Buscar cliente..."
+        placeholder="Buscar por nombre, contacto o RUT..."
         class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mb-2 focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30 focus:border-[#1075B5]"
       />
       <select
