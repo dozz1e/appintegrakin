@@ -76,7 +76,7 @@ const onCrearFeature = async () => {
 <template>
   <div class="p-6 max-w-3xl mx-auto">
     <h1 class="text-lg font-semibold mb-1">Panel dev</h1>
-    <p class="text-xs text-gray-400 mb-6">Solo vos ves esta página. No aparece en ningún menú.</p>
+    <p class="text-xs text-gray-400 mb-6">Solo tú ves esta página. No aparece en ningún menú.</p>
 
     <p v-if="cargando" class="text-gray-400">Cargando...</p>
 
