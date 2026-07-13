@@ -73,6 +73,10 @@ async function onConfirmarEliminar() {
     confirmandoEliminar.value = false
   }
 }
+
+function formatearFecha(fecha: string) {
+  return new Date(fecha).toLocaleString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' })
+}
 </script>
 
 <template>
@@ -80,6 +84,7 @@ async function onConfirmarEliminar() {
     <p v-if="cargando" class="text-gray-400">Cargando...</p>
     <template v-else-if="ticket">
       <SharedPageHeader :titulo="ticket.titulo" volver-a="/tickets">
+        <template #subtitulo>Creado el {{ formatearFecha(ticket.created_at) }}</template>
         <template #accion>
           <SharedBadge :label="colorTicket(ticket.estado).label" :clases="colorTicket(ticket.estado).clases" />
         </template>
