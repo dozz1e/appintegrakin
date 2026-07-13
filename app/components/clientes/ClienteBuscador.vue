@@ -13,12 +13,18 @@ const abierto = ref(false)
 const contenedor = ref<HTMLElement | null>(null)
 
 let debounceHandle: ReturnType<typeof setTimeout> | null = null
+let sincronizando = false
+
+function setTerminoSincronizado(valor: string) {
+  sincronizando = true
+  termino.value = valor
+}
 
 onMounted(async () => {
   if (props.modelValue) {
     try {
       const cliente = await getCliente(props.modelValue)
-      termino.value = cliente.razon_social
+      setTerminoSincronizado(cliente.razon_social)
     } catch {
       // el id ya no existe o no es visible por RLS - se deja el input vacío
     }
@@ -26,9 +32,19 @@ onMounted(async () => {
   document.addEventListener('click', onClickFuera)
 })
 
-onUnmounted(() => document.removeEventListener('click', onClickFuera))
+onUnmounted(() => {
+  document.removeEventListener('click', onClickFuera)
+  if (debounceHandle) clearTimeout(debounceHandle)
+})
 
 watch(termino, (nuevo) => {
+  // escritura programática (prefill al montar o selección de un resultado) -
+  // no dispara ni la búsqueda ni la limpieza de integridad, solo tipeo real
+  if (sincronizando) {
+    sincronizando = false
+    return
+  }
+
   if (debounceHandle) clearTimeout(debounceHandle)
 
   // el usuario está editando el texto tras haber elegido un cliente -
@@ -55,7 +71,7 @@ watch(termino, (nuevo) => {
 })
 
 function elegir(cliente: Cliente) {
-  termino.value = cliente.razon_social
+  setTerminoSincronizado(cliente.razon_social)
   abierto.value = false
   resultados.value = []
   emit('update:modelValue', cliente.id)
