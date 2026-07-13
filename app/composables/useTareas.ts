@@ -83,15 +83,16 @@ export function useTareas() {
   }
 
   // Recalcula tareasProximas a partir de fetchMisTareasPendientes: tareas no
-  // completadas, con fecha_vencimiento futura pero a UMBRAL_MINUTOS_PROXIMAS
-  // o menos, excluyendo las que el usuario ya cerró (idsTareasDescartadas).
+  // completadas, a UMBRAL_MINUTOS_PROXIMAS o menos de vencer, o ya vencidas
+  // (sin límite hacia atrás - se van solas al marcarse completadas),
+  // excluyendo las que el usuario ya cerró (idsTareasDescartadas).
   async function refrescarTareasProximas(): Promise<void> {
     const pendientes = await fetchMisTareasPendientes()
     const ahora = Date.now()
     tareasProximas.value = pendientes.filter((t) => {
       if (!t.fecha_vencimiento || idsTareasDescartadas.value.has(t.id)) return false
       const msRestante = new Date(t.fecha_vencimiento).getTime() - ahora
-      return msRestante > 0 && msRestante <= UMBRAL_MINUTOS_PROXIMAS * 60_000
+      return msRestante <= UMBRAL_MINUTOS_PROXIMAS * 60_000
     })
   }
 
