@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { Ticket } from '~/composables/useTickets'
-import type { Cliente } from '~/composables/useClientes'
 
 const props = defineProps<{
   modelValue?: Partial<Ticket>
@@ -9,15 +8,6 @@ const props = defineProps<{
   cargando?: boolean
 }>()
 const emit = defineEmits<{ submit: [payload: Partial<Ticket>] }>()
-
-const { fetchClientes } = useClientes()
-const clientes = ref<Cliente[]>([])
-
-onMounted(async () => {
-  if (!props.clienteIdFijo) {
-    clientes.value = await fetchClientes()
-  }
-})
 
 const form = reactive<Partial<Ticket>>({
   cliente_id: props.modelValue?.cliente_id ?? props.clienteIdFijo ?? '',
@@ -47,10 +37,7 @@ const inputClase =
   <form class="space-y-4" @submit.prevent="onSubmit">
     <div>
       <label class="block text-sm font-medium mb-1 text-gray-700">Cliente *</label>
-      <select v-if="!clienteIdFijo" v-model="form.cliente_id" :class="inputClase">
-        <option value="" disabled>Selecciona un cliente</option>
-        <option v-for="c in clientes" :key="c.id" :value="c.id">{{ c.razon_social }}</option>
-      </select>
+      <ClientesClienteBuscador v-if="!clienteIdFijo" v-model="form.cliente_id" />
       <input
         v-else
         type="text"
