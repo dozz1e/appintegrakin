@@ -111,5 +111,6 @@ const navCrm = [
     </div>
 
     <SharedToastContainer />
+    <SharedRecordatorioAlertContainer />
   </div>
 </template>
