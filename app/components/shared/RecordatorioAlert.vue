@@ -18,15 +18,15 @@ function formatearHora(fechaVencimiento: string): string {
 
 <template>
   <div
-    class="border border-warning-text/30 rounded-xl shadow-lg px-4 py-3 flex items-start gap-3 text-sm bg-warning-bg text-warning-text"
+    class="border-2 border-warning-text/40 rounded-xl shadow-xl px-5 py-4 flex items-start gap-4 text-base bg-warning-bg text-warning-text"
   >
-    <span class="text-base shrink-0">⏰</span>
+    <span class="text-2xl shrink-0">⏰</span>
     <div class="flex-1 min-w-0 cursor-pointer" @click="$emit('click')">
-      <p class="font-medium truncate">{{ tarea.titulo }}</p>
-      <p v-if="tarea.fecha_vencimiento" class="text-xs opacity-80">
+      <p class="font-semibold text-base truncate">{{ tarea.titulo }}</p>
+      <p v-if="tarea.fecha_vencimiento" class="text-sm opacity-80 mt-0.5">
         Vence {{ formatearHora(tarea.fecha_vencimiento) }}
       </p>
     </div>
-    <button class="opacity-60 hover:opacity-100 shrink-0" @click="$emit('cerrar')">✕</button>
+    <button class="text-lg opacity-60 hover:opacity-100 shrink-0" @click="$emit('cerrar')">✕</button>
   </div>
 </template>

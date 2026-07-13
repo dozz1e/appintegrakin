@@ -28,7 +28,7 @@ onUnmounted(() => {
 
 <template>
   <Teleport to="body">
-    <div class="fixed top-20 right-4 z-50 space-y-2 w-80">
+    <div class="fixed top-20 right-4 z-50 space-y-3 w-96">
       <TransitionGroup name="recordatorio">
         <SharedRecordatorioAlert
           v-for="t in tareasProximas"
