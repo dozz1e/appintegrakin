@@ -71,7 +71,7 @@ function formatearFecha(fecha: string) {
               </NuxtLink>
             </div>
             <p class="text-xs text-gray-400 ml-9">{{ lead.telefono || lead.email || 'Sin contacto' }}</p>
-            <p class="text-[11px] text-gray-300 ml-9 mt-0.5">{{ formatearFecha(lead.created_at) }}</p>
+            <p class="text-[11px] text-gray-500 ml-9 mt-0.5">{{ formatearFecha(lead.created_at) }}</p>
           </div>
         </template>
       </draggable>

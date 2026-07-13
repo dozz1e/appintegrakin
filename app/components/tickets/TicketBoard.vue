@@ -70,7 +70,7 @@ function formatearFecha(fecha: string) {
               <SharedBadge :label="colorPrioridad(ticket.prioridad).label" :clases="colorPrioridad(ticket.prioridad).clases" />
             </div>
             <p class="text-xs text-gray-400">{{ ticket.clientes?.razon_social ?? 'Cliente no disponible' }}</p>
-            <p class="text-[11px] text-gray-300 mt-0.5">{{ formatearFecha(ticket.created_at) }}</p>
+            <p class="text-[11px] text-gray-500 mt-0.5">{{ formatearFecha(ticket.created_at) }}</p>
           </div>
         </template>
       </draggable>
