@@ -15,17 +15,21 @@ export interface Ticket {
   created_at: string
   updated_at: string
   version: number
+  clientes?: { razon_social: string } | null
 }
 
 export const useTickets = () => {
   const supabase = useSupabaseClient()
 
   const fetchTickets = async (filtroEstado?: EstadoTicket) => {
-    let query = supabase.from('tickets').select('*').order('created_at', { ascending: false })
+    let query = supabase
+      .from('tickets')
+      .select('*, clientes(razon_social)')
+      .order('created_at', { ascending: false })
     if (filtroEstado) query = query.eq('estado', filtroEstado)
     const { data, error } = await query
     if (error) throw error
-    return data as Ticket[]
+    return data as unknown as Ticket[]
   }
 
   const fetchTicketsPorCliente = async (clienteId: string) => {
