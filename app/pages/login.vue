@@ -7,10 +7,22 @@ const user = useSupabaseUser()
 const router = useRouter()
 const route = useRoute()
 
+const STORAGE_KEY_EMAIL = 'login-email-recordado'
+
 const email = ref('')
 const password = ref('')
 const cargando = ref(false)
 const error = ref('')
+const recordar = ref(false)
+const mostrarPassword = ref(false)
+
+if (import.meta.client) {
+  const emailGuardado = localStorage.getItem(STORAGE_KEY_EMAIL)
+  if (emailGuardado) {
+    email.value = emailGuardado
+    recordar.value = true
+  }
+}
 
 const onSubmit = async () => {
   cargando.value = true
@@ -25,6 +37,12 @@ const onSubmit = async () => {
     error.value = 'Email o contraseña incorrectos'
     cargando.value = false
     return
+  }
+
+  if (recordar.value) {
+    localStorage.setItem(STORAGE_KEY_EMAIL, email.value)
+  } else {
+    localStorage.removeItem(STORAGE_KEY_EMAIL)
   }
 
   // Justo después de signInWithPassword, useSupabaseUser() puede tardar un
@@ -64,13 +82,29 @@ const onSubmit = async () => {
 
       <div>
         <label class="block text-sm font-medium mb-1 text-gray-700">Contraseña</label>
-        <input
-          v-model="password"
-          type="password"
-          required
-          class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30 focus:border-[#1075B5]"
-        />
+        <div class="relative">
+          <input
+            v-model="password"
+            :type="mostrarPassword ? 'text' : 'password'"
+            required
+            class="w-full border border-gray-200 rounded-lg px-3 py-2.5 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30 focus:border-[#1075B5]"
+          />
+          <button
+            type="button"
+            tabindex="-1"
+            class="absolute inset-y-0 right-0 flex items-center px-3 text-gray-400 hover:text-gray-600"
+            :aria-label="mostrarPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+            @click="mostrarPassword = !mostrarPassword"
+          >
+            <Icon :name="mostrarPassword ? 'mdi:eye-off-outline' : 'mdi:eye-outline'" class="w-5 h-5" />
+          </button>
+        </div>
       </div>
+
+      <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer select-none">
+        <input v-model="recordar" type="checkbox" class="rounded border-gray-300 text-[#1075B5] focus:ring-[#1075B5]/30" />
+        Recordar mi correo
+      </label>
 
       <p v-if="error" class="text-sm text-red-600">{{ error }}</p>
 
