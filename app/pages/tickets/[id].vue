@@ -86,7 +86,7 @@ function formatearFecha(fecha: string) {
       <SharedPageHeader :titulo="ticket.titulo" volver-a="/tickets">
         <template #subtitulo>Creado el {{ formatearFecha(ticket.created_at) }}</template>
         <template #accion>
-          <SharedBadge :label="colorTicket(ticket.estado).label" :clases="colorTicket(ticket.estado).clases" />
+          <SharedBadge :label="colorTicket(ticket.estado).label" :clases="colorTicket(ticket.estado).clases" tamano="lg" />
         </template>
       </SharedPageHeader>
 

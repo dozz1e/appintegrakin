@@ -93,7 +93,7 @@ function formatearFecha(fecha: string) {
       <SharedPageHeader :titulo="lead.nombre" volver-a="/leads">
         <template #subtitulo>Creado el {{ formatearFecha(lead.created_at) }}</template>
         <template #accion>
-          <SharedBadge :label="colorLead(lead.estado).label" :clases="colorLead(lead.estado).clases" />
+          <SharedBadge :label="colorLead(lead.estado).label" :clases="colorLead(lead.estado).clases" tamano="lg" />
         </template>
       </SharedPageHeader>
 
