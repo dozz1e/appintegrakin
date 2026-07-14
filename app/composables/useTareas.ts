@@ -11,7 +11,7 @@ export interface Tarea {
   updated_at: string
 }
 
-const UMBRAL_MINUTOS_PROXIMAS = 30
+const UMBRAL_MINUTOS_DEFAULT = 30
 const STORAGE_KEY_DESCARTADAS = 'tareas-proximas-descartadas'
 
 function guardarDescartadasEnStorage(ids: Set<string>): void {
@@ -96,12 +96,16 @@ export function useTareas() {
   // (sin límite hacia atrás - se van solas al marcarse completadas),
   // excluyendo las que el usuario ya cerró (idsTareasDescartadas).
   async function refrescarTareasProximas(): Promise<void> {
+    const { perfil } = useMiPerfil()
+    const valorConfigurado = perfil.value?.settings?.umbral_alertas_minutos
+    const umbralMinutos = typeof valorConfigurado === 'number' ? valorConfigurado : UMBRAL_MINUTOS_DEFAULT
+
     const pendientes = await fetchMisTareasPendientes()
     const ahora = Date.now()
     tareasProximas.value = pendientes.filter((t) => {
       if (!t.fecha_vencimiento || idsTareasDescartadas.value.has(t.id)) return false
       const msRestante = new Date(t.fecha_vencimiento).getTime() - ahora
-      return msRestante <= UMBRAL_MINUTOS_PROXIMAS * 60_000
+      return msRestante <= umbralMinutos * 60_000
     })
 
     // Poda: si una tarea descartada ya no está pendiente (se completó o
