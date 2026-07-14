@@ -11,6 +11,7 @@ export interface Ticket {
   estado: EstadoTicket
   prioridad: PrioridadTicket
   owner_id: string | null
+  tecnico_id: string | null
   created_by: string | null
   created_at: string
   updated_at: string
@@ -79,7 +80,7 @@ export const useTickets = () => {
   const cambiarEstado = (id: string, estado: EstadoTicket) => updateTicket(id, { estado })
 
   // requiere permiso tickets.assign - RLS lo valida server-side, esto es solo el wrapper
-  const asignarTecnico = (id: string, ownerId: string) => updateTicket(id, { owner_id: ownerId })
+  const asignarTecnico = (id: string, tecnicoId: string) => updateTicket(id, { tecnico_id: tecnicoId })
 
   return {
     fetchTickets,

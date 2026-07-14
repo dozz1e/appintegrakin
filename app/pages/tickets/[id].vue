@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Ticket } from '~/composables/useTickets'
-import type { Usuario } from '~/composables/useUsuarios'
+import type { Tecnico } from '~/composables/useTecnicos'
 
 definePageMeta({
   middleware: 'permission',
@@ -9,12 +9,12 @@ definePageMeta({
 
 const route = useRoute()
 const { getTicket, updateTicket, deleteTicket, asignarTecnico } = useTickets()
-const { fetchUsuariosPorRol } = useUsuarios()
+const { fetchTecnicos } = useTecnicos()
 const { can } = usePermissions()
 const { success, error } = useToast()
 
 const ticket = ref<Ticket | null>(null)
-const tecnicos = ref<Usuario[]>([])
+const tecnicos = ref<Tecnico[]>([])
 const cargando = ref(true)
 const guardando = ref(false)
 const asignando = ref(false)
@@ -24,7 +24,7 @@ const eliminando = ref(false)
 onMounted(async () => {
   ticket.value = await getTicket(route.params.id as string)
   if (can('tickets', 'assign')) {
-    tecnicos.value = await fetchUsuariosPorRol('servicio_tecnico')
+    tecnicos.value = await fetchTecnicos()
   }
   cargando.value = false
 })
@@ -98,14 +98,14 @@ function formatearFecha(fecha: string) {
         <div class="space-y-6">
           <SharedCard v-if="can('tickets', 'assign')" titulo="Técnico asignado">
             <select
-              :value="ticket.owner_id ?? ''"
+              :value="ticket.tecnico_id ?? ''"
               :disabled="asignando"
               class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30 focus:border-[#1075B5]"
               @change="onAsignar(($event.target as HTMLSelectElement).value)"
             >
               <option value="" disabled>Sin asignar</option>
               <option v-for="t in tecnicos" :key="t.id" :value="t.id">
-                {{ t.full_name || t.email }}
+                {{ t.nombre }}
               </option>
             </select>
           </SharedCard>
