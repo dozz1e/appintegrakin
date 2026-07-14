@@ -61,3 +61,12 @@ export function colorCanal(canal: string): EstiloEstado {
   }
   return mapa[canal] ?? { label: canal, clases: GRIS_BG }
 }
+
+export function colorCitaCapacitacion(estado: string): EstiloEstado {
+  const mapa: Record<string, EstiloEstado> = {
+    pendiente: { label: 'Pendiente', clases: PRIMARIO_BG },
+    completada: { label: 'Completada', clases: VERDE_BG },
+    cancelada: { label: 'Cancelada', clases: GRIS_BG },
+  }
+  return mapa[estado] ?? { label: estado, clases: GRIS_BG }
+}
