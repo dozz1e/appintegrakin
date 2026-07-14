@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import type { Notificacion } from '~/composables/useNotificaciones'
 
-const { fetchNotificaciones, marcarLeida, marcarTodasLeidas, suscribirNotificaciones } = useNotificaciones()
+const { fetchNotificaciones, marcarLeida, marcarTodasLeidas, eliminarNotificacion, suscribirNotificaciones } =
+  useNotificaciones()
+const { error: toastError } = useToast()
 const router = useRouter()
 
 const notificaciones = ref<Notificacion[]>([])
@@ -67,6 +69,17 @@ async function onMarcarTodas() {
   await marcarTodasLeidas()
   notificaciones.value = notificaciones.value.map((n) => ({ ...n, leida: true }))
 }
+
+async function onEliminar(n: Notificacion) {
+  const anteriores = notificaciones.value
+  notificaciones.value = notificaciones.value.filter((x) => x.id !== n.id)
+  try {
+    await eliminarNotificacion(n.id)
+  } catch {
+    notificaciones.value = anteriores
+    toastError('No se pudo eliminar la notificación')
+  }
+}
 </script>
 
 <template>
@@ -102,11 +115,11 @@ async function onMarcarTodas() {
       <p v-if="cargando" class="text-xs text-ink-muted px-4 py-3">Cargando...</p>
       <p v-else-if="!notificaciones.length" class="text-xs text-ink-muted px-4 py-3">Sin notificaciones todavía.</p>
 
-      <button
+      <div
         v-for="n in notificaciones"
         v-else
         :key="n.id"
-        class="w-full text-left px-4 py-3 flex gap-3 border-b border-border hover:bg-surface-2 transition-colors duration-150"
+        class="w-full text-left px-4 py-3 flex gap-3 border-b border-border hover:bg-surface-2 transition-colors duration-150 cursor-pointer"
         :class="{ 'bg-primary-subtle/60': !n.leida }"
         @click="onClickNotificacion(n)"
       >
@@ -117,7 +130,13 @@ async function onMarcarTodas() {
           <p class="text-[11px] text-ink-muted mt-0.5">{{ formatearFecha(n.created_at) }}</p>
         </div>
         <span v-if="!n.leida" class="w-2 h-2 rounded-full bg-primary shrink-0 mt-1.5" />
-      </button>
+        <button
+          class="text-ink-muted hover:text-ink shrink-0 leading-none"
+          @click.stop="onEliminar(n)"
+        >
+          ✕
+        </button>
+      </div>
     </div>
   </div>
 </template>

@@ -40,6 +40,11 @@ export const useNotificaciones = () => {
     if (error) throw error
   }
 
+  const eliminarNotificacion = async (id: string) => {
+    const { error } = await supabase.from('notificaciones').delete().eq('id', id)
+    if (error) throw error
+  }
+
   // Suscripción en vivo: cuando llega una notificación nueva para este
   // usuario, se ejecuta el callback (usado para sumar al contador sin
   // tener que recargar la página).
@@ -56,5 +61,5 @@ export const useNotificaciones = () => {
     return () => supabase.removeChannel(canal)
   }
 
-  return { fetchNotificaciones, marcarLeida, marcarTodasLeidas, suscribirNotificaciones }
+  return { fetchNotificaciones, marcarLeida, marcarTodasLeidas, eliminarNotificacion, suscribirNotificaciones }
 }

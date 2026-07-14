@@ -131,11 +131,11 @@ function seleccionar(c: Cliente) {
           </div>
         </div>
 
-        <div class="flex gap-4 border-b border-gray-100 mb-4">
+        <div class="flex gap-2 mb-4">
           <button
             type="button"
-            class="text-sm font-medium pb-2 border-b-2 transition-colors"
-            :class="tabActiva === 'info' ? 'border-[#1075B5] text-[#1075B5]' : 'border-transparent text-gray-400 hover:text-gray-600'"
+            class="rounded-lg px-4 py-2 text-base font-medium transition-colors"
+            :class="tabActiva === 'info' ? 'bg-primary text-ink-onprimary' : 'bg-surface-2 text-ink-muted hover:bg-primary-subtle hover:text-primary-ink'"
             @click="tabActiva = 'info'"
           >
             Información
@@ -143,8 +143,8 @@ function seleccionar(c: Cliente) {
           <button
             v-if="puedeVerTickets"
             type="button"
-            class="text-sm font-medium pb-2 border-b-2 transition-colors"
-            :class="tabActiva === 'tickets' ? 'border-[#1075B5] text-[#1075B5]' : 'border-transparent text-gray-400 hover:text-gray-600'"
+            class="rounded-lg px-4 py-2 text-base font-medium transition-colors"
+            :class="tabActiva === 'tickets' ? 'bg-primary text-ink-onprimary' : 'bg-surface-2 text-ink-muted hover:bg-primary-subtle hover:text-primary-ink'"
             @click="tabActiva = 'tickets'"
           >
             Tickets
@@ -152,8 +152,8 @@ function seleccionar(c: Cliente) {
           <button
             v-if="puedeVerVentas"
             type="button"
-            class="text-sm font-medium pb-2 border-b-2 transition-colors"
-            :class="tabActiva === 'ventas' ? 'border-[#1075B5] text-[#1075B5]' : 'border-transparent text-gray-400 hover:text-gray-600'"
+            class="rounded-lg px-4 py-2 text-base font-medium transition-colors"
+            :class="tabActiva === 'ventas' ? 'bg-primary text-ink-onprimary' : 'bg-surface-2 text-ink-muted hover:bg-primary-subtle hover:text-primary-ink'"
             @click="tabActiva = 'ventas'"
           >
             Ventas
