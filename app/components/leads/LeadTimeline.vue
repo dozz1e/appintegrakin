@@ -9,13 +9,16 @@ const interacciones = ref<LeadInteraccion[]>([])
 const cargando = ref(true)
 const guardando = ref(false)
 
-const canal = ref<'correo' | 'texto' | 'telefono'>('correo')
+const canal = ref<'whatsapp' | 'instagram' | 'facebook' | 'llamada' | 'web' | 'correo'>('correo')
 const nota = ref('')
 
 const iconoCanal: Record<string, string> = {
+  whatsapp: 'mdi:whatsapp',
+  instagram: 'mdi:instagram',
+  facebook: 'mdi:facebook',
+  llamada: 'mdi:phone-outline',
+  web: 'mdi:web',
   correo: 'mdi:email-outline',
-  texto: 'mdi:message-text-outline',
-  telefono: 'mdi:phone-outline',
 }
 
 async function cargar() {
@@ -55,9 +58,12 @@ function formatearFecha(fecha: string) {
         v-model="canal"
         class="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30"
       >
+        <option value="whatsapp">WhatsApp</option>
+        <option value="instagram">Instagram</option>
+        <option value="facebook">Facebook</option>
+        <option value="llamada">Llamada</option>
+        <option value="web">Web</option>
         <option value="correo">Correo</option>
-        <option value="texto">Texto</option>
-        <option value="telefono">Teléfono</option>
       </select>
       <input
         v-model="nota"

@@ -1,7 +1,7 @@
 export interface LeadInteraccion {
   id: string
   lead_id: string
-  canal: 'correo' | 'texto' | 'telefono'
+  canal: 'whatsapp' | 'instagram' | 'facebook' | 'llamada' | 'web' | 'correo'
   nota: string
   created_by: string | null
   created_at: string

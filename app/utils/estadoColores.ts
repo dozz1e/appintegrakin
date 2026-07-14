@@ -52,9 +52,12 @@ export function colorPrioridad(prioridad: string): EstiloEstado {
 
 export function colorCanal(canal: string): EstiloEstado {
   const mapa: Record<string, EstiloEstado> = {
+    whatsapp: { label: 'WhatsApp', clases: VERDE_BG },
+    instagram: { label: 'Instagram', clases: MORADO_BG },
+    facebook: { label: 'Facebook', clases: PRIMARIO_BG },
+    llamada: { label: 'Llamada', clases: AMBAR_BG },
+    web: { label: 'Web', clases: GRIS_BG },
     correo: { label: 'Correo', clases: PRIMARIO_BG },
-    texto: { label: 'Texto', clases: VERDE_BG },
-    telefono: { label: 'Teléfono', clases: MORADO_BG },
   }
   return mapa[canal] ?? { label: canal, clases: GRIS_BG }
 }
