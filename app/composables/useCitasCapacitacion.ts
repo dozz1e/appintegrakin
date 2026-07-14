@@ -138,6 +138,7 @@ export function useCitasCapacitacion() {
   }
 
   async function descartarCitaProxima(id: string): Promise<void> {
+    const citaDescartada = citasProximas.value.find((c) => c.id === id)
     idsCitasDescartadas.value.add(id)
     citasProximas.value = citasProximas.value.filter((c) => c.id !== id)
 
@@ -148,7 +149,8 @@ export function useCitasCapacitacion() {
 
     if (error) {
       idsCitasDescartadas.value.delete(id)
-      toastError('No se pudo descartar el aviso, intentá de nuevo')
+      if (citaDescartada) citasProximas.value = [...citasProximas.value, citaDescartada]
+      toastError('No se pudo descartar el aviso, intenta de nuevo')
     }
   }
 
