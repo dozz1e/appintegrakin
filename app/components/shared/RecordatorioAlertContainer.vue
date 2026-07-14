@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Tarea } from '~/composables/useTareas'
 
-const { tareasProximas, refrescarTareasProximas, descartarTareaProxima } = useTareas()
+const { tareasProximas, refrescarTareasProximas, descartarTareaProxima, cargarDescartadasGuardadas } = useTareas()
 const router = useRouter()
 
 let intervalo: ReturnType<typeof setInterval> | null = null
@@ -17,6 +17,7 @@ function onClickTarea(tarea: Tarea) {
 }
 
 onMounted(() => {
+  cargarDescartadasGuardadas()
   refrescarTareasProximas()
   intervalo = setInterval(refrescarTareasProximas, 60_000)
 })

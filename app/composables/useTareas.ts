@@ -12,6 +12,12 @@ export interface Tarea {
 }
 
 const UMBRAL_MINUTOS_PROXIMAS = 30
+const STORAGE_KEY_DESCARTADAS = 'tareas-proximas-descartadas'
+
+function guardarDescartadasEnStorage(ids: Set<string>): void {
+  if (!import.meta.client) return
+  localStorage.setItem(STORAGE_KEY_DESCARTADAS, JSON.stringify([...ids]))
+}
 
 export function useTareas() {
   const supabase = useSupabaseClient()
@@ -21,6 +27,9 @@ export function useTareas() {
   // Estado compartido para el alert global de "tarea próxima a vencer"
   // (RecordatorioAlertContainer.vue) - mismo patrón que useToast.ts.
   const tareasProximas = useState<Tarea[]>('tareas-proximas', () => [])
+  // Vacío en SSR/hydration (useState no puede leer localStorage al inicializar);
+  // se puebla desde localStorage vía cargarDescartadasGuardadas() en el
+  // onMounted del container, client-only.
   const idsTareasDescartadas = useState<Set<string>>('tareas-proximas-descartadas', () => new Set())
 
   async function fetchTareasPorEntidad(entidadTipo: Tarea['entidad_tipo'], entidadId: string): Promise<Tarea[]> {
@@ -94,13 +103,39 @@ export function useTareas() {
       const msRestante = new Date(t.fecha_vencimiento).getTime() - ahora
       return msRestante <= UMBRAL_MINUTOS_PROXIMAS * 60_000
     })
+
+    // Poda: si una tarea descartada ya no está pendiente (se completó o
+    // se eliminó), se saca del set guardado para no acumular ids muertos.
+    const idsPendientes = new Set(pendientes.map((t) => t.id))
+    let podado = false
+    for (const id of idsTareasDescartadas.value) {
+      if (!idsPendientes.has(id)) {
+        idsTareasDescartadas.value.delete(id)
+        podado = true
+      }
+    }
+    if (podado) guardarDescartadasEnStorage(idsTareasDescartadas.value)
   }
 
-  // Cierre de un alert individual (botón ✕). Solo en memoria - se resetea al
-  // recargar la página, ver Global Constraints del plan.
+  // Cierre de un alert individual (botón ✕). Persiste en localStorage: la
+  // tarea sigue oculta entre sesiones/recargas hasta que se complete (ver
+  // poda en refrescarTareasProximas).
   function descartarTareaProxima(id: string): void {
     idsTareasDescartadas.value.add(id)
     tareasProximas.value = tareasProximas.value.filter((t) => t.id !== id)
+    guardarDescartadasEnStorage(idsTareasDescartadas.value)
+  }
+
+  // Client-only: puebla idsTareasDescartadas desde localStorage. Se llama
+  // una vez en el onMounted del container, antes del primer refrescar.
+  function cargarDescartadasGuardadas(): void {
+    if (!import.meta.client) return
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY_DESCARTADAS)
+      if (raw) idsTareasDescartadas.value = new Set(JSON.parse(raw))
+    } catch {
+      // localStorage corrupto o inaccesible - se sigue sin descartes previos
+    }
   }
 
   return {
@@ -111,5 +146,6 @@ export function useTareas() {
     tareasProximas,
     refrescarTareasProximas,
     descartarTareaProxima,
+    cargarDescartadasGuardadas,
   }
 }
