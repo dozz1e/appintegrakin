@@ -12,6 +12,7 @@ const { fetchUsuarios } = useUsuarios()
 const { fetchCatalogoRoles, asignarRol, quitarRol } = useRolesUsuario()
 const { success, error } = useToast()
 const usuarioActual = useSupabaseUser()
+const { esSuperadmin } = useSuperadmin()
 
 const catalogoRoles = ref<RolCatalogo[]>([])
 const usuarios = ref<Usuario[]>([])
@@ -21,8 +22,12 @@ const cargando = ref(true)
 const aplicando = ref<string | null>(null) // role_id en curso, para deshabilitar su checkbox
 
 // Mismo guard que /admin/permisos: nadie edita sus propios roles desde acá,
-// evita que la dueña se quite a sí misma el único rol con dashboard_widgets.assign.
-const usuariosSeleccionables = computed(() => usuarios.value.filter((u) => u.id !== usuarioActual.value?.sub))
+// evita que alguien se quite a sí mismo el único rol con dashboard_widgets.assign.
+// Un superadmin no corre ese riesgo (bypasea permisos vía tabla superadmins),
+// así que puede editar también sus propios roles.
+const usuariosSeleccionables = computed(() =>
+  esSuperadmin.value ? usuarios.value : usuarios.value.filter((u) => u.id !== usuarioActual.value?.sub)
+)
 
 onMounted(async () => {
   catalogoRoles.value = await fetchCatalogoRoles()
