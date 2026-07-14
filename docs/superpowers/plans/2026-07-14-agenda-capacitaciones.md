@@ -222,6 +222,16 @@ git commit -m "feat: agregar tabla citas_descartadas para el popup de recordator
 -- Mismo patrón que fn_notificar_tarea_asignada (ver
 -- 20260702000600.../notificaciones existentes): notifica al responsable
 -- cuando se le asigna una cita que no creó él mismo.
+--
+-- notificaciones_tipo_check no incluye los tipos nuevos de esta feature
+-- (bug detectado en implementación real: el brief original solo tenía el
+-- trigger, sin esta ALTER TABLE, y el insert fallaba con constraint
+-- violation). Se agregan aquí los dos valores que usa todo el módulo
+-- (capacitacion_asignada en este archivo, capacitacion_vencida en el cron
+-- de Task 4) para no tocar esta tabla dos veces.
+alter table notificaciones drop constraint notificaciones_tipo_check;
+alter table notificaciones add constraint notificaciones_tipo_check
+  check (tipo in ('lead_asignado','ticket_asignado','tarea_asignada','tarea_vencida','capacitacion_asignada','capacitacion_vencida'));
 
 create or replace function fn_notificar_capacitacion_asignada()
 returns trigger
@@ -299,6 +309,10 @@ git commit -m "feat: notificar al asignar responsable de una capacitacion"
 -- Mismo patrón que fn_notificar_tareas_vencidas
 -- (20260710000000_notificacion_tarea_vencida.sql): "vencer" no es un evento
 -- de escritura, se revisa por cron.
+--
+-- notificaciones_tipo_check ya incluye 'capacitacion_vencida' — se agregó
+-- en la migración de Task 3 (20260714070000) junto con
+-- 'capacitacion_asignada', no hace falta otra ALTER TABLE acá.
 
 create or replace function fn_notificar_citas_vencidas()
 returns void
