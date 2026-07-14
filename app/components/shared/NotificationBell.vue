@@ -19,6 +19,8 @@ const etiquetaTipo: Record<Notificacion['tipo'], string> = {
   ticket_asignado: '🎫',
   tarea_asignada: '✅',
   tarea_vencida: '⏰',
+  capacitacion_asignada: '🎓',
+  capacitacion_vencida: '⏰',
 }
 
 const rutaEntidad: Record<Notificacion['entidad_tipo'], string> = {

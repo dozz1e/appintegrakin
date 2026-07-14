@@ -3,6 +3,7 @@ export interface Notificacion {
   id: string
   user_id: string
   tipo: 'lead_asignado' | 'ticket_asignado' | 'tarea_asignada' | 'tarea_vencida'
+      | 'capacitacion_asignada' | 'capacitacion_vencida'
   titulo: string
   mensaje: string | null
   entidad_tipo: 'lead' | 'cliente' | 'ticket' | 'tarea'
