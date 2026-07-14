@@ -17,7 +17,6 @@ const productoId = ref('')
 const busquedaProducto = ref('')
 const buscadorAbierto = ref(false)
 const contenedorBuscador = ref<HTMLElement | null>(null)
-const valor = ref('')
 const fecha = ref('')
 const hora = ref('')
 
@@ -70,10 +69,6 @@ watch(busquedaProducto, (nuevo) => {
   }
 })
 
-function formatearValor(valor: number) {
-  return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(valor)
-}
-
 function formatearFecha(fecha: string) {
   return new Date(fecha).toLocaleString('es-CL', {
     day: '2-digit',
@@ -92,7 +87,6 @@ function construirFecha(fecha: string, hora: string): string {
 
 function validar(): boolean {
   errores.productoId = productoId.value ? '' : 'Selecciona un producto'
-  errores.valor = Number(valor.value) > 0 ? '' : 'Ingresa un valor mayor a 0'
   errores.fecha = fecha.value ? '' : 'Ingresa la fecha'
   errores.hora = hora.value ? '' : 'Ingresa la hora'
   return !Object.values(errores).some(Boolean)
@@ -102,10 +96,9 @@ async function onSubmit() {
   if (!validar()) return
   guardando.value = true
   try {
-    await crearVenta(props.clienteId, productoId.value, Number(valor.value), construirFecha(fecha.value, hora.value))
+    await crearVenta(props.clienteId, productoId.value, 0, construirFecha(fecha.value, hora.value))
     productoId.value = ''
     busquedaProducto.value = ''
-    valor.value = ''
     fecha.value = ''
     hora.value = ''
     await cargar()
@@ -149,16 +142,8 @@ async function onSubmit() {
             </button>
           </div>
         </div>
-        <input
-          v-model="valor"
-          type="number"
-          min="1"
-          placeholder="Valor"
-          class="w-32 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30"
-        />
       </div>
       <p v-if="errores.productoId" class="text-xs text-red-600">{{ errores.productoId }}</p>
-      <p v-if="errores.valor" class="text-xs text-red-600">{{ errores.valor }}</p>
 
       <div class="flex flex-wrap gap-2 pt-1">
         <input
@@ -196,7 +181,6 @@ async function onSubmit() {
           <p class="font-medium text-gray-700 truncate">{{ nombreProducto(v.producto_id) }}</p>
           <p class="text-xs text-gray-400">{{ formatearFecha(v.fecha) }}</p>
         </div>
-        <span class="font-medium text-gray-700 shrink-0">{{ formatearValor(v.valor) }}</span>
       </li>
     </ul>
   </div>
