@@ -6,7 +6,6 @@ const route = useRoute()
 const { can } = usePermissions()
 const { esSuperadmin } = useSuperadmin()
 const { perfil, cargarMiPerfil } = useMiPerfil()
-const { logout } = useAuth()
 
 onMounted(async () => {
   if (!perfil.value) await cargarMiPerfil()
@@ -88,20 +87,7 @@ const navCrm = [
 
         <div class="flex items-center gap-3">
           <SharedNotificationBell />
-          <SharedAvatar v-if="perfil?.full_name || perfil?.email" :nombre="perfil.full_name || perfil.email || '?'" />
-          <div class="text-right hidden sm:block">
-            <p class="text-sm font-medium text-ink leading-tight">
-              {{ perfil?.full_name || perfil?.email || '...' }}
-            </p>
-            <p class="text-xs text-ink-muted leading-tight capitalize">{{ perfil?.role || '' }}</p>
-          </div>
-          <button
-            title="Cerrar sesión"
-            class="text-ink-muted hover:text-danger text-sm px-2 py-1 rounded transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-ring"
-            @click="logout"
-          >
-            Salir
-          </button>
+          <SharedUserMenu />
         </div>
       </header>
 
