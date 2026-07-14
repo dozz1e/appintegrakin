@@ -52,6 +52,7 @@ const alternarRol = async (roleId: string) => {
     rolesDelUsuario.value = new Set(rolesDelUsuario.value)
     success('Roles actualizados')
   } catch (e) {
+    rolesDelUsuario.value = new Set(rolesDelUsuario.value)
     error('No se pudo actualizar el rol')
   } finally {
     aplicando.value = null
