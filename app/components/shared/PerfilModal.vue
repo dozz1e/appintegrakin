@@ -81,8 +81,16 @@ async function onGuardar() {
         <p class="text-sm text-ink-secondary">{{ perfil?.email }}</p>
       </div>
       <div>
-        <label class="block text-xs font-medium text-ink-muted mb-1">Rol</label>
-        <SharedBadge :label="perfil?.role ?? '—'" clases="bg-neutral-bg text-neutral-text" />
+        <label class="block text-xs font-medium text-ink-muted mb-1">Roles</label>
+        <div v-if="perfil?.roles?.length" class="flex flex-wrap gap-1.5">
+          <SharedBadge
+            v-for="rol in perfil.roles"
+            :key="rol"
+            :label="rol"
+            clases="bg-neutral-bg text-neutral-text"
+          />
+        </div>
+        <SharedBadge v-else label="—" clases="bg-neutral-bg text-neutral-text" />
       </div>
     </div>
 
