@@ -63,6 +63,7 @@ function seleccionar(c: Cliente) {
         class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mb-2 focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30 focus:border-[#1075B5]"
       />
       <select
+        v-if="can('clientes', 'view_all')"
         v-model="filtroVendedor"
         class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30"
       >
