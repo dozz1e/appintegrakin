@@ -1,17 +1,17 @@
 <script setup lang="ts">
-import type { Tarea } from '~/composables/useTareas'
+export interface AvisoRecordatorio {
+  id: string
+  titulo: string
+  fecha_vencimiento: string | null
+}
 
-const props = defineProps<{ tarea: Tarea }>()
+const props = defineProps<{ aviso: AvisoRecordatorio }>()
 defineEmits<{ cerrar: []; click: [] }>()
 
 const esVencida = computed(
-  () => !!props.tarea.fecha_vencimiento && new Date(props.tarea.fecha_vencimiento).getTime() < Date.now()
+  () => !!props.aviso.fecha_vencimiento && new Date(props.aviso.fecha_vencimiento).getTime() < Date.now()
 )
 
-// La ventana de aviso "próxima" es de 30 min (ver useTareas.ts,
-// UMBRAL_MINUTOS_PROXIMAS), así que en la práctica esa rama siempre cae en
-// minutos - la rama de horas queda como respaldo, y aplica sin límite al
-// lado "vencida hace X" ya que esas no tienen tope de tiempo hacia atrás.
 function formatearHora(fechaVencimiento: string): string {
   const msDiferencia = Math.abs(new Date(fechaVencimiento).getTime() - Date.now())
   const minutos = Math.max(1, Math.round(msDiferencia / 60_000))
@@ -32,9 +32,9 @@ function formatearHora(fechaVencimiento: string): string {
   >
     <span class="text-2xl shrink-0">{{ esVencida ? '⚠️' : '⏰' }}</span>
     <div class="flex-1 min-w-0 cursor-pointer" @click="$emit('click')">
-      <p class="font-semibold text-base truncate">{{ tarea.titulo }}</p>
-      <p v-if="tarea.fecha_vencimiento" class="text-sm opacity-80 mt-0.5">
-        {{ esVencida ? 'Venció hace' : 'Vence en' }} {{ formatearHora(tarea.fecha_vencimiento) }}
+      <p class="font-semibold text-base truncate">{{ aviso.titulo }}</p>
+      <p v-if="aviso.fecha_vencimiento" class="text-sm opacity-80 mt-0.5">
+        {{ esVencida ? 'Venció hace' : 'Vence en' }} {{ formatearHora(aviso.fecha_vencimiento) }}
       </p>
     </div>
     <button class="text-lg opacity-60 hover:opacity-100 shrink-0" @click="$emit('cerrar')">✕</button>

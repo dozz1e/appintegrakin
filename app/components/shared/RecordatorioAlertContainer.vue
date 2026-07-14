@@ -1,7 +1,19 @@
 <script setup lang="ts">
 import type { Tarea } from '~/composables/useTareas'
+import type { AvisoRecordatorio } from './RecordatorioAlert.vue'
 
-const { tareasProximas, refrescarTareasProximas, descartarTareaProxima, cargarDescartadasGuardadas } = useTareas()
+const {
+  tareasProximas,
+  refrescarTareasProximas,
+  descartarTareaProxima,
+  cargarDescartadasGuardadas: cargarDescartesTareas,
+} = useTareas()
+const {
+  citasProximas,
+  refrescarCitasProximas,
+  descartarCitaProxima,
+  cargarDescartadasGuardadas: cargarDescartesCitas,
+} = useCitasCapacitacion()
 const router = useRouter()
 
 let intervalo: ReturnType<typeof setInterval> | null = null
@@ -12,14 +24,44 @@ const rutaEntidad: Record<Tarea['entidad_tipo'], string> = {
   ticket: '/tickets',
 }
 
-function onClickTarea(tarea: Tarea) {
-  router.push(`${rutaEntidad[tarea.entidad_tipo]}/${tarea.entidad_id}`)
+interface AvisoConTipo extends AvisoRecordatorio {
+  tipo: 'tarea' | 'cita'
+}
+
+const avisos = computed<AvisoConTipo[]>(() =>
+  [
+    ...tareasProximas.value.map((t) => ({ id: t.id, tipo: 'tarea' as const, titulo: t.titulo, fecha_vencimiento: t.fecha_vencimiento })),
+    ...citasProximas.value.map((c) => ({
+      id: c.id,
+      tipo: 'cita' as const,
+      titulo: `Capacitación: ${c.producto_nombre} — ${c.cliente_nombre}`,
+      fecha_vencimiento: c.fecha_hora,
+    })),
+  ].sort((a, b) => new Date(a.fecha_vencimiento ?? 0).getTime() - new Date(b.fecha_vencimiento ?? 0).getTime())
+)
+
+function onClickAviso(aviso: AvisoConTipo) {
+  if (aviso.tipo === 'cita') {
+    router.push('/capacitaciones')
+    return
+  }
+  const tarea = tareasProximas.value.find((t) => t.id === aviso.id)
+  if (tarea) router.push(`${rutaEntidad[tarea.entidad_tipo]}/${tarea.entidad_id}`)
+}
+
+function onCerrarAviso(aviso: AvisoConTipo) {
+  if (aviso.tipo === 'cita') descartarCitaProxima(aviso.id)
+  else descartarTareaProxima(aviso.id)
 }
 
 onMounted(async () => {
-  await cargarDescartadasGuardadas()
+  await Promise.all([cargarDescartesTareas(), cargarDescartesCitas()])
   refrescarTareasProximas()
-  intervalo = setInterval(refrescarTareasProximas, 60_000)
+  refrescarCitasProximas()
+  intervalo = setInterval(() => {
+    refrescarTareasProximas()
+    refrescarCitasProximas()
+  }, 60_000)
 })
 
 onUnmounted(() => {
@@ -32,11 +74,11 @@ onUnmounted(() => {
     <div class="fixed top-20 right-4 z-50 space-y-3 w-96">
       <TransitionGroup name="recordatorio">
         <SharedRecordatorioAlert
-          v-for="t in tareasProximas"
-          :key="t.id"
-          :tarea="t"
-          @cerrar="descartarTareaProxima(t.id)"
-          @click="onClickTarea(t)"
+          v-for="a in avisos"
+          :key="a.id"
+          :aviso="a"
+          @cerrar="onCerrarAviso(a)"
+          @click="onClickAviso(a)"
         />
       </TransitionGroup>
     </div>
