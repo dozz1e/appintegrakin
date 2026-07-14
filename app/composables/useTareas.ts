@@ -38,11 +38,18 @@ export function useTareas() {
     return data ?? []
   }
 
+  // "Mis" pendientes = responsable de la tarea, sin importar view_all (ese
+  // permiso es para listar tareas de otros, no para que le lluevan alerts
+  // ajenos). Mismo criterio de responsable que fn_notificar_tareas_vencidas:
+  // owner_id, o created_by si no tiene owner asignado.
   async function fetchMisTareasPendientes(): Promise<Tarea[]> {
+    if (!user.value) return []
+    const uid = user.value.sub
     const { data, error } = await supabase
       .from('tareas')
       .select('*')
       .eq('completada', false)
+      .or(`owner_id.eq.${uid},and(owner_id.is.null,created_by.eq.${uid})`)
       .order('fecha_vencimiento', { ascending: true, nullsFirst: false })
 
     if (error) throw error
