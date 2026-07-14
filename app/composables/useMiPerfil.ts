@@ -6,7 +6,7 @@ export interface MiPerfil {
   id: string
   full_name: string | null
   email: string | null
-  role: string | null
+  roles: string[]
   avatar_url: string | null
   settings: Record<string, unknown>
 }
@@ -17,21 +17,25 @@ type FilaPerfil = {
   email: string | null
   avatar_url: string | null
   settings: Record<string, unknown> | null
-  role: { name: string } | null
+  profile_roles: { role: { name: string } | null }[] | null
 }
 
 function mapearPerfil(data: FilaPerfil): MiPerfil {
+  const roles = (data.profile_roles ?? [])
+    .map((pr) => pr.role?.name)
+    .filter((n): n is string => !!n)
+    .sort()
   return {
     id: data.id,
     full_name: data.full_name,
     email: data.email,
     avatar_url: data.avatar_url,
     settings: data.settings ?? {},
-    role: data.role?.name ?? null,
+    roles,
   }
 }
 
-const SELECT_PERFIL = 'id, full_name, email, avatar_url, settings, role:roles(name)'
+const SELECT_PERFIL = 'id, full_name, email, avatar_url, settings, profile_roles(role:roles(name))'
 
 export const useMiPerfil = () => {
   const supabase = useSupabaseClient()
@@ -57,7 +61,7 @@ export const useMiPerfil = () => {
   }
 
   const actualizarMiPerfil = async (payload: { full_name?: string; avatar_url?: string }) => {
-    if (!user.value?.sub) return
+    if (!user.value?.sub) throw new Error('No hay sesión activa')
     const { data, error } = await supabase
       .from('profiles')
       .update(payload)
@@ -70,7 +74,7 @@ export const useMiPerfil = () => {
   }
 
   const actualizarConfiguracion = async (patch: Record<string, unknown>) => {
-    if (!user.value?.sub) return
+    if (!user.value?.sub) throw new Error('No hay sesión activa')
     const nuevoSettings = { ...(perfil.value?.settings ?? {}), ...patch }
     const { data, error } = await supabase
       .from('profiles')
