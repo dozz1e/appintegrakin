@@ -51,6 +51,13 @@ const navCrm = [
           </div>
         </div>
 
+        <div v-if="can('capacitaciones', 'view') || can('capacitaciones', 'view_all')">
+          <p class="px-3 text-[11px] font-semibold text-ink-muted uppercase tracking-wide mb-1">Capacitaciones</p>
+          <SharedNavLink to="/capacitaciones" :activo="esActivo('/capacitaciones')">
+            Agenda
+          </SharedNavLink>
+        </div>
+
         <div v-if="can('dashboard_widgets', 'assign') || can('auditoria', 'view_all')">
           <p class="px-3 text-[11px] font-semibold text-ink-muted uppercase tracking-wide mb-1">Administración</p>
           <div class="space-y-0.5">
