@@ -26,7 +26,8 @@ async function onCambiarFoto(e: Event) {
     await actualizarMiPerfil({ avatar_url: url })
     success('Foto actualizada')
   } catch (e) {
-    error('No se pudo subir la foto')
+    const detalle = e instanceof Error ? e.message : String(e)
+    error(`No se pudo subir la foto: ${detalle}`)
   } finally {
     subiendoFoto.value = false
     if (inputArchivo.value) inputArchivo.value.value = ''
