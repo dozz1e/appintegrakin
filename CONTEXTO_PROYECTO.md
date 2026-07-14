@@ -77,6 +77,10 @@
 20260714020000_permisos_efectivos_superadmin_bypass.sql
 20260714030000_delete_notificaciones_propias.sql
 20260714040000_cliente_interacciones.sql
+20260714050000_citas_capacitacion.sql
+20260714060000_citas_descartadas.sql
+20260714070000_notificacion_capacitacion_asignada.sql
+20260714080000_notificacion_citas_vencidas.sql
 ```
 Nota: las 5 migraciones desde `tareas` hasta `notificaciones_realtime` se
 crearon originalmente a mano en el SQL Editor de Supabase; ya quedaron
@@ -113,6 +117,7 @@ tickets/nuevo.vue
 productos/index.vue            — listado (tabla) con búsqueda, filtros e import/export CSV
 productos/[id].vue             — detalle/edición (optimistic locking)
 productos/nuevo.vue
+capacitaciones/index.vue       — agenda de capacitaciones (lista + filtro de fecha)
 ```
 Nota: `reportes/index.vue` **ya no existe** — se eliminó y su contenido
 (funnel + performance por vendedor) se convirtió en widgets asignables del
@@ -120,8 +125,9 @@ dashboard (ver sección Roadmap).
 
 ### Composables (`app/composables/`)
 ```
-useAuditoria, useAuth, useBusquedaGlobal, useClienteInteracciones,
-useClientes, useCsv, useDashboardWidgets, useErrorLog, useFeatures,
+useAuditoria, useAuth, useBusquedaGlobal, useCitasCapacitacion,
+useClienteInteracciones, useClientes, useCsv, useDashboardWidgets,
+useErrorLog, useFeatures,
 useLeadInteracciones, useLeads, useMiPerfil, useNotificaciones,
 usePermisosOverrides, usePermissions, useProductos, useReportes,
 useRolesUsuario, useSuperadmin, useTareas, useTecnicos, useTickets,
@@ -130,6 +136,7 @@ useToast, useUsuarios, useVentas
 
 ### Componentes (`app/components/`)
 ```
+capacitaciones/CitaForm.vue
 clientes/ClienteBuscador.vue, clientes/ClienteForm.vue,
         clientes/ClienteInteraccionTimeline.vue, clientes/ClienteSplitView.vue,
         clientes/VentaList.vue
@@ -500,6 +507,14 @@ el cliente. Solo se puebla vía SQL Editor de Supabase.
     `cliente_interacciones` (mismo concepto que `lead_interacciones`), tab
     "Interacciones" en el detalle, columna "Últ. interacción" en la lista,
     y filtros por antigüedad y por rango de fechas (ver schema más arriba).
+28. ✅ **Agenda de capacitaciones** — módulo nuevo completo para el rol
+    `capacitaciones` (antes placeholder sin permisos). Tabla
+    `citas_capacitacion` (cliente + producto obligatorios, sin
+    recurrencia), notificación al asignar responsable + cron de
+    vencidas (mismo patrón que tareas), popup `RecordatorioAlert`
+    generalizado para mostrar tareas y citas juntas. Página
+    `/capacitaciones` con lista y filtro de fecha (sin calendario
+    visual — ver spec `2026-07-14-agenda-capacitaciones-design.md`).
 
 ## Pendientes sueltos
 
