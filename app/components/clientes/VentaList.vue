@@ -14,6 +14,9 @@ const cargando = ref(true)
 const guardando = ref(false)
 
 const productoId = ref('')
+const busquedaProducto = ref('')
+const buscadorAbierto = ref(false)
+const contenedorBuscador = ref<HTMLElement | null>(null)
 const valor = ref('')
 const fecha = ref('')
 const hora = ref('')
@@ -28,11 +31,44 @@ async function cargar() {
   cargando.value = false
 }
 
-onMounted(cargar)
+onMounted(() => {
+  cargar()
+  document.addEventListener('click', onClickFueraBuscador)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', onClickFueraBuscador)
+})
 
 function nombreProducto(productoId: string) {
   return productos.value.find((p) => p.id === productoId)?.nombre ?? '—'
 }
+
+const productosFiltrados = computed(() => {
+  const q = busquedaProducto.value.trim().toLowerCase()
+  if (!q) return productos.value
+  return productos.value.filter(
+    (p) => p.nombre.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q)
+  )
+})
+
+function elegirProducto(p: Producto) {
+  productoId.value = p.id
+  busquedaProducto.value = p.nombre
+  buscadorAbierto.value = false
+}
+
+function onClickFueraBuscador(e: MouseEvent) {
+  if (contenedorBuscador.value && !contenedorBuscador.value.contains(e.target as Node)) {
+    buscadorAbierto.value = false
+  }
+}
+
+watch(busquedaProducto, (nuevo) => {
+  if (productoId.value && nuevo !== nombreProducto(productoId.value)) {
+    productoId.value = ''
+  }
+})
 
 function formatearValor(valor: number) {
   return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(valor)
@@ -68,6 +104,7 @@ async function onSubmit() {
   try {
     await crearVenta(props.clienteId, productoId.value, Number(valor.value), construirFecha(fecha.value, hora.value))
     productoId.value = ''
+    busquedaProducto.value = ''
     valor.value = ''
     fecha.value = ''
     hora.value = ''
@@ -85,13 +122,33 @@ async function onSubmit() {
   <div>
     <div class="mb-4 space-y-1">
       <div class="flex flex-wrap gap-2">
-        <select
-          v-model="productoId"
-          class="flex-1 min-w-[10rem] border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30"
-        >
-          <option value="" disabled>Selecciona un producto</option>
-          <option v-for="p in productos" :key="p.id" :value="p.id">{{ p.nombre }}</option>
-        </select>
+        <div ref="contenedorBuscador" class="relative flex-1 min-w-[10rem]">
+          <input
+            v-model="busquedaProducto"
+            type="text"
+            placeholder="Buscar por nombre o SKU..."
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30"
+            @focus="buscadorAbierto = true"
+          />
+          <div
+            v-if="buscadorAbierto"
+            class="absolute mt-1 w-full bg-white border border-gray-100 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto"
+          >
+            <p v-if="!productosFiltrados.length" class="text-xs text-gray-400 px-3 py-2">
+              Sin resultados para "{{ busquedaProducto }}"
+            </p>
+            <button
+              v-for="p in productosFiltrados"
+              :key="p.id"
+              type="button"
+              class="w-full text-left px-3 py-2 hover:bg-gray-50 transition-colors duration-150 flex flex-col"
+              @click="elegirProducto(p)"
+            >
+              <span class="text-sm font-medium text-gray-800">{{ p.nombre }}</span>
+              <span class="text-xs text-gray-400">{{ p.sku }}</span>
+            </button>
+          </div>
+        </div>
         <input
           v-model="valor"
           type="number"
