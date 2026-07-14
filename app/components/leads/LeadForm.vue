@@ -65,6 +65,8 @@ const onSubmit = () => {
       >
         <option value="web">Web</option>
         <option value="whatsapp">WhatsApp</option>
+        <option value="instagram">Instagram</option>
+        <option value="facebook">Facebook</option>
         <option value="referido">Referido</option>
         <option value="otro">Otro</option>
       </select>
