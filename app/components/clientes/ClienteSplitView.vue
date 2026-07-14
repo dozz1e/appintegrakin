@@ -7,16 +7,34 @@ const props = defineProps<{ clientes: Cliente[]; usuarios: Usuario[] }>()
 const emit = defineEmits<{ eliminar: [cliente: Cliente] }>()
 
 const { fetchTicketsPorCliente } = useTickets()
+const { fetchUltimasInteracciones } = useClienteInteracciones()
 const { can } = usePermissions()
 
 const busqueda = ref('')
 const filtroVendedor = ref('')
+const filtroFechaDesde = ref('')
+const filtroFechaHasta = ref('')
+const filtroAntiguedad = ref('')
 const seleccionadoId = ref<string | null>(null)
 const ticketsSeleccionado = ref<Ticket[]>([])
-const tabActiva = ref<'info' | 'tickets' | 'ventas'>('info')
+const tabActiva = ref<'info' | 'tickets' | 'ventas' | 'interacciones'>('info')
+const ultimasInteracciones = ref<Record<string, string>>({})
 
 const puedeVerTickets = computed(() => can('tickets', 'view') || can('tickets', 'view_all'))
 const puedeVerVentas = computed(() => can('ventas', 'view') || can('ventas', 'view_all'))
+
+const opcionesAntiguedad = [
+  { value: '', label: 'Última interacción: cualquiera' },
+  { value: '7', label: 'Sin contacto hace 7+ días' },
+  { value: '15', label: 'Sin contacto hace 15+ días' },
+  { value: '30', label: 'Sin contacto hace 30+ días' },
+  { value: '60', label: 'Sin contacto hace 60+ días' },
+  { value: 'nunca', label: 'Nunca contactados' },
+]
+
+onMounted(async () => {
+  ultimasInteracciones.value = await fetchUltimasInteracciones()
+})
 
 const clientesFiltrados = computed(() => {
   const q = busqueda.value.trim().toLowerCase()
@@ -30,9 +48,33 @@ const clientesFiltrados = computed(() => {
       return false
     if (filtroVendedor.value === 'sin_asignar' && c.owner_id !== null) return false
     if (filtroVendedor.value && filtroVendedor.value !== 'sin_asignar' && c.owner_id !== filtroVendedor.value) return false
+
+    const ultima = ultimasInteracciones.value[c.id]
+
+    if (filtroAntiguedad.value === 'nunca' && ultima) return false
+    if (filtroAntiguedad.value && filtroAntiguedad.value !== 'nunca') {
+      const limite = Date.now() - Number(filtroAntiguedad.value) * 24 * 60 * 60 * 1000
+      if (ultima && new Date(ultima).getTime() > limite) return false
+    }
+
+    if (filtroFechaDesde.value || filtroFechaHasta.value) {
+      if (!ultima) return false
+      const t = new Date(ultima).getTime()
+      if (filtroFechaDesde.value && t < new Date(filtroFechaDesde.value).getTime()) return false
+      if (filtroFechaHasta.value) {
+        const finDia = new Date(filtroFechaHasta.value)
+        finDia.setHours(23, 59, 59, 999)
+        if (t > finDia.getTime()) return false
+      }
+    }
+
     return true
   })
 })
+
+function formatearFechaCorta(fecha: string) {
+  return new Date(fecha).toLocaleString('es-CL', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
+}
 
 const seleccionado = computed(() => props.clientes.find((c) => c.id === seleccionadoId.value) ?? null)
 
@@ -51,6 +93,10 @@ watch(seleccionadoId, async (id) => {
 function seleccionar(c: Cliente) {
   seleccionadoId.value = c.id
 }
+
+async function onInteraccionRegistrada() {
+  ultimasInteracciones.value = await fetchUltimasInteracciones()
+}
 </script>
 
 <template>
@@ -65,12 +111,30 @@ function seleccionar(c: Cliente) {
       <select
         v-if="can('clientes', 'view_all')"
         v-model="filtroVendedor"
-        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30"
+        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mb-2 focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30"
       >
         <option value="">Todos los vendedores</option>
         <option value="sin_asignar">Sin asignar</option>
         <option v-for="u in usuarios" :key="u.id" :value="u.id">{{ u.full_name || u.email }}</option>
       </select>
+      <select
+        v-model="filtroAntiguedad"
+        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mb-2 focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30"
+      >
+        <option v-for="o in opcionesAntiguedad" :key="o.value" :value="o.value">{{ o.label }}</option>
+      </select>
+      <div class="flex gap-2 mb-3">
+        <input
+          v-model="filtroFechaDesde"
+          type="date"
+          class="w-1/2 border border-gray-200 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30"
+        />
+        <input
+          v-model="filtroFechaHasta"
+          type="date"
+          class="w-1/2 border border-gray-200 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30"
+        />
+      </div>
       <ul class="space-y-1">
         <li
           v-for="c in clientesFiltrados"
@@ -83,6 +147,9 @@ function seleccionar(c: Cliente) {
           <div class="min-w-0">
             <p class="text-sm font-medium text-gray-800 truncate">{{ c.razon_social }}</p>
             <p v-if="c.nombre_contacto" class="text-xs text-gray-400 truncate">{{ c.nombre_contacto }}</p>
+            <p class="text-xs text-gray-400 truncate">
+              Últ. interacción: {{ ultimasInteracciones[c.id] ? formatearFechaCorta(ultimasInteracciones[c.id]) : 'Nunca' }}
+            </p>
           </div>
         </li>
       </ul>
@@ -141,6 +208,14 @@ function seleccionar(c: Cliente) {
             Información
           </button>
           <button
+            type="button"
+            class="rounded-lg px-4 py-2 text-base font-medium transition-colors"
+            :class="tabActiva === 'interacciones' ? 'bg-primary text-ink-onprimary' : 'bg-surface-2 text-ink-muted hover:bg-primary-subtle hover:text-primary-ink'"
+            @click="tabActiva = 'interacciones'"
+          >
+            Interacciones
+          </button>
+          <button
             v-if="puedeVerTickets"
             type="button"
             class="rounded-lg px-4 py-2 text-base font-medium transition-colors"
@@ -191,6 +266,10 @@ function seleccionar(c: Cliente) {
             <Icon name="mdi:pencil-outline" class="w-4 h-4" />
             {{ can('clientes', 'edit') ? 'Editar cliente' : 'Ver detalle' }}
           </NuxtLink>
+        </div>
+
+        <div v-else-if="tabActiva === 'interacciones'">
+          <ClientesClienteInteraccionTimeline :cliente-id="seleccionado.id" @registrada="onInteraccionRegistrada" />
         </div>
 
         <div v-else-if="tabActiva === 'tickets'">
