@@ -8,7 +8,7 @@ definePageMeta({
   permiso: { resource: 'dashboard_widgets', actions: ['assign'] },
 })
 
-const { fetchCatalogoPermisos, fetchHeredadosDeRol, fetchOverridesDeUsuario, setOverride, quitarOverride } =
+const { fetchCatalogoPermisos, fetchHeredadosDeRoles, fetchOverridesDeUsuario, setOverride, quitarOverride } =
   usePermisosOverrides()
 const { fetchUsuarios } = useUsuarios()
 const { success, error } = useToast()
@@ -43,8 +43,8 @@ const seleccionarUsuario = async (userId: string) => {
 
   cargandoUsuario.value = true
   const usuario = usuarios.value.find((u) => u.id === userId)
-  if (usuario?.role_id) {
-    heredados.value = await fetchHeredadosDeRol(usuario.role_id)
+  if (usuario?.roles.length) {
+    heredados.value = await fetchHeredadosDeRoles(usuario.roles.map((r) => r.id))
   }
   const filas = await fetchOverridesDeUsuario(userId)
   overrides.value = new Map(filas.map((f) => [f.permission_id, f.effect]))

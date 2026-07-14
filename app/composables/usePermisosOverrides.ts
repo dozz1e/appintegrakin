@@ -27,11 +27,12 @@ export const usePermisosOverrides = () => {
     return data as PermisoCatalogo[]
   }
 
-  const fetchHeredadosDeRol = async (roleId: string) => {
+  const fetchHeredadosDeRoles = async (roleIds: string[]) => {
+    if (roleIds.length === 0) return new Set<string>()
     const { data, error } = await supabase
       .from('role_permissions')
       .select('permission_id')
-      .eq('role_id', roleId)
+      .in('role_id', roleIds)
     if (error) throw error
     return new Set((data ?? []).map((r) => r.permission_id as string))
   }
@@ -75,7 +76,7 @@ export const usePermisosOverrides = () => {
 
   return {
     fetchCatalogoPermisos,
-    fetchHeredadosDeRol,
+    fetchHeredadosDeRoles,
     fetchOverridesDeUsuario,
     setOverride,
     quitarOverride,
