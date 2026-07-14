@@ -16,8 +16,8 @@ function onClickTarea(tarea: Tarea) {
   router.push(`${rutaEntidad[tarea.entidad_tipo]}/${tarea.entidad_id}`)
 }
 
-onMounted(() => {
-  cargarDescartadasGuardadas()
+onMounted(async () => {
+  await cargarDescartadasGuardadas()
   refrescarTareasProximas()
   intervalo = setInterval(refrescarTareasProximas, 60_000)
 })

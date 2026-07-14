@@ -12,12 +12,6 @@ export interface Tarea {
 }
 
 const UMBRAL_MINUTOS_DEFAULT = 30
-const STORAGE_KEY_DESCARTADAS = 'tareas-proximas-descartadas'
-
-function guardarDescartadasEnStorage(ids: Set<string>): void {
-  if (!import.meta.client) return
-  localStorage.setItem(STORAGE_KEY_DESCARTADAS, JSON.stringify([...ids]))
-}
 
 export function useTareas() {
   const supabase = useSupabaseClient()
@@ -27,9 +21,8 @@ export function useTareas() {
   // Estado compartido para el alert global de "tarea próxima a vencer"
   // (RecordatorioAlertContainer.vue) - mismo patrón que useToast.ts.
   const tareasProximas = useState<Tarea[]>('tareas-proximas', () => [])
-  // Vacío en SSR/hydration (useState no puede leer localStorage al inicializar);
-  // se puebla desde localStorage vía cargarDescartadasGuardadas() en el
-  // onMounted del container, client-only.
+  // Vacío hasta que se puebla desde tareas_descartadas vía
+  // cargarDescartadasGuardadas() en el onMounted del container.
   const idsTareasDescartadas = useState<Set<string>>('tareas-proximas-descartadas', () => new Set())
 
   async function fetchTareasPorEntidad(entidadTipo: Tarea['entidad_tipo'], entidadId: string): Promise<Tarea[]> {
@@ -109,37 +102,50 @@ export function useTareas() {
     })
 
     // Poda: si una tarea descartada ya no está pendiente (se completó o
-    // se eliminó), se saca del set guardado para no acumular ids muertos.
+    // se eliminó), se saca del set y de tareas_descartadas para no acumular
+    // ids muertos.
     const idsPendientes = new Set(pendientes.map((t) => t.id))
-    let podado = false
+    const idsPodados: string[] = []
     for (const id of idsTareasDescartadas.value) {
       if (!idsPendientes.has(id)) {
         idsTareasDescartadas.value.delete(id)
-        podado = true
+        idsPodados.push(id)
       }
     }
-    if (podado) guardarDescartadasEnStorage(idsTareasDescartadas.value)
+    if (idsPodados.length > 0 && user.value) {
+      await supabase.from('tareas_descartadas').delete().eq('user_id', user.value.sub).in('tarea_id', idsPodados)
+    }
   }
 
-  // Cierre de un alert individual (botón ✕). Persiste en localStorage: la
-  // tarea sigue oculta entre sesiones/recargas hasta que se complete (ver
-  // poda en refrescarTareasProximas).
-  function descartarTareaProxima(id: string): void {
+  // Cierre de un alert individual (botón ✕). Persiste en tareas_descartadas:
+  // la tarea sigue oculta entre sesiones/navegadores/dispositivos hasta que
+  // se complete (ver poda en refrescarTareasProximas).
+  async function descartarTareaProxima(id: string): Promise<void> {
     idsTareasDescartadas.value.add(id)
     tareasProximas.value = tareasProximas.value.filter((t) => t.id !== id)
-    guardarDescartadasEnStorage(idsTareasDescartadas.value)
+
+    if (!user.value) return
+    const { error } = await supabase
+      .from('tareas_descartadas')
+      .upsert({ user_id: user.value.sub, tarea_id: id }, { onConflict: 'user_id,tarea_id' })
+
+    if (error) {
+      idsTareasDescartadas.value.delete(id)
+      toastError('No se pudo descartar el aviso, intentá de nuevo')
+    }
   }
 
-  // Client-only: puebla idsTareasDescartadas desde localStorage. Se llama
-  // una vez en el onMounted del container, antes del primer refrescar.
-  function cargarDescartadasGuardadas(): void {
-    if (!import.meta.client) return
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY_DESCARTADAS)
-      if (raw) idsTareasDescartadas.value = new Set(JSON.parse(raw))
-    } catch {
-      // localStorage corrupto o inaccesible - se sigue sin descartes previos
-    }
+  // Puebla idsTareasDescartadas desde tareas_descartadas. Se llama una vez
+  // en el onMounted del container, antes del primer refrescar.
+  async function cargarDescartadasGuardadas(): Promise<void> {
+    if (!user.value) return
+    const { data, error } = await supabase
+      .from('tareas_descartadas')
+      .select('tarea_id')
+      .eq('user_id', user.value.sub)
+
+    if (error) return
+    idsTareasDescartadas.value = new Set((data ?? []).map((d) => d.tarea_id))
   }
 
   return {
