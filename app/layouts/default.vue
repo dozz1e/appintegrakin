@@ -60,6 +60,9 @@ const navCrm = [
             <SharedNavLink v-if="can('dashboard_widgets', 'assign')" to="/admin/permisos" :activo="esActivo('/admin/permisos')">
               Permisos
             </SharedNavLink>
+            <SharedNavLink v-if="can('dashboard_widgets', 'assign')" to="/admin/usuarios" :activo="esActivo('/admin/usuarios')">
+              Usuarios
+            </SharedNavLink>
             <SharedNavLink v-if="can('auditoria', 'view_all')" to="/admin/auditoria" :activo="esActivo('/admin/auditoria')">
               Auditoría
             </SharedNavLink>
