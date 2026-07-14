@@ -38,8 +38,8 @@ function abrirConfiguracion() {
     >
       <SharedAvatar
         v-if="perfil?.full_name || perfil?.email"
-        :nombre="perfil.full_name || perfil.email || '?'"
-        :imagen-url="perfil.avatar_url"
+        :nombre="perfil?.full_name || perfil?.email || '?'"
+        :imagen-url="perfil?.avatar_url"
       />
       <div class="text-right hidden sm:block">
         <p class="text-sm font-medium text-ink leading-tight">
