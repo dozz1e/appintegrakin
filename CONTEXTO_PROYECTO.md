@@ -5,7 +5,7 @@
 > cuenta nueva de Claude (pegarlo como primer mensaje) o para cualquier
 > desarrollador que se sume.
 >
-> Última actualización: 13 de julio de 2026.
+> Última actualización: 14 de julio de 2026.
 
 ## Stack y dependencias reales
 
@@ -68,6 +68,15 @@
 20260713000300_ventas.sql
 20260713000400_ventas_rls.sql
 20260713000500_ventas_permisos.sql
+20260713000600_tecnicos.sql
+20260713000700_lead_interacciones_canales.sql
+20260713000800_perfiles_avatar_settings.sql
+20260713000900_perfiles_imagenes_storage.sql
+20260714000000_multi_rol_usuarios.sql
+20260714010000_tareas_descartadas.sql
+20260714020000_permisos_efectivos_superadmin_bypass.sql
+20260714030000_delete_notificaciones_propias.sql
+20260714040000_cliente_interacciones.sql
 ```
 Nota: las 5 migraciones desde `tareas` hasta `notificaciones_realtime` se
 crearon originalmente a mano en el SQL Editor de Supabase; ya quedaron
@@ -86,6 +95,11 @@ admin/auditoria/index.vue      — visor de audit_log (permiso auditoria.view_al
 admin/dashboards/index.vue     — asignación de dashboard_widgets por usuario (dueña)
 admin/permisos/index.vue       — gestión de overrides de permisos por usuario
                                   (grant/revoke individual sobre el rol base)
+admin/usuarios/index.vue       — asignar/quitar roles múltiples por usuario
+                                  (profile_roles), gateada por
+                                  dashboard_widgets.assign. Nadie edita sus
+                                  propios roles acá salvo que sea superadmin
+                                  (ver Modelo de permisos)
 panel-dev/index.vue            — panel superadmin: features, errores, usuarios
 clientes/index.vue             — listado (carga clientes + usuarios para el filtro)
 clientes/[id].vue              — detalle/edición (optimistic locking)
@@ -106,21 +120,26 @@ dashboard (ver sección Roadmap).
 
 ### Composables (`app/composables/`)
 ```
-useAuditoria, useAuth, useBusquedaGlobal, useClientes, useCsv,
-useDashboardWidgets, useErrorLog, useFeatures, useLeadInteracciones,
-useLeads, useMiPerfil, useNotificaciones, usePermisosOverrides,
-usePermissions, useProductos, useReportes, useSuperadmin, useTareas,
-useTickets, useToast, useUsuarios, useVentas
+useAuditoria, useAuth, useBusquedaGlobal, useClienteInteracciones,
+useClientes, useCsv, useDashboardWidgets, useErrorLog, useFeatures,
+useLeadInteracciones, useLeads, useMiPerfil, useNotificaciones,
+usePermisosOverrides, usePermissions, useProductos, useReportes,
+useRolesUsuario, useSuperadmin, useTareas, useTecnicos, useTickets,
+useToast, useUsuarios, useVentas
 ```
 
 ### Componentes (`app/components/`)
 ```
-clientes/ClienteForm.vue, clientes/ClienteSplitView.vue, clientes/VentaList.vue
+clientes/ClienteBuscador.vue, clientes/ClienteForm.vue,
+        clientes/ClienteInteraccionTimeline.vue, clientes/ClienteSplitView.vue,
+        clientes/VentaList.vue
 leads/LeadForm.vue, leads/LeadKanban.vue, leads/LeadTimeline.vue
 tickets/TicketBoard.vue, tickets/TicketForm.vue
 productos/ProductoForm.vue
-shared/AppLogo, Avatar, Badge, Card, ConfirmDialog, GlobalSearch,
-       NavLink, NotificationBell, PageHeader, TareaList, ToastContainer
+shared/AppLogo, Avatar, Badge, Card, ConfiguracionModal, ConfirmDialog,
+       GlobalSearch, Modal, NavLink, NotificationBell, PageHeader, PerfilModal,
+       RecordatorioAlert, RecordatorioAlertContainer, TareaList,
+       ToastContainer, UserMenu
 widgets/ChartFunnelLeads, ChartLeadsPorEstado, ChartPerformanceVendedores,
         KpiCard, KpiClientesTotales, KpiLeadsActivos, KpiLeadsGanados,
         KpiLeadsPerdidos, KpiTasaConversion, KpiTicketsAbiertos, KpiTotalLeads
@@ -130,6 +149,9 @@ Nota: `clientes/ClienteTable.vue` fue reemplazado por
 Roadmap). Los widgets de KPI/chart de `reportes` (`ChartFunnelLeads`,
 `ChartPerformanceVendedores`, `KpiLeadsGanados`, `KpiLeadsPerdidos`,
 `KpiTotalLeads`) son nuevos, agregados al convertir `/reportes` en widgets.
+`RecordatorioAlert`/`RecordatorioAlertContainer` son el popup flotante de
+"tarea próxima/vencida" (distinto de la campanita `NotificationBell`, ver
+Roadmap).
 
 ### Layout (`app/layouts/default.vue`)
 Sidebar + topbar. Ítems de nav construidos por permiso (`can(resource,
@@ -150,10 +172,15 @@ superadmin.ts    — gating de /panel-dev
 
 ## Modelo de permisos
 
-RBAC + overrides individuales + ReBAC simple:
+RBAC multi-rol + overrides individuales + ReBAC simple:
 
-- `profiles.role_id` → FK única a `roles.id` (NO existe `user_roles`
-  many-to-many, se descartó ese diseño).
+- **Multi-rol desde 20260714000000_multi_rol_usuarios.sql**: `profiles.role_id`
+  (FK única) **se eliminó**. Reemplazado por `profile_roles(profile_id,
+  role_id)` many-to-many — un usuario puede tener varios roles a la vez, sus
+  permisos son la unión de los permisos de todos. UI en `/admin/usuarios`
+  (`useRolesUsuario.ts`: `asignarRol`/`quitarRol`/`fetchCatalogoRoles`).
+  **No** asumir que `profiles` sigue teniendo `role_id` — cualquier código o
+  memoria vieja que lo mencione está desactualizado.
 - `roles.name` (no `nombre`) — columna en inglés, valores en español
   (ej. `'dueña'`, `'vendedor'`).
 - `permissions(resource, action)` — recurso y acción como columnas separadas.
@@ -164,11 +191,23 @@ RBAC + overrides individuales + ReBAC simple:
   `/admin/dashboards`, `dashboard_widgets.assign`) — antes solo se podía
   gestionar a mano por SQL, ya no es necesario.
 - `has_permission(p_user uuid, p_resource text, p_action text) returns boolean`
-  — firma con 3 argumentos separados.
-- `permisos_efectivos_usuario(p_user uuid) returns table(resource text, action text)`.
+  — firma con 3 argumentos separados. Bypasea todo si el usuario está en
+  `superadmins`.
+- `permisos_efectivos_usuario(p_user uuid) returns table(resource text, action text)`
+  — usada por el frontend (`usePermissions.ts`) para armar la lista de
+  permisos y renderizar el nav. **Desde 20260714020000 también bypasea
+  superadmin** (devuelve todas las filas de `permissions`); antes no lo
+  hacía (a diferencia de `has_permission`), y se disimulaba mientras el
+  superadmin también tuviera un rol de negocio con todos los permisos — al
+  sacarle ese rol, el nav quedaba vacío. Ver gotcha #15.
 - Patrón en páginas: `definePageMeta({ middleware: 'permission', permiso: {
   resource: 'x', actions: ['view','view_all'] } })`; `can(resource, action)`
   desde `usePermissions()` para gating en templates/sidebar.
+- `/admin/usuarios` y `/admin/permisos` bloquean editar los propios roles
+  (evita que alguien se quite a sí mismo el único rol con
+  `dashboard_widgets.assign`) — **excepto si es superadmin**, que no corre
+  ese riesgo porque bypasea permisos vía `superadmins` sin depender de
+  `profile_roles`.
 
 ### Superadmin
 Tabla `superadmins(user_id)` — sin políticas de insert/update/delete desde
@@ -246,13 +285,39 @@ el cliente. Solo se puebla vía SQL Editor de Supabase.
   una tarea "de hoy" no se marque vencida apenas empieza el día. Esa misma
   convención (23:59 local = "sin hora elegida") es la que decide si
   `formatearFecha` le muestra la hora al usuario o no.
-- **`lead_interacciones`** (ver `20260705000100_lead_interacciones.sql`):
-  `lead_id, canal (correo/texto/telefono), nota, created_by`.
+  `useTareas().fetchMisTareasPendientes()` filtra explícitamente por
+  `owner_id` (o `created_by` si no tiene owner), el mismo criterio de
+  responsable que usa `fn_notificar_tareas_vencidas`. **No confiar solo en
+  RLS acá**: la policy de `select` en `tareas` permite `view_all`, así que
+  sin este filtro explícito un superadmin o rol con `tareas.view_all` veía
+  el popup `RecordatorioAlert` con avisos de tareas de todos, no solo las
+  propias.
+- **`lead_interacciones`** (ver `20260705000100_lead_interacciones.sql`, canal
+  actualizado en `20260713000700_lead_interacciones_canales.sql`): `lead_id,
+  canal (whatsapp/instagram/facebook/llamada/web/correo), nota, created_by`.
+- **`cliente_interacciones`** (ver `20260714040000_cliente_interacciones.sql`,
+  mismo concepto que `lead_interacciones` pero para clientes ya convertidos):
+  `cliente_id, canal (mismo set que lead_interacciones), nota, created_by`.
+  UI: tab "Interacciones" en `ClienteSplitView.vue`
+  (`ClienteInteraccionTimeline.vue`, mismo patrón que `LeadTimeline.vue`).
+  `useClienteInteracciones().fetchUltimasInteracciones()` arma un mapa
+  `cliente_id -> fecha` (última interacción de cada uno, reducido
+  client-side) usado para la columna "Últ. interacción" en la lista y para
+  los filtros de antigüedad (7/15/30/60+ días, "nunca contactados") y rango
+  desde/hasta.
+- **`tareas_descartadas`** (ver `20260714010000_tareas_descartadas.sql`):
+  `user_id, tarea_id` — descarte del popup `RecordatorioAlert` (botón ✕),
+  por usuario. Reemplaza el enfoque anterior de `localStorage` (commit
+  `03d34c6`): ese no persistía en incógnito ni entre dispositivos porque el
+  storage es por navegador, no por cuenta.
 - **`notificaciones`**: `usuario_id, tipo, entidad_tipo, entidad_id, mensaje,
   leida, created_at` + triggers de asignación (lead/ticket/tarea) + Realtime
   habilitado (`alter publication supabase_realtime add table notificaciones`).
   El tipo `tarea_vencida` se genera vía `pg_cron` (ver más abajo), no por
-  trigger — "vencer" no es un evento de escritura.
+  trigger — "vencer" no es un evento de escritura. Desde
+  `20260714030000_delete_notificaciones_propias.sql` también se pueden
+  **borrar** las propias (botón ✕ en `NotificationBell.vue`,
+  `eliminarNotificacion()`), no solo marcar leídas.
 - **`audit_log`**: `tabla, registro_id, usuario_id, accion, datos_anteriores,
   datos_nuevos` — UI en `/admin/auditoria` con filtros (usuario/tabla/acción/
   rango de fechas), paginación "Cargar más" y diff real de campos
@@ -332,6 +397,21 @@ el cliente. Solo se puebla vía SQL Editor de Supabase.
     policies de Storage (ver bucket `clientes-imagenes`) solo pueden
     gatear por un permiso de escritura simple (`clientes.edit`), no por
     la distinción view/view_all que sí existe a nivel de fila en la tabla.
+15. Bypass de superadmin: `has_permission()` y `permisos_efectivos_usuario()`
+    son dos funciones separadas y **cada una necesita su propio chequeo de
+    `superadmins`** — no alcanza con agregarlo a una sola. Ya pasó que
+    `permisos_efectivos_usuario` (la que arma el nav del frontend) no lo
+    tenía, y se disimulaba mientras el superadmin también tuviera un rol de
+    negocio con todos los permisos asignado en `profile_roles`. Si se agrega
+    una función nueva de este estilo ("qué puede hacer/ver este usuario"),
+    replicar el mismo chequeo `if exists (select 1 from superadmins where
+    user_id = p_user) then ...`.
+16. `fetchMisTareasPendientes`/cualquier "mis X" del frontend: no alcanza con
+    dejar que RLS filtre solo por `view_all` — si el permiso existe (rol o
+    superadmin), RLS deja pasar filas de **todos**, no solo las propias.
+    Cuando la intención es "lo mío" (ej. el popup de recordatorios), filtrar
+    explícitamente por `owner_id`/`created_by` en la query, sin depender de
+    que RLS lo acote.
 
 ## Roadmap — estado actual
 
@@ -398,13 +478,38 @@ el cliente. Solo se puebla vía SQL Editor de Supabase.
     selector de vendedor asignado (`owner_id`) sobre la lista ya cargada,
     100% client-side (mismo patrón que el buscador de texto existente, no
     toca `useClientes.ts` ni RLS). Reutiliza `useUsuarios().fetchUsuarios()`,
-    ya usado igual en `/admin/auditoria`.
+    ya usado igual en `/admin/auditoria`. Desde hoy, oculto para roles sin
+    `clientes.view_all` (solo el rol `ventas` no lo tiene) — antes lo veían
+    todos aunque solo tuvieran acceso a sus propios clientes.
+22. ✅ **Multi-rol de usuarios** — `profiles.role_id` (uno a uno) reemplazado
+    por `profile_roles` (muchos a muchos, ver Modelo de permisos). Pantalla
+    `/admin/usuarios` para asignar/quitar roles múltiples
+    (`useRolesUsuario.ts`).
+23. ✅ **Descarte de `RecordatorioAlert` persistido server-side** — tabla
+    `tareas_descartadas` reemplaza el `localStorage` anterior, que no
+    persistía en incógnito ni entre dispositivos.
+24. ✅ **Fix bypass de superadmin en `permisos_efectivos_usuario`** — antes
+    solo `has_permission` bypaseaba; un superadmin sin rol de negocio
+    asignado veía el nav completamente vacío (ver gotcha #15).
+25. ✅ **Notificaciones borrables** — botón ✕ en `NotificationBell.vue`,
+    policy de `delete` propia agregada.
+26. ✅ **Tabs de `ClienteSplitView` rediseñadas** — de texto subrayado a
+    botones píldora con `bg-primary`/`text-ink-onprimary` en la pestaña
+    activa.
+27. ✅ **Interacciones de clientes + última interacción** — tabla
+    `cliente_interacciones` (mismo concepto que `lead_interacciones`), tab
+    "Interacciones" en el detalle, columna "Últ. interacción" en la lista,
+    y filtros por antigüedad y por rango de fechas (ver schema más arriba).
 
 ## Pendientes sueltos
 
 - Probar optimistic locking (dos pestañas, mismo registro) con usuarios reales.
 - Segunda pasada de dedupe por `email` en importación de clientes sin RUT
   (`NULL` no deduplica contra otro `NULL` vía unique constraint).
+- Testing de seguridad de RLS (escalar permisos, acceso cross-vendedor) y
+  testing automatizado de `has_permission()`/permisos efectivos (puntos 8-9
+  del Roadmap).
+- Manual de uso por rol para la dueña y su equipo, no técnico (punto 10).
 
 ## Otros proyectos relacionados (contexto de fondo, no parte de este repo)
 
