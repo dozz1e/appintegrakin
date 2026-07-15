@@ -168,7 +168,7 @@ function formatearFecha(fecha: string) {
           <li
             v-for="c in citasFiltradas"
             :key="c.id"
-            class="border border-gray-100 rounded-xl p-4 flex items-center justify-between gap-3"
+            class="border border-gray-100 rounded-xl p-4 flex items-center justify-between gap-3 bg-white"
           >
             <div class="min-w-0">
               <p class="text-sm font-medium text-gray-800">{{ c.cliente_nombre }} — {{ c.producto_nombre }}</p>

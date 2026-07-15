@@ -86,8 +86,8 @@ const keyHoy = formatearKey(hoy)
 </script>
 
 <template>
-  <div class="border border-gray-100 rounded-xl p-4">
-    <div class="flex items-center justify-between mb-4">
+  <div class="border border-gray-100 rounded-xl p-4 bg-white">
+    <div class="flex items-center justify-between mb-4 ">
       <button type="button" class="text-gray-400 hover:text-gray-700 px-2 text-lg" @click="mesAnterior">‹</button>
       <div class="flex items-center gap-2">
         <span class="text-sm font-medium text-gray-800">{{ MESES[mesCursor.getMonth()] }}</span>
