@@ -70,3 +70,16 @@ export function colorCitaCapacitacion(estado: string): EstiloEstado {
   }
   return mapa[estado] ?? { label: estado, clases: GRIS_BG }
 }
+
+export function colorTicketPostVenta(estado: string): EstiloEstado {
+  const mapa: Record<string, EstiloEstado> = {
+    pendiente_ingreso: { label: 'Pendiente de ingreso', clases: GRIS_BG },
+    ingreso_equipo: { label: 'Ingreso de equipo', clases: PRIMARIO_BG },
+    probando: { label: 'Probando', clases: MORADO_BG },
+    espera_repuesto: { label: 'Espera de repuesto', clases: AMBAR_BG },
+    listo_despacho: { label: 'Listo para despacho', clases: VERDE_BG },
+    despachado: { label: 'Despachado', clases: GRIS_BG },
+    desconocido: { label: 'Desconocido', clases: ROJO_BG },
+  }
+  return mapa[estado] ?? { label: estado, clases: GRIS_BG }
+}
