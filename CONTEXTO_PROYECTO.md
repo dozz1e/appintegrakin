@@ -5,7 +5,7 @@
 > cuenta nueva de Claude (pegarlo como primer mensaje) o para cualquier
 > desarrollador que se sume.
 >
-> Última actualización: 14 de julio de 2026.
+> Última actualización: 15 de julio de 2026.
 
 ## Stack y dependencias reales
 
@@ -81,6 +81,9 @@
 20260714060000_citas_descartadas.sql
 20260714070000_notificacion_capacitacion_asignada.sql
 20260714080000_notificacion_citas_vencidas.sql
+20260714200000_tickets_post_venta.sql
+20260714210000_tickets_post_venta_seguimientos.sql
+20260714220000_notificacion_tickets_post_venta_vencidos.sql
 ```
 Nota: las 5 migraciones desde `tareas` hasta `notificaciones_realtime` se
 crearon originalmente a mano en el SQL Editor de Supabase; ya quedaron
@@ -118,6 +121,8 @@ productos/index.vue            — listado (tabla) con búsqueda, filtros e impo
 productos/[id].vue             — detalle/edición (optimistic locking)
 productos/nuevo.vue
 capacitaciones/index.vue       — agenda de capacitaciones (lista + filtro de fecha)
+post-venta/index.vue           — kanban de tickets post-venta (7 estados)
+post-venta/[id].vue            — detalle con cambio de estado + bitácora de seguimiento
 ```
 Nota: `reportes/index.vue` **ya no existe** — se eliminó y su contenido
 (funnel + performance por vendedor) se convirtió en widgets asignables del
@@ -130,8 +135,8 @@ useClienteInteracciones, useClientes, useCsv, useDashboardWidgets,
 useErrorLog, useFeatures,
 useLeadInteracciones, useLeads, useMiPerfil, useNotificaciones,
 usePermisosOverrides, usePermissions, useProductos, useReportes,
-useRolesUsuario, useSuperadmin, useTareas, useTecnicos, useTickets,
-useToast, useUsuarios, useVentas
+useRolesUsuario, useSuperadmin, useTareas, useTecnicos, useTicketsPostVenta,
+useTickets, useToast, useUsuarios, useVentas
 ```
 
 ### Componentes (`app/components/`)
@@ -141,6 +146,7 @@ clientes/ClienteBuscador.vue, clientes/ClienteForm.vue,
         clientes/ClienteInteraccionTimeline.vue, clientes/ClienteSplitView.vue,
         clientes/VentaList.vue
 leads/LeadForm.vue, leads/LeadKanban.vue, leads/LeadTimeline.vue
+post-venta/SeguimientoTimeline.vue, post-venta/TicketBoard.vue, post-venta/TicketForm.vue
 tickets/TicketBoard.vue, tickets/TicketForm.vue
 productos/ProductoForm.vue
 shared/AppLogo, Avatar, Badge, Card, ConfiguracionModal, ConfirmDialog,
@@ -515,6 +521,16 @@ el cliente. Solo se puebla vía SQL Editor de Supabase.
     generalizado para mostrar tareas y citas juntas. Página
     `/capacitaciones` con lista y filtro de fecha (sin calendario
     visual — ver spec `2026-07-14-agenda-capacitaciones-design.md`).
+29. ✅ **Tickets de post-venta** — sistema propio para el equipo de
+    post_venta (reparación/garantía de equipos), separado del `tickets`
+    de servicio_técnico. Tabla `tickets_post_venta` sin `owner_id` (todo
+    el equipo ve/edita todo por igual), cliente opcionalmente "no
+    registrado" (campos libres en la misma fila, sin tabla aparte),
+    bitácora de seguimiento (`tickets_post_venta_seguimientos`), cron de
+    vencidos que notifica a todo el rol `post_venta` (broadcast, no
+    owner individual). Página `/post-venta` con Kanban de 7 estados +
+    detalle con bitácora (ver spec
+    `2026-07-14-tickets-post-venta-design.md`).
 
 ## Pendientes sueltos
 
