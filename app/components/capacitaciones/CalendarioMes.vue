@@ -49,7 +49,7 @@ function formatearKey(fecha: Date): string {
 const citasPorDia = computed(() => {
   const set = new Set<string>()
   for (const c of props.citas) {
-    set.add(c.fecha_hora.slice(0, 10))
+    set.add(formatearKey(new Date(c.fecha_hora)))
   }
   return set
 })

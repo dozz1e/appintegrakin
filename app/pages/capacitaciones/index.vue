@@ -20,6 +20,14 @@ const filtroDesde = ref('')
 const filtroHasta = ref('')
 const fechaSeleccionada = ref<string | null>(null)
 
+function diaLocal(fechaIso: string): string {
+  const d = new Date(fechaIso)
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const dd = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${dd}`
+}
+
 async function cargar() {
   cargando.value = true
   citas.value = await fetchCitas()
@@ -30,7 +38,7 @@ onMounted(cargar)
 
 const citasFiltradas = computed(() => {
   if (fechaSeleccionada.value) {
-    return citas.value.filter((c) => c.fecha_hora.slice(0, 10) === fechaSeleccionada.value)
+    return citas.value.filter((c) => diaLocal(c.fecha_hora) === fechaSeleccionada.value)
   }
   return citas.value.filter((c) => {
     const t = new Date(c.fecha_hora).getTime()
