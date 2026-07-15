@@ -15,13 +15,15 @@ export interface Lead {
   created_at: string
   updated_at: string
   version: number
+  fecha_cierre: string | null
+  archivado: boolean
 }
 
 export const useLeads = () => {
   const supabase = useSupabaseClient()
 
   const fetchLeads = async (filtroEstado?: EstadoLead) => {
-    let query = supabase.from('leads').select('*').order('created_at', { ascending: false })
+    let query = supabase.from('leads').select('*').eq('archivado', false).order('created_at', { ascending: false })
     if (filtroEstado) query = query.eq('estado', filtroEstado)
     const { data, error } = await query
     if (error) throw error
@@ -62,6 +64,23 @@ export const useLeads = () => {
   const deleteLead = async (id: string) => {
     const { error } = await supabase.from('leads').delete().eq('id', id)
     if (error) throw error
+  }
+
+  const fetchLeadsPorIds = async (ids: string[]): Promise<Pick<Lead, 'id' | 'nombre'>[]> => {
+    if (!ids.length) return []
+    const { data, error } = await supabase.from('leads').select('id, nombre').in('id', ids)
+    if (error) throw error
+    return data as Pick<Lead, 'id' | 'nombre'>[]
+  }
+
+  const fetchCerrados = async (): Promise<Lead[]> => {
+    const { data, error } = await supabase
+      .from('leads')
+      .select('*')
+      .in('estado', ['ganado', 'perdido'])
+      .order('fecha_cierre', { ascending: false })
+    if (error) throw error
+    return data as Lead[]
   }
 
   const cambiarEstado = (id: string, estado: EstadoLead) => updateLead(id, { estado })
@@ -132,5 +151,7 @@ export const useLeads = () => {
     asignarLead,
     convertirACliente,
     importLeads,
+    fetchLeadsPorIds,
+    fetchCerrados,
   }
 }
