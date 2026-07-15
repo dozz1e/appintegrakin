@@ -12,6 +12,7 @@ const user = useSupabaseUser()
 
 const productos = ref<Producto[]>([])
 const responsables = ref<Usuario[]>([])
+const esEditando = computed(() => !!props.modelValue?.id)
 
 function aFechaInput(fechaIso?: string): string {
   if (!fechaIso) return ''
@@ -110,9 +111,10 @@ const inputClase =
 
     <div>
       <label class="block text-sm font-medium mb-1 text-gray-700">Responsable</label>
-      <select v-model="form.owner_id" :class="inputClase">
+      <select v-model="form.owner_id" :disabled="esEditando" :class="[inputClase, esEditando && 'bg-gray-100 cursor-not-allowed']">
         <option v-for="r in responsables" :key="r.id" :value="r.id">{{ r.full_name || r.email }}</option>
       </select>
+      <p v-if="esEditando" class="text-xs text-gray-500 mt-1">El responsable no se puede cambiar después de creada la cita.</p>
     </div>
 
     <div>

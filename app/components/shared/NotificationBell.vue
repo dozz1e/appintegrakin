@@ -63,6 +63,10 @@ async function onClickNotificacion(n: Notificacion) {
     n.leida = true
   }
   abierto.value = false
+  if (n.tipo === 'capacitacion_asignada' || n.tipo === 'capacitacion_vencida') {
+    router.push('/capacitaciones')
+    return
+  }
   const base = rutaEntidad[n.entidad_tipo]
   if (base) router.push(`${base}/${n.entidad_id}`)
 }
