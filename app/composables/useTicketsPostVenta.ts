@@ -18,6 +18,8 @@ export interface TicketPostVenta {
   fecha_despacho: string | null
   observaciones: string | null
   notificada_vencida: boolean
+  fecha_cierre: string | null
+  archivado: boolean
   created_by: string | null
   created_at: string
   updated_at: string
@@ -54,6 +56,8 @@ function mapearFila(fila: any): TicketPostVentaConNombres {
     fecha_despacho: fila.fecha_despacho,
     observaciones: fila.observaciones,
     notificada_vencida: fila.notificada_vencida,
+    fecha_cierre: fila.fecha_cierre,
+    archivado: fila.archivado,
     created_by: fila.created_by,
     created_at: fila.created_at,
     updated_at: fila.updated_at,
@@ -70,6 +74,7 @@ export function useTicketsPostVenta() {
     const { data, error } = await supabase
       .from('tickets_post_venta')
       .select('*, clientes(razon_social), productos(nombre)')
+      .eq('archivado', false)
       .order('created_at', { ascending: false })
 
     if (error) throw error
@@ -147,5 +152,32 @@ export function useTicketsPostVenta() {
     return data
   }
 
-  return { fetchTickets, getTicket, crearTicket, actualizarTicket, fetchSeguimientos, agregarSeguimiento }
+  async function fetchTicketsPorIds(ids: string[]): Promise<Pick<TicketPostVenta, 'id' | 'n_guia'>[]> {
+    if (!ids.length) return []
+    const { data, error } = await supabase.from('tickets_post_venta').select('id, n_guia').in('id', ids)
+    if (error) throw error
+    return data as Pick<TicketPostVenta, 'id' | 'n_guia'>[]
+  }
+
+  async function fetchCerrados(): Promise<TicketPostVentaConNombres[]> {
+    const { data, error } = await supabase
+      .from('tickets_post_venta')
+      .select('*, clientes(razon_social), productos(nombre)')
+      .eq('estado', 'despachado')
+      .order('fecha_cierre', { ascending: false })
+
+    if (error) throw error
+    return (data ?? []).map(mapearFila)
+  }
+
+  return {
+    fetchTickets,
+    getTicket,
+    crearTicket,
+    actualizarTicket,
+    fetchSeguimientos,
+    agregarSeguimiento,
+    fetchTicketsPorIds,
+    fetchCerrados,
+  }
 }
