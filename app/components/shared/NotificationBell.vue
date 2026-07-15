@@ -21,6 +21,7 @@ const etiquetaTipo: Record<Notificacion['tipo'], string> = {
   tarea_vencida: '⏰',
   capacitacion_asignada: '🎓',
   capacitacion_vencida: '⏰',
+  ticket_post_venta_vencido: '🛠️',
 }
 
 const rutaEntidad: Record<Notificacion['entidad_tipo'], string> = {
@@ -28,6 +29,7 @@ const rutaEntidad: Record<Notificacion['entidad_tipo'], string> = {
   cliente: '/clientes',
   ticket: '/tickets',
   tarea: '', // las tareas no tienen página propia, se resuelve por su entidad relacionada si hace falta
+  ticket_post_venta: '/post-venta',
 }
 
 function formatearFecha(fecha: string) {
