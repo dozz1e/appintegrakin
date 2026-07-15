@@ -257,6 +257,14 @@ async function onInteraccionRegistrada() {
               <p class="text-xs text-gray-400 mb-1">Dirección</p>
               <p class="text-gray-700">{{ seleccionado.direccion || '—' }}</p>
             </div>
+            <div>
+              <p class="text-xs text-gray-400 mb-1">Comuna</p>
+              <p class="text-gray-700">{{ seleccionado.comuna || '—' }}</p>
+            </div>
+            <div>
+              <p class="text-xs text-gray-400 mb-1">Ciudad</p>
+              <p class="text-gray-700">{{ seleccionado.ciudad || '—' }}</p>
+            </div>
           </div>
 
           <NuxtLink

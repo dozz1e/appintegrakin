@@ -35,6 +35,8 @@ function onExportar() {
     telefono: c.telefono ?? '',
     email: c.email ?? '',
     direccion: c.direccion ?? '',
+    ciudad: c.ciudad ?? '',
+    comuna: c.comuna ?? '',
   }))
   descargarCSV('clientes', filas)
 }

@@ -11,6 +11,8 @@ const form = reactive<Partial<Cliente>>({
   telefono: props.modelValue?.telefono ?? '',
   email: props.modelValue?.email ?? '',
   direccion: props.modelValue?.direccion ?? '',
+  ciudad: props.modelValue?.ciudad ?? '',
+  comuna: props.modelValue?.comuna ?? '',
 })
 
 const errores = reactive<Record<string, string>>({})
@@ -141,6 +143,25 @@ const onSubmit = () => {
         type="text"
         class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30 focus:border-[#1075B5]"
       />
+    </div>
+
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        <label class="block text-sm font-medium mb-1 text-gray-700">Comuna</label>
+        <input
+          v-model="form.comuna"
+          type="text"
+          class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30 focus:border-[#1075B5]"
+        />
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1 text-gray-700">Ciudad</label>
+        <input
+          v-model="form.ciudad"
+          type="text"
+          class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30 focus:border-[#1075B5]"
+        />
+      </div>
     </div>
 
     <button
