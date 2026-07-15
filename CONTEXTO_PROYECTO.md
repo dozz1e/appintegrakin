@@ -525,6 +525,52 @@ el cliente. Solo se puebla vía SQL Editor de Supabase.
   testing automatizado de `has_permission()`/permisos efectivos (puntos 8-9
   del Roadmap).
 - Manual de uso por rol para la dueña y su equipo, no técnico (punto 10).
+- Revisar la página de auditoría (`/admin/auditoria`) — pendiente sin detalle
+  aún, el usuario lo va a precisar más adelante.
+- Agregar calendario visual a `/capacitaciones` — layout de dos columnas
+  (calendario + listado de citas), revierte la decisión original del spec
+  ("sin calendario visual", ver punto 28 del Roadmap y
+  `2026-07-14-agenda-capacitaciones-design.md`).
+- Fix visual: el correo se desborda de la card de usuario cuando es muy largo
+  (falta precisar en qué pantalla exactamente — usuarios, admin/usuarios,
+  perfil, etc.).
+- Asignar clientes por vendedor — funcionalidad para asignar/reasignar
+  `owner_id` de clientes a un vendedor (distinto del filtro de solo lectura
+  que ya existe en `/clientes`, ver punto 21 del Roadmap).
+- Múltiples alarmas para `RecordatorioAlert` — hoy solo avisa a un umbral fijo
+  (30 min antes), agregar varios umbrales configurables en vez de uno solo.
+- "Ver más" en notas largas de Interacciones y Tickets del cliente — truncar
+  texto largo con expandir, en vez de mostrarlo completo siempre.
+- Permitir eliminar interacciones y tickets desde la vista de cliente —
+  solo para superadmin y dueña.
+- Natalia Quevedo es líder de vendedoras (además de post_venta y
+  servicio_tecnico, roles que ya tiene): necesita ver `ventas.view_all`
+  (hoy solo tiene `ventas.view/create/edit` propio vía rol `ventas`/
+  `post_venta`) y `leads.view_all` de cada vendedora (esto último ya lo
+  tiene gratis por unión de permisos, el rol `post_venta` ya incluye
+  `leads.view_all` — ver regla de "mayor permiso gana"). Falta solo agregar
+  `ventas.view_all`, vía override individual en `/admin/permisos` o un rol
+  nuevo tipo `lider_ventas`. Sin ejecutar aún, a definir el enfoque. Además,
+  en la vista de leads agregar un select para elegir vendedor y filtrar la
+  vista de leads por ese vendedor (similar al selector que ya existe en
+  `/clientes`, ver punto 21 del Roadmap).
+- Buscador por RUT o nombre en `/leads` y `/tickets` (ya existe búsqueda
+  global, pero falta un buscador local rápido en cada listado, como el que
+  ya tiene `/clientes`).
+- Subir imágenes en interacciones, tickets y leads (mismo patrón de bucket
+  público de Storage ya usado para `imagen_url` de clientes, ver punto 15
+  del Roadmap).
+- Fix Supabase Auth: el link de invitación de usuario nuevo manda a
+  `localhost` en vez del dominio real — revisar "Site URL"/"Redirect URLs"
+  en la configuración de Auth del proyecto Supabase.
+
+### Cosas que el usuario debe pedir/recopilar (no son código, son recordatorios)
+- Definir email marketing (evaluación pendiente — falta elegir ESP por
+  costos/API antes de diseñar nada).
+- Pedir listado de clientes con ciudad y comuna.
+- Pedir valores de mantención de cada producto.
+- Pedir manuales de cada producto.
+- Pedir/grabar video de capacitación por producto.
 
 ## Otros proyectos relacionados (contexto de fondo, no parte de este repo)
 
