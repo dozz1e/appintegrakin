@@ -13,12 +13,19 @@ onMounted(async () => {
 
 const esActivo = (path: string) => route.path === path || route.path.startsWith(path + '/')
 
+// para los links "Listado" de Leads/Tickets/Post Venta: igual que esActivo
+// (para que /leads/[id] siga marcando "Listado" como activo), pero
+// excluyendo explícitamente las rutas hermanas de historial/cerrados que
+// también empiezan con el mismo prefijo.
+const esActivoListado = (path: string) =>
+  route.path === path ||
+  (route.path.startsWith(path + '/') &&
+    !route.path.startsWith(`${path}/historial-movimientos`) &&
+    !route.path.startsWith(`${path}/cerrados`))
+
 const navCrm = [
   { path: '/clientes', label: 'Clientes', permiso: ['view', 'view_all'] as const, resource: 'clientes' },
-  { path: '/leads', label: 'Leads', permiso: ['view', 'view_all'] as const, resource: 'leads' },
-  { path: '/tickets', label: 'Tickets', permiso: ['view', 'view_all'] as const, resource: 'tickets' },
   { path: '/productos', label: 'Productos', permiso: ['view', 'view_all'] as const, resource: 'productos' },
-  { path: '/post-venta', label: 'Post Venta', permiso: ['view', 'view'] as const, resource: 'tickets_post_venta' },
 ]
 </script>
 
@@ -49,6 +56,39 @@ const navCrm = [
             >
               {{ item.label }}
             </SharedNavLink>
+          </div>
+        </div>
+
+        <div v-if="can('leads', 'view') || can('leads', 'view_all')">
+          <p class="px-3 text-[11px] font-semibold text-ink-muted uppercase tracking-wide mb-1">Leads</p>
+          <div class="space-y-0.5">
+            <SharedNavLink to="/leads" :activo="esActivoListado('/leads')">Listado</SharedNavLink>
+            <SharedNavLink to="/leads/historial-movimientos" :activo="esActivo('/leads/historial-movimientos')">
+              Historial de movimientos
+            </SharedNavLink>
+            <SharedNavLink to="/leads/cerrados" :activo="esActivo('/leads/cerrados')">Historial de cerrados</SharedNavLink>
+          </div>
+        </div>
+
+        <div v-if="can('tickets', 'view') || can('tickets', 'view_all')">
+          <p class="px-3 text-[11px] font-semibold text-ink-muted uppercase tracking-wide mb-1">Servicio Técnico</p>
+          <div class="space-y-0.5">
+            <SharedNavLink to="/tickets" :activo="esActivoListado('/tickets')">Tickets</SharedNavLink>
+            <SharedNavLink to="/tickets/historial-movimientos" :activo="esActivo('/tickets/historial-movimientos')">
+              Historial de movimientos
+            </SharedNavLink>
+            <SharedNavLink to="/tickets/cerrados" :activo="esActivo('/tickets/cerrados')">Historial de cerrados</SharedNavLink>
+          </div>
+        </div>
+
+        <div v-if="can('tickets_post_venta', 'view')">
+          <p class="px-3 text-[11px] font-semibold text-ink-muted uppercase tracking-wide mb-1">Post Venta</p>
+          <div class="space-y-0.5">
+            <SharedNavLink to="/post-venta" :activo="esActivoListado('/post-venta')">Tickets</SharedNavLink>
+            <SharedNavLink to="/post-venta/historial-movimientos" :activo="esActivo('/post-venta/historial-movimientos')">
+              Historial de movimientos
+            </SharedNavLink>
+            <SharedNavLink to="/post-venta/cerrados" :activo="esActivo('/post-venta/cerrados')">Historial de cerrados</SharedNavLink>
           </div>
         </div>
 
