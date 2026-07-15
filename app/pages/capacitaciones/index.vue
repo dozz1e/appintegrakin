@@ -18,6 +18,7 @@ const modalAbierto = ref(false)
 const citaEditando = ref<CitaCapacitacionConNombres | null>(null)
 const filtroDesde = ref('')
 const filtroHasta = ref('')
+const fechaSeleccionada = ref<string | null>(null)
 
 async function cargar() {
   cargando.value = true
@@ -28,6 +29,9 @@ async function cargar() {
 onMounted(cargar)
 
 const citasFiltradas = computed(() => {
+  if (fechaSeleccionada.value) {
+    return citas.value.filter((c) => c.fecha_hora.slice(0, 10) === fechaSeleccionada.value)
+  }
   return citas.value.filter((c) => {
     const t = new Date(c.fecha_hora).getTime()
     if (filtroDesde.value && t < new Date(filtroDesde.value).getTime()) return false
@@ -41,12 +45,14 @@ const citasFiltradas = computed(() => {
 })
 
 function filtrarHoy() {
+  fechaSeleccionada.value = null
   const hoy = new Date().toISOString().slice(0, 10)
   filtroDesde.value = hoy
   filtroHasta.value = hoy
 }
 
 function filtrarEstaSemana() {
+  fechaSeleccionada.value = null
   const ahora = new Date()
   const inicio = new Date(ahora)
   inicio.setDate(ahora.getDate() - ahora.getDay())
@@ -54,6 +60,14 @@ function filtrarEstaSemana() {
   fin.setDate(inicio.getDate() + 6)
   filtroDesde.value = inicio.toISOString().slice(0, 10)
   filtroHasta.value = fin.toISOString().slice(0, 10)
+}
+
+function onDiaClick(fecha: string | null) {
+  fechaSeleccionada.value = fecha
+  if (fecha) {
+    filtroDesde.value = ''
+    filtroHasta.value = ''
+  }
 }
 
 function abrirNueva() {
@@ -114,46 +128,66 @@ function formatearFecha(fecha: string) {
       </template>
     </SharedPageHeader>
 
-    <div class="flex flex-wrap gap-2 mb-4">
-      <input v-model="filtroDesde" type="date" class="border border-gray-200 rounded-lg px-3 py-2 text-sm" />
-      <input v-model="filtroHasta" type="date" class="border border-gray-200 rounded-lg px-3 py-2 text-sm" />
-      <button class="text-sm text-[#1075B5] hover:underline" @click="filtrarHoy">Hoy</button>
-      <button class="text-sm text-[#1075B5] hover:underline" @click="filtrarEstaSemana">Esta semana</button>
+    <div class="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] gap-6">
+      <CapacitacionesCalendarioMes
+        :citas="citas"
+        :fecha-seleccionada="fechaSeleccionada"
+        @update:fecha-seleccionada="onDiaClick"
+      />
+
+      <div>
+        <div class="flex flex-wrap gap-2 mb-4">
+          <input
+            v-model="filtroDesde"
+            type="date"
+            class="border border-gray-200 rounded-lg px-3 py-2 text-sm"
+            @change="fechaSeleccionada = null"
+          />
+          <input
+            v-model="filtroHasta"
+            type="date"
+            class="border border-gray-200 rounded-lg px-3 py-2 text-sm"
+            @change="fechaSeleccionada = null"
+          />
+          <button class="text-sm text-[#1075B5] hover:underline" @click="filtrarHoy">Hoy</button>
+          <button class="text-sm text-[#1075B5] hover:underline" @click="filtrarEstaSemana">Esta semana</button>
+        </div>
+
+        <p v-if="cargando" class="text-gray-400">Cargando...</p>
+        <p v-else-if="!citasFiltradas.length" class="text-gray-400">Sin capacitaciones para el rango elegido.</p>
+
+        <ul v-else class="space-y-2">
+          <li
+            v-for="c in citasFiltradas"
+            :key="c.id"
+            class="border border-gray-100 rounded-xl p-4 flex items-center justify-between gap-3"
+          >
+            <div class="min-w-0">
+              <p class="text-sm font-medium text-gray-800">{{ c.cliente_nombre }} — {{ c.producto_nombre }}</p>
+              <p class="text-xs text-gray-400">{{ formatearFecha(c.fecha_hora) }} · {{ c.titulo }}</p>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <SharedBadge :label="colorCitaCapacitacion(c.estado).label" :clases="colorCitaCapacitacion(c.estado).clases" />
+              <button class="text-xs text-[#1075B5] hover:underline" @click="abrirEditar(c)">Editar</button>
+              <button
+                v-if="c.estado === 'pendiente'"
+                class="text-xs text-green-600 hover:underline"
+                @click="cambiarEstado(c, 'completada')"
+              >
+                Completar
+              </button>
+              <button
+                v-if="c.estado === 'pendiente'"
+                class="text-xs text-red-600 hover:underline"
+                @click="cambiarEstado(c, 'cancelada')"
+              >
+                Cancelar
+              </button>
+            </div>
+          </li>
+        </ul>
+      </div>
     </div>
-
-    <p v-if="cargando" class="text-gray-400">Cargando...</p>
-    <p v-else-if="!citasFiltradas.length" class="text-gray-400">Sin capacitaciones para el rango elegido.</p>
-
-    <ul v-else class="space-y-2">
-      <li
-        v-for="c in citasFiltradas"
-        :key="c.id"
-        class="border border-gray-100 rounded-xl p-4 flex items-center justify-between gap-3"
-      >
-        <div class="min-w-0">
-          <p class="text-sm font-medium text-gray-800">{{ c.cliente_nombre }} — {{ c.producto_nombre }}</p>
-          <p class="text-xs text-gray-400">{{ formatearFecha(c.fecha_hora) }} · {{ c.titulo }}</p>
-        </div>
-        <div class="flex items-center gap-2 shrink-0">
-          <SharedBadge :label="colorCitaCapacitacion(c.estado).label" :clases="colorCitaCapacitacion(c.estado).clases" />
-          <button class="text-xs text-[#1075B5] hover:underline" @click="abrirEditar(c)">Editar</button>
-          <button
-            v-if="c.estado === 'pendiente'"
-            class="text-xs text-green-600 hover:underline"
-            @click="cambiarEstado(c, 'completada')"
-          >
-            Completar
-          </button>
-          <button
-            v-if="c.estado === 'pendiente'"
-            class="text-xs text-red-600 hover:underline"
-            @click="cambiarEstado(c, 'cancelada')"
-          >
-            Cancelar
-          </button>
-        </div>
-      </li>
-    </ul>
 
     <SharedModal
       :open="modalAbierto"
