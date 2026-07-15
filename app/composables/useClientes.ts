@@ -9,6 +9,8 @@ export interface Cliente {
   telefono: string | null
   email: string | null
   direccion: string | null
+  ciudad: string | null
+  comuna: string | null
   imagen_url: string | null
   kame_id: string | null
   owner_id: string | null
@@ -107,6 +109,8 @@ export const useClientes = () => {
         telefono: f.telefono?.trim() || null,
         email: f.email?.trim() || null,
         direccion: f.direccion?.trim() || null,
+        ciudad: f.ciudad?.trim() || null,
+        comuna: f.comuna?.trim() || null,
         owner_id: user.value?.sub,
         created_by: user.value?.sub,
       }))
