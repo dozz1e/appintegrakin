@@ -5,7 +5,7 @@
 > cuenta nueva de Claude (pegarlo como primer mensaje) o para cualquier
 > desarrollador que se sume.
 >
-> Última actualización: 15 de julio de 2026.
+> Última actualización: 15 de julio de 2026 (historial de estados y archivado).
 
 ## Stack y dependencias reales
 
@@ -84,6 +84,10 @@
 20260714200000_tickets_post_venta.sql
 20260714210000_tickets_post_venta_seguimientos.sql
 20260714220000_notificacion_tickets_post_venta_vencidos.sql
+20260715000000_historial_estados.sql
+20260715010000_cierre_archivado.sql
+20260715020000_configuracion_archivado.sql
+20260715030000_cron_archivar_cerrados.sql
 ```
 Nota: las 5 migraciones desde `tareas` hasta `notificaciones_realtime` se
 crearon originalmente a mano en el SQL Editor de Supabase; ya quedaron
@@ -123,6 +127,12 @@ productos/nuevo.vue
 capacitaciones/index.vue       — agenda de capacitaciones (lista + filtro de fecha)
 post-venta/index.vue           — kanban de tickets post-venta (7 estados)
 post-venta/[id].vue            — detalle con cambio de estado + bitácora de seguimiento
+leads/historial-movimientos.vue    — todos los cambios de estado de leads
+leads/cerrados.vue                 — leads ganados/perdidos, histórico completo
+tickets/historial-movimientos.vue  — todos los cambios de estado de tickets
+tickets/cerrados.vue               — tickets resueltos/cerrados, histórico completo
+post-venta/historial-movimientos.vue — cambios de estado de tickets post-venta
+post-venta/cerrados.vue            — tickets despachados, histórico completo
 ```
 Nota: `reportes/index.vue` **ya no existe** — se eliminó y su contenido
 (funnel + performance por vendedor) se convirtió en widgets asignables del
@@ -131,8 +141,8 @@ dashboard (ver sección Roadmap).
 ### Composables (`app/composables/`)
 ```
 useAuditoria, useAuth, useBusquedaGlobal, useCitasCapacitacion,
-useClienteInteracciones, useClientes, useCsv, useDashboardWidgets,
-useErrorLog, useFeatures,
+useClienteInteracciones, useClientes, useConfiguracionArchivado, useCsv,
+useDashboardWidgets, useErrorLog, useFeatures, useHistorialEstados,
 useLeadInteracciones, useLeads, useMiPerfil, useNotificaciones,
 usePermisosOverrides, usePermissions, useProductos, useReportes,
 useRolesUsuario, useSuperadmin, useTareas, useTecnicos, useTicketsPostVenta,
@@ -531,6 +541,18 @@ el cliente. Solo se puebla vía SQL Editor de Supabase.
     owner individual). Página `/post-venta` con Kanban de 7 estados +
     detalle con bitácora (ver spec
     `2026-07-14-tickets-post-venta-design.md`).
+30. ✅ **Historial de estados y archivado automático** — tabla genérica
+    `historial_estados` (patrón `entidad_tipo`/`entidad_id`) con trigger
+    en `leads`/`tickets`/`tickets_post_venta`; columnas `fecha_cierre`/
+    `archivado` gestionadas por trigger de cierre propio de cada tabla;
+    cron diario `fn_archivar_cerrados` que archiva (nunca borra) usando
+    días configurables por módulo en `configuracion_archivado` (valor
+    global, no por usuario). 6 páginas nuevas (historial de movimientos +
+    historial de cerrados, por módulo) y reestructura del nav (Leads/
+    Servicio Técnico/Post Venta como secciones propias). Días editables
+    desde el modal de Configuración, visible solo para cuentas con rol
+    `post_venta` (ver spec
+    `2026-07-15-historial-estados-archivado-design.md`).
 
 ## Pendientes sueltos
 
