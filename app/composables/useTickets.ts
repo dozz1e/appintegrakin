@@ -16,6 +16,8 @@ export interface Ticket {
   created_at: string
   updated_at: string
   version: number
+  fecha_cierre: string | null
+  archivado: boolean
   clientes?: { razon_social: string } | null
 }
 
@@ -26,6 +28,7 @@ export const useTickets = () => {
     let query = supabase
       .from('tickets')
       .select('*, clientes(razon_social)')
+      .eq('archivado', false)
       .order('created_at', { ascending: false })
     if (filtroEstado) query = query.eq('estado', filtroEstado)
     const { data, error } = await query
@@ -77,6 +80,23 @@ export const useTickets = () => {
     if (error) throw error
   }
 
+  const fetchTicketsPorIds = async (ids: string[]): Promise<Pick<Ticket, 'id' | 'titulo'>[]> => {
+    if (!ids.length) return []
+    const { data, error } = await supabase.from('tickets').select('id, titulo').in('id', ids)
+    if (error) throw error
+    return data as Pick<Ticket, 'id' | 'titulo'>[]
+  }
+
+  const fetchCerrados = async (): Promise<Ticket[]> => {
+    const { data, error } = await supabase
+      .from('tickets')
+      .select('*, clientes(razon_social)')
+      .in('estado', ['resuelto', 'cerrado'])
+      .order('fecha_cierre', { ascending: false })
+    if (error) throw error
+    return data as unknown as Ticket[]
+  }
+
   const cambiarEstado = (id: string, estado: EstadoTicket) => updateTicket(id, { estado })
 
   // requiere permiso tickets.assign - RLS lo valida server-side, esto es solo el wrapper
@@ -91,5 +111,7 @@ export const useTickets = () => {
     deleteTicket,
     cambiarEstado,
     asignarTecnico,
+    fetchTicketsPorIds,
+    fetchCerrados,
   }
 }
