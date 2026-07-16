@@ -574,9 +574,6 @@ el cliente. Solo se puebla vía SQL Editor de Supabase.
   testing automatizado de `has_permission()`/permisos efectivos (puntos 8-9
   del Roadmap).
 - Manual de uso por rol para la dueña y su equipo, no técnico (punto 10).
-- Fix visual: el correo se desborda de la card de usuario cuando es muy largo
-  (falta precisar en qué pantalla exactamente — usuarios, admin/usuarios,
-  perfil, etc.).
 - Asignar clientes por vendedor — funcionalidad para asignar/reasignar
   `owner_id` de clientes a un vendedor (distinto del filtro de solo lectura
   que ya existe en `/clientes`, ver punto 21 del Roadmap).
