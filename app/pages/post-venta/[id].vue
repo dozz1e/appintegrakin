@@ -117,6 +117,7 @@ function formatearFecha(fecha: string) {
                   type="date"
                   :disabled="guardando"
                   class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
+                  @click="abrirPicker"
                   @change="onCambiarFechaDespacho(($event.target as HTMLInputElement).value)"
                 />
               </div>

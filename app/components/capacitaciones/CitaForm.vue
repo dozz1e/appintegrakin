@@ -99,12 +99,12 @@ const inputClase =
     <div class="grid grid-cols-2 gap-3">
       <div>
         <label class="block text-sm font-medium mb-1 text-gray-700">Fecha *</label>
-        <input v-model="form.fecha" type="date" :class="inputClase" />
+        <input v-model="form.fecha" type="date" :class="inputClase" @click="abrirPicker" />
         <p v-if="errores.fecha" class="text-sm text-red-600 mt-1">{{ errores.fecha }}</p>
       </div>
       <div>
         <label class="block text-sm font-medium mb-1 text-gray-700">Hora *</label>
-        <input v-model="form.hora" type="time" :class="inputClase" />
+        <input v-model="form.hora" type="time" :class="inputClase" @click="abrirPicker" />
         <p v-if="errores.hora" class="text-sm text-red-600 mt-1">{{ errores.hora }}</p>
       </div>
     </div>

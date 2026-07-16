@@ -130,12 +130,12 @@ const inputClase =
     <div class="grid grid-cols-2 gap-3">
       <div>
         <label class="block text-sm font-medium mb-1 text-gray-700">Fecha de ingreso *</label>
-        <input v-model="form.fecha_ingreso" type="date" :class="inputClase" />
+        <input v-model="form.fecha_ingreso" type="date" :class="inputClase" @click="abrirPicker" />
         <p v-if="errores.fecha_ingreso" class="text-sm text-red-600 mt-1">{{ errores.fecha_ingreso }}</p>
       </div>
       <div>
         <label class="block text-sm font-medium mb-1 text-gray-700">Fecha tope</label>
-        <input v-model="form.fecha_tope" type="date" :class="inputClase" />
+        <input v-model="form.fecha_tope" type="date" :class="inputClase" @click="abrirPicker" />
       </div>
     </div>
 

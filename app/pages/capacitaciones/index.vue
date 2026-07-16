@@ -149,12 +149,14 @@ function formatearFecha(fecha: string) {
             v-model="filtroDesde"
             type="date"
             class="border border-gray-200 rounded-lg px-3 py-2 text-sm"
+            @click="abrirPicker"
             @change="fechaSeleccionada = null"
           />
           <input
             v-model="filtroHasta"
             type="date"
             class="border border-gray-200 rounded-lg px-3 py-2 text-sm"
+            @click="abrirPicker"
             @change="fechaSeleccionada = null"
           />
           <button class="text-sm text-[#1075B5] hover:underline" @click="filtrarHoy">Hoy</button>

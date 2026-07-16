@@ -46,7 +46,7 @@ function formatearFecha(fecha: string) {
 <template>
   <div>
     <div class="flex flex-wrap gap-2 mb-4">
-      <input v-model="fecha" type="date" class="border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+      <input v-model="fecha" type="date" class="border border-gray-200 rounded-lg px-3 py-2 text-sm" @click="abrirPicker" />
       <input
         v-model="comentario"
         type="text"
