@@ -24,8 +24,8 @@ const esActivoListado = (path: string) =>
     !route.path.startsWith(`${path}/cerrados`))
 
 const navCrm = [
-  { path: '/clientes', label: 'Clientes', permiso: ['view', 'view_all'] as const, resource: 'clientes' },
-  { path: '/productos', label: 'Productos', permiso: ['view', 'view_all'] as const, resource: 'productos' },
+  { path: '/clientes', label: 'Clientes', permiso: ['view', 'view_all'] as const, resource: 'clientes', icono: 'mdi:account-group-outline' },
+  { path: '/productos', label: 'Productos', permiso: ['view', 'view_all'] as const, resource: 'productos', icono: 'mdi:package-variant-closed' },
 ]
 </script>
 
@@ -39,7 +39,7 @@ const navCrm = [
 
       <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-6">
         <div>
-          <SharedNavLink to="/" :activo="esActivo('/') && route.path === '/'">
+          <SharedNavLink to="/" icono="mdi:view-dashboard-outline" :activo="esActivo('/') && route.path === '/'">
             Dashboard
           </SharedNavLink>
         </div>
@@ -52,6 +52,7 @@ const navCrm = [
               v-show="can(item.resource, item.permiso[0]) || can(item.resource, item.permiso[1])"
               :key="item.path"
               :to="item.path"
+              :icono="item.icono"
               :activo="esActivo(item.path)"
             >
               {{ item.label }}
@@ -62,39 +63,39 @@ const navCrm = [
         <div v-if="can('leads', 'view') || can('leads', 'view_all')">
           <p class="px-3 text-[11px] font-semibold text-ink-muted uppercase tracking-wide mb-1">Leads</p>
           <div class="space-y-0.5">
-            <SharedNavLink to="/leads" :activo="esActivoListado('/leads')">Listado</SharedNavLink>
-            <SharedNavLink to="/leads/historial-movimientos" :activo="esActivo('/leads/historial-movimientos')">
+            <SharedNavLink to="/leads" icono="mdi:account-arrow-right-outline" :activo="esActivoListado('/leads')">Listado</SharedNavLink>
+            <SharedNavLink to="/leads/historial-movimientos" icono="mdi:history" :activo="esActivo('/leads/historial-movimientos')">
               Historial de movimientos
             </SharedNavLink>
-            <SharedNavLink to="/leads/cerrados" :activo="esActivo('/leads/cerrados')">Historial de cerrados</SharedNavLink>
+            <SharedNavLink to="/leads/cerrados" icono="mdi:archive-outline" :activo="esActivo('/leads/cerrados')">Historial de cerrados</SharedNavLink>
           </div>
         </div>
 
         <div v-if="can('tickets', 'view') || can('tickets', 'view_all')">
           <p class="px-3 text-[11px] font-semibold text-ink-muted uppercase tracking-wide mb-1">Servicio Técnico</p>
           <div class="space-y-0.5">
-            <SharedNavLink to="/tickets" :activo="esActivoListado('/tickets')">Tickets</SharedNavLink>
-            <SharedNavLink to="/tickets/historial-movimientos" :activo="esActivo('/tickets/historial-movimientos')">
+            <SharedNavLink to="/tickets" icono="mdi:wrench-outline" :activo="esActivoListado('/tickets')">Tickets</SharedNavLink>
+            <SharedNavLink to="/tickets/historial-movimientos" icono="mdi:history" :activo="esActivo('/tickets/historial-movimientos')">
               Historial de movimientos
             </SharedNavLink>
-            <SharedNavLink to="/tickets/cerrados" :activo="esActivo('/tickets/cerrados')">Historial de cerrados</SharedNavLink>
+            <SharedNavLink to="/tickets/cerrados" icono="mdi:archive-outline" :activo="esActivo('/tickets/cerrados')">Historial de cerrados</SharedNavLink>
           </div>
         </div>
 
         <div v-if="can('tickets_post_venta', 'view')">
           <p class="px-3 text-[11px] font-semibold text-ink-muted uppercase tracking-wide mb-1">Post Venta</p>
           <div class="space-y-0.5">
-            <SharedNavLink to="/post-venta" :activo="esActivoListado('/post-venta')">Tickets</SharedNavLink>
-            <SharedNavLink to="/post-venta/historial-movimientos" :activo="esActivo('/post-venta/historial-movimientos')">
+            <SharedNavLink to="/post-venta" icono="mdi:truck-delivery-outline" :activo="esActivoListado('/post-venta')">Tickets</SharedNavLink>
+            <SharedNavLink to="/post-venta/historial-movimientos" icono="mdi:history" :activo="esActivo('/post-venta/historial-movimientos')">
               Historial de movimientos
             </SharedNavLink>
-            <SharedNavLink to="/post-venta/cerrados" :activo="esActivo('/post-venta/cerrados')">Historial de cerrados</SharedNavLink>
+            <SharedNavLink to="/post-venta/cerrados" icono="mdi:archive-outline" :activo="esActivo('/post-venta/cerrados')">Historial de cerrados</SharedNavLink>
           </div>
         </div>
 
         <div v-if="can('capacitaciones', 'view') || can('capacitaciones', 'view_all')">
           <p class="px-3 text-[11px] font-semibold text-ink-muted uppercase tracking-wide mb-1">Capacitaciones</p>
-          <SharedNavLink to="/capacitaciones" :activo="esActivo('/capacitaciones')">
+          <SharedNavLink to="/capacitaciones" icono="mdi:school-outline" :activo="esActivo('/capacitaciones')">
             Agenda
           </SharedNavLink>
         </div>
@@ -102,16 +103,16 @@ const navCrm = [
         <div v-if="can('dashboard_widgets', 'assign') || can('auditoria', 'view_all')">
           <p class="px-3 text-[11px] font-semibold text-ink-muted uppercase tracking-wide mb-1">Administración</p>
           <div class="space-y-0.5">
-            <SharedNavLink v-if="can('dashboard_widgets', 'assign')" to="/admin/dashboards" :activo="esActivo('/admin/dashboards')">
+            <SharedNavLink v-if="can('dashboard_widgets', 'assign')" to="/admin/dashboards" icono="mdi:view-dashboard-edit-outline" :activo="esActivo('/admin/dashboards')">
               Dashboards
             </SharedNavLink>
-            <SharedNavLink v-if="can('dashboard_widgets', 'assign')" to="/admin/permisos" :activo="esActivo('/admin/permisos')">
+            <SharedNavLink v-if="can('dashboard_widgets', 'assign')" to="/admin/permisos" icono="mdi:shield-lock-outline" :activo="esActivo('/admin/permisos')">
               Permisos
             </SharedNavLink>
-            <SharedNavLink v-if="can('dashboard_widgets', 'assign')" to="/admin/usuarios" :activo="esActivo('/admin/usuarios')">
+            <SharedNavLink v-if="can('dashboard_widgets', 'assign')" to="/admin/usuarios" icono="mdi:account-cog-outline" :activo="esActivo('/admin/usuarios')">
               Usuarios
             </SharedNavLink>
-            <SharedNavLink v-if="can('auditoria', 'view_all')" to="/admin/auditoria" :activo="esActivo('/admin/auditoria')">
+            <SharedNavLink v-if="can('auditoria', 'view_all')" to="/admin/auditoria" icono="mdi:file-search-outline" :activo="esActivo('/admin/auditoria')">
               Auditoría
             </SharedNavLink>
           </div>
@@ -120,7 +121,7 @@ const navCrm = [
         <div v-if="esSuperadmin">
           <p class="px-3 text-[11px] font-semibold text-ink-muted uppercase tracking-wide mb-1">Sistema</p>
           <div class="space-y-0.5">
-            <SharedNavLink to="/panel-dev" :activo="esActivo('/panel-dev')">
+            <SharedNavLink to="/panel-dev" icono="mdi:tools" :activo="esActivo('/panel-dev')">
               Panel dev
             </SharedNavLink>
           </div>
