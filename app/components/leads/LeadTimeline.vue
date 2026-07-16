@@ -211,6 +211,7 @@ async function onConfirmarEliminar() {
               Cancelar
             </button>
           </div>
+          <SharedGaleriaImagenes entidad-tipo="lead_interaccion" :entidad-id="i.id" class="w-full mt-1" />
         </div>
         <div v-else class="flex-1">
           <div class="flex items-center gap-2">
