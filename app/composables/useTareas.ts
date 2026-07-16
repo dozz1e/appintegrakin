@@ -92,6 +92,18 @@ export function useTareas() {
     return data
   }
 
+  async function actualizarTarea(id: string, titulo: string, fechaVencimiento: string | null): Promise<Tarea> {
+    const { data, error } = await supabase
+      .from('tareas')
+      .update({ titulo, fecha_vencimiento: fechaVencimiento, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  }
+
   async function eliminarTarea(tareaId: string): Promise<void> {
     const { error } = await supabase.from('tareas').delete().eq('id', tareaId)
     if (error) throw error
@@ -173,6 +185,7 @@ export function useTareas() {
     fetchMisTareasPendientes,
     crearTarea,
     marcarCompletada,
+    actualizarTarea,
     eliminarTarea,
     tareasProximas,
     refrescarTareasProximas,
