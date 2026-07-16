@@ -6,7 +6,7 @@ const props = defineProps<{
   entidadId: string
 }>()
 
-const { fetchTareasPorEntidad, crearTarea, marcarCompletada, eliminarTarea } = useTareas()
+const { fetchTareasPorEntidad, crearTarea, marcarCompletada, actualizarTarea, eliminarTarea } = useTareas()
 const { success, error } = useToast()
 
 const tareas = ref<Tarea[]>([])
@@ -14,6 +14,12 @@ const cargando = ref(true)
 const guardando = ref(false)
 const aEliminar = ref<Tarea | null>(null)
 const eliminando = ref(false)
+
+const idEditando = ref<string | null>(null)
+const tituloEditado = ref('')
+const fechaEditada = ref('')
+const horaEditada = ref('')
+const guardandoEdicion = ref(false)
 
 const titulo = ref('')
 const fechaVencimiento = ref('')
@@ -64,6 +70,52 @@ async function onToggle(tarea: Tarea) {
     await cargar()
   } catch (e) {
     error('No se pudo actualizar la tarea')
+  }
+}
+
+function aFechaInput(fechaIso: string | null): string {
+  if (!fechaIso) return ''
+  const d = new Date(fechaIso)
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+}
+function aHoraInput(fechaIso: string | null): string {
+  if (!fechaIso) return ''
+  const d = new Date(fechaIso)
+  const esDefault = d.getHours() === 23 && d.getMinutes() === 59
+  if (esDefault) return ''
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+
+function onEditar(tarea: Tarea) {
+  idEditando.value = tarea.id
+  tituloEditado.value = tarea.titulo
+  fechaEditada.value = aFechaInput(tarea.fecha_vencimiento)
+  horaEditada.value = aHoraInput(tarea.fecha_vencimiento)
+}
+
+function onCancelarEdicion() {
+  idEditando.value = null
+}
+
+async function onGuardarEdicion(tarea: Tarea) {
+  if (!tituloEditado.value.trim()) return
+  guardandoEdicion.value = true
+  try {
+    const actualizada = await actualizarTarea(
+      tarea.id,
+      tituloEditado.value.trim(),
+      fechaEditada.value ? construirFechaVencimiento(fechaEditada.value, horaEditada.value) : null
+    )
+    const idx = tareas.value.findIndex((t) => t.id === tarea.id)
+    if (idx !== -1) tareas.value[idx] = actualizada
+    idEditando.value = null
+    success('Tarea actualizada')
+  } catch (e) {
+    error('No se pudo actualizar la tarea')
+  } finally {
+    guardandoEdicion.value = false
   }
 }
 
@@ -139,27 +191,79 @@ function formatearFecha(fecha: string) {
         :class="esVencida(t) ? 'bg-red-50' : 'bg-gray-50'"
       >
         <input
+          v-if="idEditando !== t.id"
           type="checkbox"
           :checked="t.completada"
           class="w-4 h-4 accent-[#1075B5] mt-0.5"
           @change="onToggle(t)"
         />
-        <SharedTextoExpandible
-          :texto="t.titulo"
-          class="flex-1 min-w-0 text-sm"
-          :class="t.completada ? 'line-through text-gray-400' : 'text-gray-700'"
-        />
-        <span v-if="t.fecha_vencimiento" class="text-xs shrink-0" :class="esVencida(t) ? 'text-red-600 font-medium' : 'text-gray-400'">
-          {{ formatearFecha(t.fecha_vencimiento) }}
-        </span>
-        <button
-          type="button"
-          class="text-gray-300 hover:text-red-600 transition-colors shrink-0"
-          title="Eliminar"
-          @click="aEliminar = t"
-        >
-          <Icon name="mdi:trash-can-outline" class="w-4 h-4" />
-        </button>
+        <div v-if="idEditando === t.id" class="flex-1 space-y-2">
+          <input
+            v-model="tituloEditado"
+            type="text"
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30"
+            @keyup.enter="onGuardarEdicion(t)"
+          />
+          <div class="flex flex-wrap gap-2">
+            <input
+              v-model="fechaEditada"
+              type="date"
+              class="flex-1 min-w-0 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30"
+              @click="abrirPicker"
+            />
+            <input
+              v-model="horaEditada"
+              type="time"
+              class="flex-1 min-w-0 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30"
+              @click="abrirPicker"
+            />
+          </div>
+          <div class="flex gap-2">
+            <button
+              type="button"
+              :disabled="guardandoEdicion || !tituloEditado.trim()"
+              class="bg-[#1075B5] hover:bg-[#0C5D91] text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+              @click="onGuardarEdicion(t)"
+            >
+              Guardar
+            </button>
+            <button
+              type="button"
+              class="border border-gray-200 text-gray-600 hover:bg-gray-50 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+              @click="onCancelarEdicion"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+        <template v-else>
+          <SharedTextoExpandible
+            :texto="t.titulo"
+            class="flex-1 min-w-0 text-sm"
+            :class="t.completada ? 'line-through text-gray-400' : 'text-gray-700'"
+          />
+          <span v-if="t.fecha_vencimiento" class="text-xs shrink-0" :class="esVencida(t) ? 'text-red-600 font-medium' : 'text-gray-400'">
+            {{ formatearFecha(t.fecha_vencimiento) }}
+          </span>
+        </template>
+        <div v-if="idEditando !== t.id" class="flex gap-1 shrink-0">
+          <button
+            type="button"
+            class="text-gray-300 hover:text-[#1075B5] transition-colors"
+            title="Editar"
+            @click="onEditar(t)"
+          >
+            <Icon name="mdi:pencil-outline" class="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            class="text-gray-300 hover:text-red-600 transition-colors"
+            title="Eliminar"
+            @click="aEliminar = t"
+          >
+            <Icon name="mdi:trash-can-outline" class="w-4 h-4" />
+          </button>
+        </div>
       </li>
     </ul>
 
