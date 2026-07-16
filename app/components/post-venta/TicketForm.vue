@@ -1,13 +1,8 @@
 <!-- app/components/post-venta/TicketForm.vue -->
 <script setup lang="ts">
-import type { Producto } from '~/composables/useProductos'
-
 const props = defineProps<{ cargando?: boolean }>()
 const emit = defineEmits<{ submit: [payload: Record<string, unknown>] }>()
 
-const { fetchProductos } = useProductos()
-
-const productos = ref<Producto[]>([])
 const clienteDesconocido = ref(false)
 
 const form = reactive({
@@ -25,10 +20,6 @@ const form = reactive({
 })
 
 const errores = reactive<Record<string, string>>({})
-
-onMounted(async () => {
-  productos.value = (await fetchProductos()).filter((p) => p.estado === 'activo')
-})
 
 watch(clienteDesconocido, (esDesconocido) => {
   if (esDesconocido) form.cliente_id = ''
@@ -115,10 +106,7 @@ const inputClase =
 
     <div>
       <label class="block text-sm font-medium mb-1 text-gray-700">Equipo *</label>
-      <select v-model="form.producto_id" :class="inputClase">
-        <option value="">Selecciona un equipo</option>
-        <option v-for="p in productos" :key="p.id" :value="p.id">{{ p.nombre }}</option>
-      </select>
+      <ProductosProductoBuscador v-model="form.producto_id" />
       <p v-if="errores.producto_id" class="text-sm text-red-600 mt-1">{{ errores.producto_id }}</p>
     </div>
 
