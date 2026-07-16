@@ -159,7 +159,7 @@ const navCrm = [
           <SharedGlobalSearch />
         </div>
 
-        <div class="flex items-center gap-3 shrink-0">
+        <div class="flex items-center gap-3 shrink-0 ml-auto">
           <SharedNotificationBell />
           <SharedUserMenu />
         </div>
