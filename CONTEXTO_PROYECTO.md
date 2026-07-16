@@ -471,6 +471,22 @@ el cliente. Solo se puebla vía SQL Editor de Supabase.
     `20260716010000_fix_registrar_auditoria_tg_op.sql`. Si se escribe
     lógica nueva basada en `tg_op`, comparar en mayúscula o pasarlo por
     `lower()`/`upper()` primero, nunca asumir el casing.
+18. Supabase `.delete()` (y `.update()`) **no tira error cuando RLS
+    bloquea la operación** — 0 filas afectadas es un resultado válido sin
+    `error`, así que si el frontend no revisa filas afectadas, muestra
+    "eliminado" con éxito mientras la fila sigue intacta en la base
+    (reaparece al recargar). Pasó con `eliminarInteraccion` en
+    `useClienteInteracciones.ts`/`useLeadInteracciones.ts`: la policy de
+    `delete` solo dejaba borrar a `created_by = auth.uid()`, sin
+    excepción para otros roles, y nadie lo notó hasta que alguien
+    intentó borrar una interacción ajena. Fix en
+    `20260716040000_fix_delete_interacciones_permiso.sql` (agrega
+    `has_permission(..., 'clientes'/'leads', 'edit')` a la policy) +
+    encadenar `.select()` al `.delete()` en el composable y chequear
+    `data.length === 0` para tirar error explícito. Si se agrega un
+    delete nuevo en cualquier tabla, aplicar el mismo patrón
+    (`.select()` + chequeo de filas) y no asumir que "sin error" significa
+    "se borró".
 
 ## Roadmap — estado actual
 
