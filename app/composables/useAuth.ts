@@ -25,5 +25,10 @@ export const useAuth = () => {
     await router.push('/login')
   }
 
-  return { logout }
+  const cambiarPassword = async (nuevaPassword: string) => {
+    const { error } = await supabase.auth.updateUser({ password: nuevaPassword })
+    if (error) throw error
+  }
+
+  return { logout, cambiarPassword }
 }

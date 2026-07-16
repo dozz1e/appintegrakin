@@ -3,6 +3,7 @@ const props = defineProps<{ open: boolean }>()
 const emit = defineEmits<{ cerrar: [] }>()
 
 const { perfil, actualizarMiPerfil, subirFotoPerfil } = useMiPerfil()
+const { cambiarPassword } = useAuth()
 const { success, error } = useToast()
 
 const nombre = ref('')
@@ -10,10 +11,20 @@ const guardando = ref(false)
 const subiendoFoto = ref(false)
 const inputArchivo = ref<HTMLInputElement | null>(null)
 
+const nuevaPassword = ref('')
+const confirmarPassword = ref('')
+const errorPassword = ref('')
+const guardandoPassword = ref(false)
+
 watch(
   () => props.open,
   (abierto) => {
-    if (abierto) nombre.value = perfil.value?.full_name ?? ''
+    if (abierto) {
+      nombre.value = perfil.value?.full_name ?? ''
+      nuevaPassword.value = ''
+      confirmarPassword.value = ''
+      errorPassword.value = ''
+    }
   }
 )
 
@@ -31,6 +42,29 @@ async function onCambiarFoto(e: Event) {
   } finally {
     subiendoFoto.value = false
     if (inputArchivo.value) inputArchivo.value.value = ''
+  }
+}
+
+async function onCambiarPassword() {
+  errorPassword.value = ''
+  if (nuevaPassword.value.length < 6) {
+    errorPassword.value = 'La contraseña debe tener al menos 6 caracteres'
+    return
+  }
+  if (nuevaPassword.value !== confirmarPassword.value) {
+    errorPassword.value = 'Las contraseñas no coinciden'
+    return
+  }
+  guardandoPassword.value = true
+  try {
+    await cambiarPassword(nuevaPassword.value)
+    nuevaPassword.value = ''
+    confirmarPassword.value = ''
+    success('Contraseña actualizada')
+  } catch (e) {
+    error('No se pudo cambiar la contraseña. Intenta de nuevo.')
+  } finally {
+    guardandoPassword.value = false
   }
 }
 
@@ -104,6 +138,42 @@ async function onGuardar() {
       >
         {{ guardando ? 'Guardando...' : 'Guardar' }}
       </button>
+    </div>
+
+    <div class="border-t border-border mt-6 pt-5">
+      <h3 class="text-xs font-medium text-ink-muted mb-3">Cambiar contraseña</h3>
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-medium text-ink-muted mb-1">Nueva contraseña</label>
+          <input
+            v-model="nuevaPassword"
+            type="password"
+            autocomplete="new-password"
+            class="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring"
+          />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-ink-muted mb-1">Confirmar contraseña</label>
+          <input
+            v-model="confirmarPassword"
+            type="password"
+            autocomplete="new-password"
+            class="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring"
+            @keyup.enter="onCambiarPassword"
+          />
+        </div>
+        <p v-if="errorPassword" class="text-xs text-danger">{{ errorPassword }}</p>
+      </div>
+      <div class="flex justify-end mt-3">
+        <button
+          type="button"
+          :disabled="guardandoPassword || !nuevaPassword || !confirmarPassword"
+          class="border border-border text-ink-secondary hover:bg-surface-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150 disabled:opacity-50"
+          @click="onCambiarPassword"
+        >
+          {{ guardandoPassword ? 'Cambiando...' : 'Cambiar contraseña' }}
+        </button>
+      </div>
     </div>
   </SharedModal>
 </template>
