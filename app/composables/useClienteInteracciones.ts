@@ -46,6 +46,22 @@ export function useClienteInteracciones() {
   // .select() para poder verificar filas afectadas: si RLS bloquea el
   // delete, Supabase no tira error (0 filas es un resultado válido), así
   // que sin este chequeo la UI mostraría éxito con la fila intacta.
+  async function actualizarInteraccion(
+    id: string,
+    canal: ClienteInteraccion['canal'],
+    nota: string
+  ): Promise<ClienteInteraccion> {
+    const { data, error } = await supabase
+      .from('cliente_interacciones')
+      .update({ canal, nota })
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  }
+
   async function eliminarInteraccion(id: string): Promise<void> {
     const { data, error } = await supabase.from('cliente_interacciones').delete().eq('id', id).select()
     if (error) throw error
@@ -69,5 +85,5 @@ export function useClienteInteracciones() {
     return mapa
   }
 
-  return { fetchInteracciones, agregarInteraccion, eliminarInteraccion, fetchUltimasInteracciones }
+  return { fetchInteracciones, agregarInteraccion, actualizarInteraccion, eliminarInteraccion, fetchUltimasInteracciones }
 }

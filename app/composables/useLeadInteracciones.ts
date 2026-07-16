@@ -46,11 +46,27 @@ export function useLeadInteracciones() {
   // .select() para poder verificar filas afectadas: si RLS bloquea el
   // delete, Supabase no tira error (0 filas es un resultado válido), así
   // que sin este chequeo la UI mostraría éxito con la fila intacta.
+  async function actualizarInteraccion(
+    id: string,
+    canal: LeadInteraccion['canal'],
+    nota: string
+  ): Promise<LeadInteraccion> {
+    const { data, error } = await supabase
+      .from('lead_interacciones')
+      .update({ canal, nota })
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  }
+
   async function eliminarInteraccion(id: string): Promise<void> {
     const { data, error } = await supabase.from('lead_interacciones').delete().eq('id', id).select()
     if (error) throw error
     if (!data || data.length === 0) throw new Error('No tenés permiso para eliminar esta interacción')
   }
 
-  return { fetchInteracciones, agregarInteraccion, eliminarInteraccion }
+  return { fetchInteracciones, agregarInteraccion, actualizarInteraccion, eliminarInteraccion }
 }
