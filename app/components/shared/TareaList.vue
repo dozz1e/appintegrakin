@@ -135,18 +135,20 @@ function formatearFecha(fecha: string) {
       <li
         v-for="t in tareas"
         :key="t.id"
-        class="flex items-center gap-3 p-2 rounded-lg"
+        class="flex items-start gap-3 p-2 rounded-lg"
         :class="esVencida(t) ? 'bg-red-50' : 'bg-gray-50'"
       >
         <input
           type="checkbox"
           :checked="t.completada"
-          class="w-4 h-4 accent-[#1075B5]"
+          class="w-4 h-4 accent-[#1075B5] mt-0.5"
           @change="onToggle(t)"
         />
-        <span class="flex-1 min-w-0 text-sm truncate" :class="t.completada ? 'line-through text-gray-400' : 'text-gray-700'">
-          {{ t.titulo }}
-        </span>
+        <SharedTextoExpandible
+          :texto="t.titulo"
+          class="flex-1 min-w-0 text-sm"
+          :class="t.completada ? 'line-through text-gray-400' : 'text-gray-700'"
+        />
         <span v-if="t.fecha_vencimiento" class="text-xs shrink-0" :class="esVencida(t) ? 'text-red-600 font-medium' : 'text-gray-400'">
           {{ formatearFecha(t.fecha_vencimiento) }}
         </span>

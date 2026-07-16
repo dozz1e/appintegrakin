@@ -116,7 +116,7 @@ async function onConfirmarEliminar() {
             <SharedBadge :label="colorCanal(i.canal).label" :clases="colorCanal(i.canal).clases" />
             <span class="text-xs text-gray-400">{{ formatearFecha(i.created_at) }}</span>
           </div>
-          <p class="text-sm text-gray-700 mt-1">{{ i.nota }}</p>
+          <SharedTextoExpandible :texto="i.nota" class="text-sm text-gray-700 mt-1" />
         </div>
         <button
           type="button"
