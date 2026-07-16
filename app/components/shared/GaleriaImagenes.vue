@@ -16,7 +16,8 @@ const subiendo = ref(false)
 const inputArchivo = ref<HTMLInputElement | null>(null)
 const aEliminar = ref<EntidadImagen | null>(null)
 const eliminando = ref(false)
-const preview = ref<string | null>(null)
+const previewIndex = ref<number | null>(null)
+const preview = computed(() => (previewIndex.value !== null ? imagenes.value[previewIndex.value] : null))
 
 async function cargar() {
   cargando.value = true
@@ -41,6 +42,24 @@ async function onArchivoSeleccionado(e: Event) {
   }
 }
 
+function siguiente() {
+  if (previewIndex.value === null) return
+  previewIndex.value = (previewIndex.value + 1) % imagenes.value.length
+}
+function anterior() {
+  if (previewIndex.value === null) return
+  previewIndex.value = (previewIndex.value - 1 + imagenes.value.length) % imagenes.value.length
+}
+function onTeclaPreview(e: KeyboardEvent) {
+  if (previewIndex.value === null) return
+  if (e.key === 'ArrowRight') siguiente()
+  if (e.key === 'ArrowLeft') anterior()
+  if (e.key === 'Escape') previewIndex.value = null
+}
+
+onMounted(() => window.addEventListener('keydown', onTeclaPreview))
+onUnmounted(() => window.removeEventListener('keydown', onTeclaPreview))
+
 async function onConfirmarEliminar() {
   if (!aEliminar.value) return
   eliminando.value = true
@@ -60,8 +79,8 @@ async function onConfirmarEliminar() {
   <div>
     <p v-if="cargando" class="text-xs text-gray-400">Cargando imágenes...</p>
     <div v-else class="flex flex-wrap gap-2">
-      <div v-for="img in imagenes" :key="img.id" class="relative group">
-        <button type="button" @click="preview = img.url">
+      <div v-for="(img, idx) in imagenes" :key="img.id" class="relative group">
+        <button type="button" @click="previewIndex = idx">
           <img :src="img.url" class="w-16 h-16 object-cover rounded-lg border border-gray-200" />
         </button>
         <button
@@ -92,9 +111,38 @@ async function onConfirmarEliminar() {
       <div
         v-if="preview"
         class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
-        @click="preview = null"
+        @click="previewIndex = null"
       >
-        <img :src="preview" class="max-w-full max-h-full rounded-lg" />
+        <button
+          v-if="imagenes.length > 1"
+          type="button"
+          class="absolute left-4 top-1/2 -translate-y-1/2 text-white/70 hover:text-white w-10 h-10 flex items-center justify-center"
+          title="Anterior"
+          @click.stop="anterior"
+        >
+          <Icon name="mdi:chevron-left" class="w-8 h-8" />
+        </button>
+        <img :src="preview.url" class="max-w-full max-h-full rounded-lg" @click.stop />
+        <button
+          v-if="imagenes.length > 1"
+          type="button"
+          class="absolute right-4 top-1/2 -translate-y-1/2 text-white/70 hover:text-white w-10 h-10 flex items-center justify-center"
+          title="Siguiente"
+          @click.stop="siguiente"
+        >
+          <Icon name="mdi:chevron-right" class="w-8 h-8" />
+        </button>
+        <button
+          type="button"
+          class="absolute top-4 right-4 text-white/70 hover:text-white w-10 h-10 flex items-center justify-center"
+          title="Cerrar"
+          @click.stop="previewIndex = null"
+        >
+          <Icon name="mdi:close" class="w-6 h-6" />
+        </button>
+        <span v-if="imagenes.length > 1" class="absolute bottom-4 text-white/70 text-sm">
+          {{ previewIndex! + 1 }} / {{ imagenes.length }}
+        </span>
       </div>
     </Teleport>
 
