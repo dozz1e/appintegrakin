@@ -113,7 +113,7 @@ async function onGuardar() {
       </div>
       <div>
         <label class="block text-xs font-medium text-ink-muted mb-1">Email</label>
-        <p class="text-sm text-ink-secondary">{{ perfil?.email }}</p>
+        <p class="text-sm text-ink-secondary break-words">{{ perfil?.email }}</p>
       </div>
       <div>
         <label class="block text-xs font-medium text-ink-muted mb-1">Roles</label>
