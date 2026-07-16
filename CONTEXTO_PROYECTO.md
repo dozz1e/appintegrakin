@@ -625,7 +625,6 @@ el cliente. Solo se puebla vía SQL Editor de Supabase.
 ### Cosas que el usuario debe pedir/recopilar (no son código, son recordatorios)
 - Definir email marketing (evaluación pendiente — falta elegir ESP por
   costos/API antes de diseñar nada).
-- Pedir listado de clientes con ciudad y comuna.
 - Pedir valores de mantención de cada producto.
 - Pedir manuales de cada producto.
 - Pedir/grabar video de capacitación por producto.
