@@ -328,11 +328,22 @@ el cliente. Solo se puebla vía SQL Editor de Supabase.
   client-side) usado para la columna "Últ. interacción" en la lista y para
   los filtros de antigüedad (7/15/30/60+ días, "nunca contactados") y rango
   desde/hasta.
-- **`tareas_descartadas`** (ver `20260714010000_tareas_descartadas.sql`):
-  `user_id, tarea_id` — descarte del popup `RecordatorioAlert` (botón ✕),
-  por usuario. Reemplaza el enfoque anterior de `localStorage` (commit
-  `03d34c6`): ese no persistía en incógnito ni entre dispositivos porque el
-  storage es por navegador, no por cuenta.
+- **`tareas_descartadas`**/**`citas_descartadas`** (ver
+  `20260714010000_tareas_descartadas.sql`,
+  `20260714060000_citas_descartadas.sql`): `user_id, tarea_id/cita_id` —
+  descarte del popup `RecordatorioAlert` (botón ✕), por usuario. Reemplaza
+  el enfoque anterior de `localStorage` (commit `03d34c6`): ese no
+  persistía en incógnito ni entre dispositivos porque el storage es por
+  navegador, no por cuenta. Desde
+  `20260716030000_umbral_tier_dismiss.sql` también tienen
+  `umbral_minutos` (parte de la PK compuesta): el descarte es por
+  **umbral cruzado** (`0` = ya vencida), no por tarea/cita entera —
+  cerrar el aviso de "1 hora antes" no apaga el de "15 min antes" que
+  viene después. Umbrales configurables por usuario en
+  `profiles.settings.umbrales_alertas` (array de `{valor, unidad}`,
+  unidad `minutos`/`horas`/`dias`; default `30 min` si no se configuró
+  nada), leídos por `useUmbralesAlertas.ts` (ver spec
+  `2026-07-16-multiples-umbrales-alertas-design.md`).
 - **`notificaciones`**: `usuario_id, tipo, entidad_tipo, entidad_id, mensaje,
   leida, created_at` + triggers de asignación (lead/ticket/tarea) + Realtime
   habilitado (`alter publication supabase_realtime add table notificaciones`).
@@ -590,6 +601,12 @@ el cliente. Solo se puebla vía SQL Editor de Supabase.
     el filtro de `/clientes` (ver punto 21), gateado por
     `can('leads', 'view_all')` (ver spec
     `2026-07-16-natalia-permisos-filtro-leads-design.md`).
+33. ✅ **Múltiples umbrales configurables en `RecordatorioAlert`** — antes
+    un solo umbral fijo por usuario (30 min), ahora una lista de
+    umbrales en días/horas/minutos (`profiles.settings.umbrales_alertas`),
+    con descarte independiente por umbral cruzado (ver schema de
+    `tareas_descartadas`/`citas_descartadas` más arriba y spec
+    `2026-07-16-multiples-umbrales-alertas-design.md`).
 
 ## Pendientes sueltos
 
@@ -601,8 +618,6 @@ el cliente. Solo se puebla vía SQL Editor de Supabase.
 - Asignar clientes por vendedor — funcionalidad para asignar/reasignar
   `owner_id` de clientes a un vendedor (distinto del filtro de solo lectura
   que ya existe en `/clientes`, ver punto 21 del Roadmap).
-- Múltiples alarmas para `RecordatorioAlert` — hoy solo avisa a un umbral fijo
-  (30 min antes), agregar varios umbrales configurables en vez de uno solo.
 - Fix Supabase Auth: el link de invitación de usuario nuevo manda a
   `localhost` en vez del dominio real — revisar "Site URL"/"Redirect URLs"
   en la configuración de Auth del proyecto Supabase.
