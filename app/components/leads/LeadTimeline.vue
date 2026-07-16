@@ -46,7 +46,7 @@ async function onSubmit() {
 
 function formatearFecha(fecha: string) {
   return new Date(fecha).toLocaleString('es-CL', {
-    day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit',
+    day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false,
   })
 }
 </script>

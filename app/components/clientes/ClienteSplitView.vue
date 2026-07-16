@@ -73,7 +73,7 @@ const clientesFiltrados = computed(() => {
 })
 
 function formatearFechaCorta(fecha: string) {
-  return new Date(fecha).toLocaleString('es-CL', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
+  return new Date(fecha).toLocaleString('es-CL', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false })
 }
 
 const seleccionado = computed(() => props.clientes.find((c) => c.id === seleccionadoId.value) ?? null)

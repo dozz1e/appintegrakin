@@ -130,7 +130,7 @@ const onCrearFeature = async () => {
           <li v-for="e in errores" :key="e.id" class="border-b border-gray-100 pb-2">
             <div class="flex items-center justify-between">
               <span class="text-red-600 font-medium">{{ e.mensaje }}</span>
-              <span class="text-gray-400">{{ new Date(e.created_at).toLocaleString('es-CL') }}</span>
+              <span class="text-gray-400">{{ new Date(e.created_at).toLocaleString('es-CL', { hour12: false }) }}</span>
             </div>
             <p class="text-gray-400">{{ e.ruta || '—' }}</p>
           </li>

@@ -133,7 +133,7 @@ const toggle = (id: string) => {
                 en <span class="text-gray-500">{{ r.tabla }}</span>
               </span>
             </div>
-            <span class="text-xs text-gray-400">{{ new Date(r.created_at).toLocaleString('es-CL') }}</span>
+            <span class="text-xs text-gray-400">{{ new Date(r.created_at).toLocaleString('es-CL', { hour12: false }) }}</span>
           </div>
 
           <template v-for="diff in expandido === r.id ? [calcularDiff(r.accion, r.datos_anteriores, r.datos_nuevos)] : []" :key="`${r.id}-diff`">

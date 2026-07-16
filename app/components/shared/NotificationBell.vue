@@ -33,7 +33,7 @@ const rutaEntidad: Record<Notificacion['entidad_tipo'], string> = {
 }
 
 function formatearFecha(fecha: string) {
-  return new Date(fecha).toLocaleString('es-CL', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
+  return new Date(fecha).toLocaleString('es-CL', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false })
 }
 
 async function cargar() {
