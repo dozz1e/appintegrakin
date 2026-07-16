@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import type { UmbralAlerta } from '~/composables/useUmbralesAlertas'
+import { UMBRAL_ALERTA_DEFAULT } from '~/composables/useUmbralesAlertas'
+
 const props = defineProps<{ open: boolean }>()
 const emit = defineEmits<{ cerrar: [] }>()
 
@@ -6,7 +9,7 @@ const { perfil, actualizarConfiguracion } = useMiPerfil()
 const { fetchConfiguracion, actualizarDias } = useConfiguracionArchivado()
 const { success, error } = useToast()
 
-const umbralMinutos = ref(30)
+const umbrales = ref<UmbralAlerta[]>([{ ...UMBRAL_ALERTA_DEFAULT }])
 const guardando = ref(false)
 
 const mostrarArchivado = computed(() => perfil.value?.roles.includes('post_venta') ?? false)
@@ -18,8 +21,10 @@ watch(
   () => props.open,
   async (abierto) => {
     if (!abierto) return
-    const valor = perfil.value?.settings?.umbral_alertas_minutos
-    umbralMinutos.value = typeof valor === 'number' ? valor : 30
+    const config = perfil.value?.settings?.umbrales_alertas
+    umbrales.value = Array.isArray(config) && config.length > 0
+      ? structuredClone(config as UmbralAlerta[])
+      : [{ ...UMBRAL_ALERTA_DEFAULT }]
 
     if (mostrarArchivado.value) {
       const config = await fetchConfiguracion()
@@ -30,13 +35,20 @@ watch(
   }
 )
 
+function agregarUmbral() {
+  umbrales.value.push({ valor: 15, unidad: 'minutos' })
+}
+function quitarUmbral(i: number) {
+  if (umbrales.value.length > 1) umbrales.value.splice(i, 1)
+}
+
 async function onGuardar() {
-  if (umbralMinutos.value < 1) return
+  if (umbrales.value.some((u) => u.valor < 1)) return
   if (mostrarArchivado.value && (diasLeads.value < 1 || diasTickets.value < 1 || diasPostVenta.value < 1)) return
 
   guardando.value = true
   try {
-    await actualizarConfiguracion({ umbral_alertas_minutos: umbralMinutos.value })
+    await actualizarConfiguracion({ umbrales_alertas: umbrales.value })
     if (mostrarArchivado.value) {
       await Promise.all([
         actualizarDias('leads', diasLeads.value),
@@ -58,14 +70,35 @@ async function onGuardar() {
   <SharedModal :open="open" titulo="Configuración" @cerrar="$emit('cerrar')">
     <div>
       <label class="block text-xs font-medium text-ink-muted mb-1">
-        Avisar tareas próximas a vencer con cuántos minutos de anticipación
+        Avisar tareas y citas próximas a vencer con esta anticipación
       </label>
-      <input
-        v-model.number="umbralMinutos"
-        type="number"
-        min="1"
-        class="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring"
-      />
+      <div v-for="(u, i) in umbrales" :key="i" class="flex items-center gap-2 mb-2">
+        <input
+          v-model.number="u.valor"
+          type="number"
+          min="1"
+          class="w-20 border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring"
+        />
+        <select
+          v-model="u.unidad"
+          class="flex-1 border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring"
+        >
+          <option value="minutos">Minutos</option>
+          <option value="horas">Horas</option>
+          <option value="dias">Días</option>
+        </select>
+        <button
+          type="button"
+          :disabled="umbrales.length === 1"
+          class="text-ink-muted hover:text-danger-text disabled:opacity-30 disabled:cursor-not-allowed px-1"
+          @click="quitarUmbral(i)"
+        >
+          ✕
+        </button>
+      </div>
+      <button type="button" class="text-sm text-primary hover:underline" @click="agregarUmbral">
+        + Agregar umbral
+      </button>
     </div>
 
     <div v-if="mostrarArchivado" class="mt-4 pt-4 border-t border-border space-y-3">
