@@ -565,10 +565,6 @@ el cliente. Solo se puebla vía SQL Editor de Supabase.
 - Manual de uso por rol para la dueña y su equipo, no técnico (punto 10).
 - Revisar la página de auditoría (`/admin/auditoria`) — pendiente sin detalle
   aún, el usuario lo va a precisar más adelante.
-- Agregar calendario visual a `/capacitaciones` — layout de dos columnas
-  (calendario + listado de citas), revierte la decisión original del spec
-  ("sin calendario visual", ver punto 28 del Roadmap y
-  `2026-07-14-agenda-capacitaciones-design.md`).
 - Fix visual: el correo se desborda de la card de usuario cuando es muy largo
   (falta precisar en qué pantalla exactamente — usuarios, admin/usuarios,
   perfil, etc.).
@@ -577,10 +573,6 @@ el cliente. Solo se puebla vía SQL Editor de Supabase.
   que ya existe en `/clientes`, ver punto 21 del Roadmap).
 - Múltiples alarmas para `RecordatorioAlert` — hoy solo avisa a un umbral fijo
   (30 min antes), agregar varios umbrales configurables en vez de uno solo.
-- "Ver más" en notas largas de Interacciones y Tickets del cliente — truncar
-  texto largo con expandir, en vez de mostrarlo completo siempre.
-- Permitir eliminar interacciones y tickets desde la vista de cliente —
-  solo para superadmin y dueña.
 - Natalia Quevedo es líder de vendedoras (además de post_venta y
   servicio_tecnico, roles que ya tiene): necesita ver `ventas.view_all`
   (hoy solo tiene `ventas.view/create/edit` propio vía rol `ventas`/
@@ -592,9 +584,6 @@ el cliente. Solo se puebla vía SQL Editor de Supabase.
   en la vista de leads agregar un select para elegir vendedor y filtrar la
   vista de leads por ese vendedor (similar al selector que ya existe en
   `/clientes`, ver punto 21 del Roadmap).
-- Buscador por RUT o nombre en `/leads` y `/tickets` (ya existe búsqueda
-  global, pero falta un buscador local rápido en cada listado, como el que
-  ya tiene `/clientes`).
 - Subir imágenes en interacciones, tickets y leads (mismo patrón de bucket
   público de Storage ya usado para `imagen_url` de clientes, ver punto 15
   del Roadmap).
