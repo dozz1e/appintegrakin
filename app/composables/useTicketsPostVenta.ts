@@ -27,6 +27,7 @@ export interface TicketPostVenta {
 
 export interface TicketPostVentaConNombres extends TicketPostVenta {
   cliente_nombre: string
+  cliente_rut: string | null
   producto_nombre: string
 }
 
@@ -62,6 +63,7 @@ function mapearFila(fila: any): TicketPostVentaConNombres {
     created_at: fila.created_at,
     updated_at: fila.updated_at,
     cliente_nombre: fila.clientes?.razon_social ?? fila.cliente_nombre_libre ?? 'Desconocido',
+    cliente_rut: fila.clientes?.rut ?? fila.cliente_rut_libre ?? null,
     producto_nombre: fila.productos?.nombre ?? '',
   }
 }
@@ -73,7 +75,7 @@ export function useTicketsPostVenta() {
   async function fetchTickets(): Promise<TicketPostVentaConNombres[]> {
     const { data, error } = await supabase
       .from('tickets_post_venta')
-      .select('*, clientes(razon_social), productos(nombre)')
+      .select('*, clientes(razon_social, rut), productos(nombre)')
       .eq('archivado', false)
       .order('created_at', { ascending: false })
 
@@ -84,7 +86,7 @@ export function useTicketsPostVenta() {
   async function getTicket(id: string): Promise<TicketPostVentaConNombres> {
     const { data, error } = await supabase
       .from('tickets_post_venta')
-      .select('*, clientes(razon_social), productos(nombre)')
+      .select('*, clientes(razon_social, rut), productos(nombre)')
       .eq('id', id)
       .single()
 
@@ -167,7 +169,7 @@ export function useTicketsPostVenta() {
   async function fetchCerrados(): Promise<TicketPostVentaConNombres[]> {
     const { data, error } = await supabase
       .from('tickets_post_venta')
-      .select('*, clientes(razon_social), productos(nombre)')
+      .select('*, clientes(razon_social, rut), productos(nombre)')
       .eq('estado', 'despachado')
       .order('fecha_cierre', { ascending: false })
 

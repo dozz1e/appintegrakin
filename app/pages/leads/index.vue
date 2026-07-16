@@ -15,10 +15,17 @@ const leads = ref<Lead[]>([])
 const cargando = ref(true)
 const importando = ref(false)
 const inputArchivo = ref<HTMLInputElement | null>(null)
+const busqueda = ref('')
 
 onMounted(async () => {
   leads.value = await fetchLeads()
   cargando.value = false
+})
+
+const leadsFiltrados = computed(() => {
+  const q = busqueda.value.trim().toLowerCase()
+  if (!q) return leads.value
+  return leads.value.filter((l) => l.nombre.toLowerCase().includes(q))
 })
 
 const onCambiarEstado = async (id: string, estado: EstadoLead) => {
@@ -88,7 +95,16 @@ async function onArchivoSeleccionado(e: Event) {
       </template>
     </SharedPageHeader>
 
+    <div class="flex flex-wrap gap-2 mb-4">
+      <input
+        v-model="busqueda"
+        type="text"
+        placeholder="Buscar por nombre..."
+        class="border border-gray-200 rounded-lg px-3 py-2 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30 focus:border-[#1075B5]"
+      />
+    </div>
+
     <p v-if="cargando" class="text-gray-400">Cargando...</p>
-    <LeadsLeadKanban v-else :leads="leads" @cambiar-estado="onCambiarEstado" />
+    <LeadsLeadKanban v-else :leads="leadsFiltrados" @cambiar-estado="onCambiarEstado" />
   </div>
 </template>

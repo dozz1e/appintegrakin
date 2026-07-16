@@ -18,7 +18,7 @@ export interface Ticket {
   version: number
   fecha_cierre: string | null
   archivado: boolean
-  clientes?: { razon_social: string } | null
+  clientes?: { razon_social: string; rut: string | null } | null
 }
 
 export const useTickets = () => {
@@ -27,7 +27,7 @@ export const useTickets = () => {
   const fetchTickets = async (filtroEstado?: EstadoTicket) => {
     let query = supabase
       .from('tickets')
-      .select('*, clientes(razon_social)')
+      .select('*, clientes(razon_social, rut)')
       .eq('archivado', false)
       .order('created_at', { ascending: false })
     if (filtroEstado) query = query.eq('estado', filtroEstado)

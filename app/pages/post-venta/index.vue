@@ -15,12 +15,24 @@ const tickets = ref<TicketPostVentaConNombres[]>([])
 const cargando = ref(true)
 const guardando = ref(false)
 const modalAbierto = ref(false)
+const busqueda = ref('')
 
 async function cargar() {
   cargando.value = true
   tickets.value = await fetchTickets()
   cargando.value = false
 }
+
+const ticketsFiltrados = computed(() => {
+  const q = busqueda.value.trim().toLowerCase()
+  if (!q) return tickets.value
+  return tickets.value.filter(
+    (t) =>
+      t.cliente_nombre.toLowerCase().includes(q) ||
+      t.cliente_rut?.toLowerCase().includes(q) ||
+      t.n_guia.toLowerCase().includes(q)
+  )
+})
 
 onMounted(cargar)
 
@@ -62,8 +74,17 @@ async function onCambiarEstado(id: string, estado: EstadoTicketPostVenta) {
       </template>
     </SharedPageHeader>
 
+    <div class="flex flex-wrap gap-2 mb-4">
+      <input
+        v-model="busqueda"
+        type="text"
+        placeholder="Buscar por cliente, RUT o N° de guía..."
+        class="border border-gray-200 rounded-lg px-3 py-2 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30 focus:border-[#1075B5]"
+      />
+    </div>
+
     <p v-if="cargando" class="text-gray-400">Cargando...</p>
-    <PostVentaTicketBoard v-else :tickets="tickets" @cambiar-estado="onCambiarEstado" />
+    <PostVentaTicketBoard v-else :tickets="ticketsFiltrados" @cambiar-estado="onCambiarEstado" />
 
     <SharedModal :open="modalAbierto" titulo="Nuevo ticket de post venta" @cerrar="modalAbierto = false">
       <PostVentaTicketForm :cargando="guardando" @submit="onSubmit" />
