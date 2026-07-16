@@ -487,6 +487,18 @@ el cliente. Solo se puebla vía SQL Editor de Supabase.
     delete nuevo en cualquier tabla, aplicar el mismo patrón
     (`.select()` + chequeo de filas) y no asumir que "sin error" significa
     "se borró".
+19. `defineProps<{ x?: boolean }>()` sin `withDefaults`: Vue le pone
+    `default: false` automáticamente a props boolean opcionales (no
+    queda `undefined` cuando no se pasa el prop). Un `v-if="x !== false"`
+    pensado para "default true si no se pasa" **no funciona** — siempre
+    da `false`. Pasó con `permitirAgregar` en `GaleriaImagenes.vue`: al
+    agregarle el prop para ocultar el botón en las timelines de
+    interacciones, quedó en `false` también en tickets/post-venta (que
+    nunca lo pasan) sin que nadie lo pidiera — silencioso, sin error en
+    consola. Fix: `withDefaults(defineProps<...>(), { permitirAgregar: true })`.
+    Si se agrega un prop boolean opcional que debe ser `true` por
+    defecto, usar siempre `withDefaults`, nunca un chequeo `!== false`
+    contra el valor crudo del prop.
 
 ## Roadmap — estado actual
 
