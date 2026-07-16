@@ -16,7 +16,7 @@ const iconos: Record<string, string> = {
 
 <template>
   <Teleport to="body">
-    <div class="fixed bottom-4 right-4 z-50 space-y-2 w-80">
+    <div class="fixed bottom-4 right-4 left-4 sm:left-auto z-50 space-y-2 w-auto sm:w-80">
       <TransitionGroup name="toast">
         <div
           v-for="t in toasts"

@@ -71,7 +71,7 @@ onUnmounted(() => {
 
 <template>
   <Teleport to="body">
-    <div class="fixed top-20 right-4 z-50 space-y-3 w-96">
+    <div class="fixed top-20 right-4 left-4 sm:left-auto z-50 space-y-3 w-auto sm:w-96">
       <TransitionGroup name="recordatorio">
         <SharedRecordatorioAlert
           v-for="a in avisos"
