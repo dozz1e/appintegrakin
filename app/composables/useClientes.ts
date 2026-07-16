@@ -107,7 +107,7 @@ export const useClientes = () => {
         razon_social: f.razon_social.trim(),
         nombre_contacto: f.nombre_contacto?.trim() || null,
         telefono: f.telefono?.trim() || null,
-        email: f.email?.trim() || null,
+        email: f.email?.trim().toLowerCase() || null,
         direccion: f.direccion?.trim() || null,
         ciudad: f.ciudad?.trim() || null,
         comuna: f.comuna?.trim() || null,
@@ -117,14 +117,51 @@ export const useClientes = () => {
 
     if (!candidatos.length) return { insertados: 0, omitidos: filas.length }
 
-    const { data, error } = await supabase
-      .from('clientes')
-      .upsert(candidatos, { onConflict: 'rut', ignoreDuplicates: true })
-      .select()
+    const conRut = candidatos.filter((c) => c.rut)
+    const sinRut = candidatos.filter((c) => !c.rut)
 
-    if (error) throw error
+    let insertados = 0
 
-    const insertados = data?.length ?? 0
+    if (conRut.length) {
+      const { data, error } = await supabase
+        .from('clientes')
+        .upsert(conRut, { onConflict: 'rut', ignoreDuplicates: true })
+        .select()
+      if (error) throw error
+      insertados += data?.length ?? 0
+    }
+
+    if (sinRut.length) {
+      // `rut` es unique pero NULL no deduplica contra NULL (comportamiento
+      // estándar SQL) - onConflict:'rut' no filtra nada acá. Sin una columna
+      // para deduplicar, se usa el email como identificador: se compara
+      // contra los clientes sin RUT ya existentes y contra el resto del
+      // mismo archivo (primera ocurrencia gana). Filas sin RUT y sin email
+      // no tienen forma de deduplicarse - se insertan igual.
+      const { data: existentes, error: errorExistentes } = await supabase
+        .from('clientes')
+        .select('email')
+        .is('rut', null)
+        .not('email', 'is', null)
+      if (errorExistentes) throw errorExistentes
+
+      const emailsExistentes = new Set((existentes ?? []).map((c) => c.email!.toLowerCase()))
+      const emailsVistos = new Set<string>()
+
+      const sinRutFiltrados = sinRut.filter((c) => {
+        if (!c.email) return true
+        if (emailsExistentes.has(c.email) || emailsVistos.has(c.email)) return false
+        emailsVistos.add(c.email)
+        return true
+      })
+
+      if (sinRutFiltrados.length) {
+        const { data, error } = await supabase.from('clientes').insert(sinRutFiltrados).select()
+        if (error) throw error
+        insertados += data?.length ?? 0
+      }
+    }
+
     return { insertados, omitidos: filas.length - insertados }
   }
 
