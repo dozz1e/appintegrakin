@@ -1,9 +1,15 @@
 <!-- app/components/post-venta/TicketForm.vue -->
 <script setup lang="ts">
+import type { Producto } from '~/composables/useProductos'
+
 const props = defineProps<{ cargando?: boolean }>()
 const emit = defineEmits<{ submit: [payload: Record<string, unknown>] }>()
 
+const { fetchVentasPorCliente } = useVentas()
+const { fetchProductosPorIds } = useProductos()
+
 const clienteDesconocido = ref(false)
+const comprados = ref<Pick<Producto, 'id' | 'nombre' | 'sku'>[]>([])
 
 const form = reactive({
   n_guia: '',
@@ -30,6 +36,20 @@ watch(clienteDesconocido, (esDesconocido) => {
     form.cliente_ciudad_libre = ''
   }
 })
+
+// Al elegir cliente, muestra sus equipos comprados (tabla ventas) como
+// acceso rápido - la mayoría de los tickets de post-venta son sobre algo
+// que el cliente ya compró.
+watch(
+  () => form.cliente_id,
+  async (clienteId) => {
+    comprados.value = []
+    if (!clienteId) return
+    const ventas = await fetchVentasPorCliente(clienteId)
+    const ids = [...new Set(ventas.map((v) => v.producto_id))]
+    comprados.value = await fetchProductosPorIds(ids)
+  }
+)
 
 function validar(): boolean {
   errores.n_guia = form.n_guia.trim() ? '' : 'El N° de guía es obligatorio'
@@ -106,6 +126,21 @@ const inputClase =
 
     <div>
       <label class="block text-sm font-medium mb-1 text-gray-700">Equipo *</label>
+      <div v-if="comprados.length" class="flex flex-wrap gap-1.5 mb-2">
+        <span class="text-xs text-gray-400 self-center">Comprado por este cliente:</span>
+        <button
+          v-for="p in comprados"
+          :key="p.id"
+          type="button"
+          class="text-xs px-2.5 py-1 rounded-full border transition-colors"
+          :class="form.producto_id === p.id
+            ? 'bg-[#1075B5] text-white border-[#1075B5]'
+            : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'"
+          @click="form.producto_id = p.id"
+        >
+          {{ p.nombre }}
+        </button>
+      </div>
       <ProductosProductoBuscador v-model="form.producto_id" />
       <p v-if="errores.producto_id" class="text-sm text-red-600 mt-1">{{ errores.producto_id }}</p>
     </div>

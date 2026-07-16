@@ -32,6 +32,20 @@ onMounted(async () => {
   document.addEventListener('click', onClickFuera)
 })
 
+// Reacciona a cambios externos del id (ej: selección rápida de "equipos
+// comprados por el cliente" en TicketForm) - no solo al prefill inicial.
+watch(
+  () => props.modelValue,
+  (id) => {
+    if (!id) {
+      setTerminoSincronizado('')
+      return
+    }
+    const producto = productos.value.find((p) => p.id === id)
+    if (producto) setTerminoSincronizado(etiqueta(producto))
+  }
+)
+
 onUnmounted(() => {
   document.removeEventListener('click', onClickFuera)
 })

@@ -58,6 +58,13 @@ export const useProductos = () => {
     return data as Producto
   }
 
+  const fetchProductosPorIds = async (ids: string[]): Promise<Pick<Producto, 'id' | 'nombre' | 'sku'>[]> => {
+    if (!ids.length) return []
+    const { data, error } = await supabase.from('productos').select('id, nombre, sku').in('id', ids)
+    if (error) throw error
+    return data as Pick<Producto, 'id' | 'nombre' | 'sku'>[]
+  }
+
   const deleteProducto = async (id: string) => {
     const { error } = await supabase.from('productos').delete().eq('id', id)
     if (error) throw error
@@ -90,5 +97,5 @@ export const useProductos = () => {
     return { insertados, omitidos: filas.length - insertados }
   }
 
-  return { fetchProductos, getProducto, createProducto, updateProducto, deleteProducto, importProductos }
+  return { fetchProductos, getProducto, createProducto, updateProducto, deleteProducto, importProductos, fetchProductosPorIds }
 }
