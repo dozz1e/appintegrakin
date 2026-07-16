@@ -142,11 +142,11 @@ dashboard (ver sección Roadmap).
 ```
 useAuditoria, useAuth, useBusquedaGlobal, useCitasCapacitacion,
 useClienteInteracciones, useClientes, useConfiguracionArchivado, useCsv,
-useDashboardWidgets, useErrorLog, useFeatures, useHistorialEstados,
-useLeadInteracciones, useLeads, useMiPerfil, useNotificaciones,
-usePermisosOverrides, usePermissions, useProductos, useReportes,
-useRolesUsuario, useSuperadmin, useTareas, useTecnicos, useTicketsPostVenta,
-useTickets, useToast, useUsuarios, useVentas
+useDashboardWidgets, useEntidadImagenes, useErrorLog, useFeatures,
+useHistorialEstados, useLeadInteracciones, useLeads, useMiPerfil,
+useNotificaciones, usePermisosOverrides, usePermissions, useProductos,
+useReportes, useRolesUsuario, useSuperadmin, useTareas, useTecnicos,
+useTicketsPostVenta, useTickets, useToast, useUsuarios, useVentas
 ```
 
 ### Componentes (`app/components/`)
@@ -158,11 +158,11 @@ clientes/ClienteBuscador.vue, clientes/ClienteForm.vue,
 leads/LeadForm.vue, leads/LeadKanban.vue, leads/LeadTimeline.vue
 post-venta/SeguimientoTimeline.vue, post-venta/TicketBoard.vue, post-venta/TicketForm.vue
 tickets/TicketBoard.vue, tickets/TicketForm.vue
-productos/ProductoForm.vue
+productos/ProductoForm.vue, productos/ProductoBuscador.vue
 shared/AppLogo, Avatar, Badge, Card, ConfiguracionModal, ConfirmDialog,
-       GlobalSearch, Modal, NavLink, NotificationBell, PageHeader, PerfilModal,
-       RecordatorioAlert, RecordatorioAlertContainer, TareaList,
-       ToastContainer, UserMenu
+       GaleriaImagenes, GlobalSearch, Modal, NavLink, NotificationBell,
+       PageHeader, PerfilModal, RecordatorioAlert, RecordatorioAlertContainer,
+       TareaList, TextoExpandible, ToastContainer, UserMenu
 widgets/ChartFunnelLeads, ChartLeadsPorEstado, ChartPerformanceVendedores,
         KpiCard, KpiClientesTotales, KpiLeadsActivos, KpiLeadsGanados,
         KpiLeadsPerdidos, KpiTasaConversion, KpiTicketsAbiertos, KpiTotalLeads
@@ -357,6 +357,20 @@ el cliente. Solo se puebla vía SQL Editor de Supabase.
   definer). Desde `20260709000000_rls_permisos_admin.sql` tienen policies
   de `select` (y `user_permission_overrides` también `insert/update/delete`)
   gateadas por `dashboard_widgets.assign`, para soportar `/admin/permisos`.
+- **`entidad_imagenes`** (ver `20260716020000_entidad_imagenes.sql`): galería
+  genérica (varias imágenes por registro, a diferencia de
+  `clientes.imagen_url` que es una sola): `entidad_tipo
+  ('cliente_interaccion'|'lead_interaccion'|'ticket'|'ticket_post_venta'),
+  entidad_id, url, created_by`. RLS no usa `has_permission` directo (una
+  tabla, cuatro tipos de padre distintos) - cada policy verifica que la
+  fila padre exista, lo que cascada a través del RLS de esa tabla padre.
+  Bucket público `entidad-imagenes` (mismo criterio que
+  `clientes-imagenes`), escritura solo exige estar autenticado porque
+  Storage no distingue a qué entidad pertenece cada archivo (ver gotcha
+  #14). Borrado solo de las imágenes propias (`created_by = auth.uid()`).
+  UI: `SharedGaleriaImagenes.vue` (grid de miniaturas + upload + preview +
+  borrar), en interacciones de clientes/leads y en la ficha de tickets
+  (servicio técnico y post-venta).
 - **`kame_tokens`**: token OAuth de Kame ERP, expira cada 24h.
 
 ## Autenticación y arranque de la app
@@ -564,6 +578,11 @@ el cliente. Solo se puebla vía SQL Editor de Supabase.
     desde el modal de Configuración, visible solo para cuentas con rol
     `post_venta` (ver spec
     `2026-07-15-historial-estados-archivado-design.md`).
+31. ✅ **Galería de imágenes en interacciones y tickets** — tabla genérica
+    `entidad_imagenes` + bucket `entidad-imagenes`, varias imágenes por
+    registro (ver schema más arriba). Cubre interacciones de clientes y
+    leads, y ambos tickets (servicio técnico y post-venta, este último el
+    caso de uso principal: evidencia de falla/daño del equipo).
 
 ## Pendientes sueltos
 
@@ -588,9 +607,6 @@ el cliente. Solo se puebla vía SQL Editor de Supabase.
   en la vista de leads agregar un select para elegir vendedor y filtrar la
   vista de leads por ese vendedor (similar al selector que ya existe en
   `/clientes`, ver punto 21 del Roadmap).
-- Subir imágenes en interacciones, tickets y leads (mismo patrón de bucket
-  público de Storage ya usado para `imagen_url` de clientes, ver punto 15
-  del Roadmap).
 - Fix Supabase Auth: el link de invitación de usuario nuevo manda a
   `localhost` en vez del dominio real — revisar "Site URL"/"Redirect URLs"
   en la configuración de Auth del proyecto Supabase.
