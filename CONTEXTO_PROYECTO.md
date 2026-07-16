@@ -568,8 +568,6 @@ el cliente. Solo se puebla vía SQL Editor de Supabase.
 ## Pendientes sueltos
 
 - Probar optimistic locking (dos pestañas, mismo registro) con usuarios reales.
-- Segunda pasada de dedupe por `email` en importación de clientes sin RUT
-  (`NULL` no deduplica contra otro `NULL` vía unique constraint).
 - Testing de seguridad de RLS (escalar permisos, acceso cross-vendedor) y
   testing automatizado de `has_permission()`/permisos efectivos (puntos 8-9
   del Roadmap).
