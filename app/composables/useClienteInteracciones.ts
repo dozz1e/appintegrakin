@@ -43,9 +43,13 @@ export function useClienteInteracciones() {
     return data
   }
 
+  // .select() para poder verificar filas afectadas: si RLS bloquea el
+  // delete, Supabase no tira error (0 filas es un resultado válido), así
+  // que sin este chequeo la UI mostraría éxito con la fila intacta.
   async function eliminarInteraccion(id: string): Promise<void> {
-    const { error } = await supabase.from('cliente_interacciones').delete().eq('id', id)
+    const { data, error } = await supabase.from('cliente_interacciones').delete().eq('id', id).select()
     if (error) throw error
+    if (!data || data.length === 0) throw new Error('No tenés permiso para eliminar esta interacción')
   }
 
   // Mapa cliente_id -> fecha de su interacción más reciente, para la columna
