@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Ticket } from '~/composables/useTickets'
+import type { Tecnico } from '~/composables/useTecnicos'
 
 const props = defineProps<{
   modelValue?: Partial<Ticket>
@@ -9,11 +10,23 @@ const props = defineProps<{
 }>()
 const emit = defineEmits<{ submit: [payload: Partial<Ticket>, archivo: File | null] }>()
 
+const { fetchTecnicos } = useTecnicos()
+const { can } = usePermissions()
+
 const form = reactive<Partial<Ticket>>({
   cliente_id: props.modelValue?.cliente_id ?? props.clienteIdFijo ?? '',
   titulo: props.modelValue?.titulo ?? '',
   descripcion: props.modelValue?.descripcion ?? '',
   prioridad: props.modelValue?.prioridad ?? 'media',
+  tecnico_id: props.modelValue?.tecnico_id ?? '',
+})
+
+const tecnicos = ref<Tecnico[]>([])
+
+onMounted(async () => {
+  if (!props.modelValue && can('tickets', 'assign')) {
+    tecnicos.value = await fetchTecnicos()
+  }
 })
 
 const errores = reactive<Record<string, string>>({})
@@ -38,7 +51,7 @@ const validar = () => {
 
 const onSubmit = () => {
   if (!validar()) return
-  emit('submit', { ...form }, archivoAdjunto.value)
+  emit('submit', { ...form, tecnico_id: form.tecnico_id || null }, archivoAdjunto.value)
 }
 
 const inputClase =
@@ -78,6 +91,14 @@ const inputClase =
         <option value="media">Media</option>
         <option value="alta">Alta</option>
         <option value="urgente">Urgente</option>
+      </select>
+    </div>
+
+    <div v-if="!modelValue && tecnicos.length">
+      <label class="block text-sm font-medium mb-1 text-gray-700">Técnico asignado</label>
+      <select v-model="form.tecnico_id" :class="inputClase">
+        <option value="">Sin asignar</option>
+        <option v-for="t in tecnicos" :key="t.id" :value="t.id">{{ t.nombre }}</option>
       </select>
     </div>
 
