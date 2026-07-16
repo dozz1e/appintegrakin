@@ -49,5 +49,32 @@ export function useVentas() {
     return data
   }
 
-  return { fetchVentasPorCliente, crearVenta }
+  async function actualizarVenta(
+    id: string,
+    payload: Partial<Pick<Venta, 'producto_id' | 'valor' | 'fecha'>>,
+    expectedVersion?: number
+  ): Promise<Venta> {
+    let query = supabase
+      .from('ventas')
+      .update({ ...payload, updated_at: new Date().toISOString() })
+      .eq('id', id)
+
+    if (expectedVersion !== undefined) query = query.eq('version', expectedVersion)
+
+    const { data, error } = await query.select().maybeSingle()
+    if (error) throw error
+
+    if (expectedVersion !== undefined && !data) {
+      throw new Error('CONFLICTO_VERSION')
+    }
+    return data
+  }
+
+  async function eliminarVenta(id: string): Promise<void> {
+    const { data, error } = await supabase.from('ventas').delete().eq('id', id).select()
+    if (error) throw error
+    if (!data?.length) throw new Error('No se pudo eliminar la venta')
+  }
+
+  return { fetchVentasPorCliente, crearVenta, actualizarVenta, eliminarVenta }
 }
