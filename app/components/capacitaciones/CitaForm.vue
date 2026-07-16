@@ -1,16 +1,13 @@
 <script setup lang="ts">
 import type { CitaCapacitacion } from '~/composables/useCitasCapacitacion'
-import type { Producto } from '~/composables/useProductos'
 import type { Usuario } from '~/composables/useUsuarios'
 
 const props = defineProps<{ modelValue?: Partial<CitaCapacitacion>; cargando?: boolean }>()
 const emit = defineEmits<{ submit: [payload: Record<string, unknown>] }>()
 
-const { fetchProductos } = useProductos()
 const { fetchUsuariosPorRol } = useUsuarios()
 const user = useSupabaseUser()
 
-const productos = ref<Producto[]>([])
 const responsables = ref<Usuario[]>([])
 const esEditando = computed(() => !!props.modelValue?.id)
 
@@ -40,7 +37,6 @@ const form = reactive({
 const errores = reactive<Record<string, string>>({})
 
 onMounted(async () => {
-  productos.value = (await fetchProductos()).filter((p) => p.estado === 'activo')
   responsables.value = await fetchUsuariosPorRol('capacitaciones')
 })
 
@@ -83,10 +79,7 @@ const inputClase =
 
     <div>
       <label class="block text-sm font-medium mb-1 text-gray-700">Producto *</label>
-      <select v-model="form.producto_id" :class="inputClase">
-        <option value="">Selecciona un producto</option>
-        <option v-for="p in productos" :key="p.id" :value="p.id">{{ p.nombre }}</option>
-      </select>
+      <ProductosProductoBuscador v-model="form.producto_id" />
       <p v-if="errores.producto_id" class="text-sm text-red-600 mt-1">{{ errores.producto_id }}</p>
     </div>
 
