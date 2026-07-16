@@ -646,6 +646,12 @@ el cliente. Solo se puebla vía SQL Editor de Supabase.
 - Asignar clientes por vendedor — funcionalidad para asignar/reasignar
   `owner_id` de clientes a un vendedor (distinto del filtro de solo lectura
   que ya existe en `/clientes`, ver punto 21 del Roadmap).
+- **Responsive, fase 2-4** (fase 1 completa: shell/sidebar+topbar, ver
+  spec `2026-07-16-responsive-shell-design.md`) — falta: tablas/listados
+  (clientes, productos, admin, etc.) en pantalla angosta; Kanban
+  (leads/tickets/post-venta); formularios/modales y vistas de detalle
+  multi-columna (`ClienteSplitView`, leads 3 columnas, tickets 2
+  columnas) colapsando a 1 columna.
 - Fix Supabase Auth: el link de invitación de usuario nuevo manda a
   `localhost` en vez del dominio real — revisar "Site URL"/"Redirect URLs"
   en la configuración de Auth del proyecto Supabase.
