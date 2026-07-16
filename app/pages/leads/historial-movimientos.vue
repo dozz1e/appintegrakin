@@ -22,7 +22,9 @@ onMounted(async () => {
   const ids = [...new Set(historial.map((h) => h.entidad_id))]
   const leads = await fetchLeadsPorIds(ids)
   const nombrePorId = new Map(leads.map((l) => [l.id, l.nombre]))
-  filas.value = historial.map((h) => ({ ...h, lead_nombre: nombrePorId.get(h.entidad_id) ?? 'Lead eliminado' }))
+  filas.value = historial
+    .filter((h) => nombrePorId.has(h.entidad_id))
+    .map((h) => ({ ...h, lead_nombre: nombrePorId.get(h.entidad_id)! }))
   cargando.value = false
 })
 

@@ -22,7 +22,9 @@ onMounted(async () => {
   const ids = [...new Set(historial.map((h) => h.entidad_id))]
   const tickets = await fetchTicketsPorIds(ids)
   const guiaPorId = new Map(tickets.map((t) => [t.id, t.n_guia]))
-  filas.value = historial.map((h) => ({ ...h, n_guia: guiaPorId.get(h.entidad_id) ?? 'Ticket eliminado' }))
+  filas.value = historial
+    .filter((h) => guiaPorId.has(h.entidad_id))
+    .map((h) => ({ ...h, n_guia: guiaPorId.get(h.entidad_id)! }))
   cargando.value = false
 })
 
