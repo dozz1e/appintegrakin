@@ -11,7 +11,7 @@ export interface Tarea {
   updated_at: string
 }
 
-const UMBRAL_MINUTOS_DEFAULT = 30
+import { obtenerUmbralesMinutos, calcularTierActual } from './useUmbralesAlertas'
 
 export function useTareas() {
   const supabase = useSupabaseClient()
@@ -24,6 +24,7 @@ export function useTareas() {
   // Vacío hasta que se puebla desde tareas_descartadas vía
   // cargarDescartadasGuardadas() en el onMounted del container.
   const idsTareasDescartadas = useState<Set<string>>('tareas-proximas-descartadas', () => new Set())
+  const tierActualTareas = useState<Map<string, number>>('tareas-proximas-tier', () => new Map())
 
   async function fetchTareasPorEntidad(entidadTipo: Tarea['entidad_tipo'], entidadId: string): Promise<Tarea[]> {
     const { data, error } = await supabase
@@ -102,30 +103,35 @@ export function useTareas() {
   // excluyendo las que el usuario ya cerró (idsTareasDescartadas).
   async function refrescarTareasProximas(): Promise<void> {
     const { perfil } = useMiPerfil()
-    const valorConfigurado = perfil.value?.settings?.umbral_alertas_minutos
-    const umbralMinutos = typeof valorConfigurado === 'number' ? valorConfigurado : UMBRAL_MINUTOS_DEFAULT
+    const umbralesMinutos = obtenerUmbralesMinutos(perfil.value?.settings)
 
     const pendientes = await fetchMisTareasPendientes()
     const ahora = Date.now()
+    const nuevoTier = new Map<string, number>()
     tareasProximas.value = pendientes.filter((t) => {
-      if (!t.fecha_vencimiento || idsTareasDescartadas.value.has(t.id)) return false
+      if (!t.fecha_vencimiento) return false
       const msRestante = new Date(t.fecha_vencimiento).getTime() - ahora
-      return msRestante <= umbralMinutos * 60_000
+      const tier = calcularTierActual(msRestante, umbralesMinutos)
+      if (tier === null) return false
+      nuevoTier.set(t.id, tier)
+      return !idsTareasDescartadas.value.has(`${t.id}:${tier}`)
     })
+    tierActualTareas.value = nuevoTier
 
     // Poda: si una tarea descartada ya no está pendiente (se completó o
-    // se eliminó), se saca del set y de tareas_descartadas para no acumular
-    // ids muertos.
+    // se eliminó), se borran todas sus filas de tareas_descartadas (todos
+    // los tiers) para no acumular ids muertos.
     const idsPendientes = new Set(pendientes.map((t) => t.id))
-    const idsPodados: string[] = []
-    for (const id of idsTareasDescartadas.value) {
-      if (!idsPendientes.has(id)) {
-        idsTareasDescartadas.value.delete(id)
-        idsPodados.push(id)
+    const idsPodados = new Set<string>()
+    for (const clave of idsTareasDescartadas.value) {
+      const tareaId = clave.split(':')[0]
+      if (!idsPendientes.has(tareaId)) {
+        idsTareasDescartadas.value.delete(clave)
+        idsPodados.add(tareaId)
       }
     }
-    if (idsPodados.length > 0 && user.value) {
-      await supabase.from('tareas_descartadas').delete().eq('user_id', user.value.sub).in('tarea_id', idsPodados)
+    if (idsPodados.size > 0 && user.value) {
+      await supabase.from('tareas_descartadas').delete().eq('user_id', user.value.sub).in('tarea_id', [...idsPodados])
     }
   }
 
@@ -133,16 +139,18 @@ export function useTareas() {
   // la tarea sigue oculta entre sesiones/navegadores/dispositivos hasta que
   // se complete (ver poda en refrescarTareasProximas).
   async function descartarTareaProxima(id: string): Promise<void> {
-    idsTareasDescartadas.value.add(id)
+    const tier = tierActualTareas.value.get(id) ?? 0
+    const clave = `${id}:${tier}`
+    idsTareasDescartadas.value.add(clave)
     tareasProximas.value = tareasProximas.value.filter((t) => t.id !== id)
 
     if (!user.value) return
     const { error } = await supabase
       .from('tareas_descartadas')
-      .upsert({ user_id: user.value.sub, tarea_id: id }, { onConflict: 'user_id,tarea_id' })
+      .upsert({ user_id: user.value.sub, tarea_id: id, umbral_minutos: tier }, { onConflict: 'user_id,tarea_id,umbral_minutos' })
 
     if (error) {
-      idsTareasDescartadas.value.delete(id)
+      idsTareasDescartadas.value.delete(clave)
       toastError('No se pudo descartar el aviso, intentá de nuevo')
     }
   }
@@ -153,11 +161,11 @@ export function useTareas() {
     if (!user.value) return
     const { data, error } = await supabase
       .from('tareas_descartadas')
-      .select('tarea_id')
+      .select('tarea_id, umbral_minutos')
       .eq('user_id', user.value.sub)
 
     if (error) return
-    idsTareasDescartadas.value = new Set((data ?? []).map((d) => d.tarea_id))
+    idsTareasDescartadas.value = new Set((data ?? []).map((d) => `${d.tarea_id}:${d.umbral_minutos}`))
   }
 
   return {
