@@ -91,6 +91,11 @@ export function useTareas() {
     return data
   }
 
+  async function eliminarTarea(tareaId: string): Promise<void> {
+    const { error } = await supabase.from('tareas').delete().eq('id', tareaId)
+    if (error) throw error
+  }
+
   // Recalcula tareasProximas a partir de fetchMisTareasPendientes: tareas no
   // completadas, a UMBRAL_MINUTOS_PROXIMAS o menos de vencer, o ya vencidas
   // (sin límite hacia atrás - se van solas al marcarse completadas),
@@ -160,6 +165,7 @@ export function useTareas() {
     fetchMisTareasPendientes,
     crearTarea,
     marcarCompletada,
+    eliminarTarea,
     tareasProximas,
     refrescarTareasProximas,
     descartarTareaProxima,

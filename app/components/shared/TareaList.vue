@@ -6,12 +6,14 @@ const props = defineProps<{
   entidadId: string
 }>()
 
-const { fetchTareasPorEntidad, crearTarea, marcarCompletada } = useTareas()
+const { fetchTareasPorEntidad, crearTarea, marcarCompletada, eliminarTarea } = useTareas()
 const { success, error } = useToast()
 
 const tareas = ref<Tarea[]>([])
 const cargando = ref(true)
 const guardando = ref(false)
+const aEliminar = ref<Tarea | null>(null)
+const eliminando = ref(false)
 
 const titulo = ref('')
 const fechaVencimiento = ref('')
@@ -62,6 +64,21 @@ async function onToggle(tarea: Tarea) {
     await cargar()
   } catch (e) {
     error('No se pudo actualizar la tarea')
+  }
+}
+
+async function onConfirmarEliminar() {
+  if (!aEliminar.value) return
+  eliminando.value = true
+  try {
+    await eliminarTarea(aEliminar.value.id)
+    tareas.value = tareas.value.filter((t) => t.id !== aEliminar.value?.id)
+    aEliminar.value = null
+    success('Tarea eliminada')
+  } catch (e) {
+    error('No se pudo eliminar la tarea')
+  } finally {
+    eliminando.value = false
   }
 }
 
@@ -131,7 +148,24 @@ function formatearFecha(fecha: string) {
         <span v-if="t.fecha_vencimiento" class="text-xs shrink-0" :class="esVencida(t) ? 'text-red-600 font-medium' : 'text-gray-400'">
           {{ formatearFecha(t.fecha_vencimiento) }}
         </span>
+        <button
+          type="button"
+          class="text-gray-300 hover:text-red-600 transition-colors shrink-0"
+          title="Eliminar"
+          @click="aEliminar = t"
+        >
+          <Icon name="mdi:trash-can-outline" class="w-4 h-4" />
+        </button>
       </li>
     </ul>
+
+    <SharedConfirmDialog
+      :open="!!aEliminar"
+      titulo="Eliminar tarea"
+      mensaje="¿Eliminar esta tarea? Esta acción no se puede deshacer."
+      :cargando="eliminando"
+      @confirmar="onConfirmarEliminar"
+      @cancelar="aEliminar = null"
+    />
   </SharedCard>
 </template>

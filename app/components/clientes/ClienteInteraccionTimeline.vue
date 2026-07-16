@@ -3,12 +3,14 @@ import type { ClienteInteraccion } from '~/composables/useClienteInteracciones'
 
 const props = defineProps<{ clienteId: string }>()
 const emit = defineEmits<{ registrada: [] }>()
-const { fetchInteracciones, agregarInteraccion } = useClienteInteracciones()
+const { fetchInteracciones, agregarInteraccion, eliminarInteraccion } = useClienteInteracciones()
 const { success, error } = useToast()
 
 const interacciones = ref<ClienteInteraccion[]>([])
 const cargando = ref(true)
 const guardando = ref(false)
+const aEliminar = ref<ClienteInteraccion | null>(null)
+const eliminando = ref(false)
 
 const canal = ref<ClienteInteraccion['canal']>('correo')
 const nota = ref('')
@@ -50,6 +52,21 @@ function formatearFecha(fecha: string) {
   return new Date(fecha).toLocaleString('es-CL', {
     day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false,
   })
+}
+
+async function onConfirmarEliminar() {
+  if (!aEliminar.value) return
+  eliminando.value = true
+  try {
+    await eliminarInteraccion(aEliminar.value.id)
+    interacciones.value = interacciones.value.filter((i) => i.id !== aEliminar.value?.id)
+    aEliminar.value = null
+    success('Interacción eliminada')
+  } catch (e) {
+    error('No se pudo eliminar la interacción')
+  } finally {
+    eliminando.value = false
+  }
 }
 </script>
 
@@ -101,7 +118,24 @@ function formatearFecha(fecha: string) {
           </div>
           <p class="text-sm text-gray-700 mt-1">{{ i.nota }}</p>
         </div>
+        <button
+          type="button"
+          class="text-gray-300 hover:text-danger transition-colors shrink-0"
+          title="Eliminar"
+          @click="aEliminar = i"
+        >
+          <Icon name="mdi:trash-can-outline" class="w-4 h-4" />
+        </button>
       </li>
     </ul>
+
+    <SharedConfirmDialog
+      :open="!!aEliminar"
+      titulo="Eliminar interacción"
+      mensaje="¿Eliminar esta interacción? Esta acción no se puede deshacer."
+      :cargando="eliminando"
+      @confirmar="onConfirmarEliminar"
+      @cancelar="aEliminar = null"
+    />
   </div>
 </template>

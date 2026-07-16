@@ -43,5 +43,10 @@ export function useLeadInteracciones() {
     return data
   }
 
-  return { fetchInteracciones, agregarInteraccion }
+  async function eliminarInteraccion(id: string): Promise<void> {
+    const { error } = await supabase.from('lead_interacciones').delete().eq('id', id)
+    if (error) throw error
+  }
+
+  return { fetchInteracciones, agregarInteraccion, eliminarInteraccion }
 }

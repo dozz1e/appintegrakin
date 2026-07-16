@@ -43,6 +43,11 @@ export function useClienteInteracciones() {
     return data
   }
 
+  async function eliminarInteraccion(id: string): Promise<void> {
+    const { error } = await supabase.from('cliente_interacciones').delete().eq('id', id)
+    if (error) throw error
+  }
+
   // Mapa cliente_id -> fecha de su interacción más reciente, para la columna
   // "última interacción" y los filtros de fecha en la lista de clientes.
   async function fetchUltimasInteracciones(): Promise<Record<string, string>> {
@@ -60,5 +65,5 @@ export function useClienteInteracciones() {
     return mapa
   }
 
-  return { fetchInteracciones, agregarInteraccion, fetchUltimasInteracciones }
+  return { fetchInteracciones, agregarInteraccion, eliminarInteraccion, fetchUltimasInteracciones }
 }
