@@ -7,6 +7,12 @@ const { can } = usePermissions()
 const { esSuperadmin } = useSuperadmin()
 const { perfil, cargarMiPerfil } = useMiPerfil()
 
+const mobileMenuAbierto = ref(false)
+
+watch(() => route.path, () => {
+  mobileMenuAbierto.value = false
+})
+
 onMounted(async () => {
   if (!perfil.value) await cargarMiPerfil()
 })
@@ -32,7 +38,15 @@ const navCrm = [
 <template>
   <div class="min-h-screen bg-bg flex">
     <!-- Sidebar -->
-    <aside class="w-64 bg-surface border-r border-border flex flex-col shrink-0">
+    <div
+      v-if="mobileMenuAbierto"
+      class="fixed inset-0 bg-black/50 z-30 lg:hidden"
+      @click="mobileMenuAbierto = false"
+    />
+    <aside
+      class="fixed inset-y-0 left-0 z-40 w-64 bg-surface border-r border-border flex flex-col transition-transform duration-200 lg:static lg:translate-x-0 lg:shrink-0"
+      :class="mobileMenuAbierto ? 'translate-x-0' : '-translate-x-full'"
+    >
       <div class="h-16 flex items-center px-5 border-b border-border">
         <SharedAppLogo />
       </div>
@@ -132,12 +146,20 @@ const navCrm = [
     <!-- Contenido -->
     <div class="flex-1 flex flex-col min-w-0">
       <!-- Topbar -->
-      <header class="h-16 bg-surface border-b border-border flex items-center justify-between px-6 shrink-0">
-        <div class="flex-1 max-w-md">
+      <header class="h-16 bg-surface border-b border-border flex items-center gap-3 px-4 sm:px-6 shrink-0">
+        <button
+          type="button"
+          class="lg:hidden text-ink-secondary hover:text-ink p-2 -ml-2"
+          @click="mobileMenuAbierto = true"
+        >
+          <Icon name="mdi:menu" class="w-6 h-6" />
+        </button>
+
+        <div class="flex-1 min-w-0 max-w-md">
           <SharedGlobalSearch />
         </div>
 
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-3 shrink-0">
           <SharedNotificationBell />
           <SharedUserMenu />
         </div>
