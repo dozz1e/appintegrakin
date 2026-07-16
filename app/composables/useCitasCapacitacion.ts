@@ -19,7 +19,7 @@ export interface CitaCapacitacionConNombres extends CitaCapacitacion {
   producto_nombre: string
 }
 
-const UMBRAL_MINUTOS_DEFAULT = 30
+import { obtenerUmbralesMinutos, calcularTierActual } from './useUmbralesAlertas'
 
 function mapearFila(fila: any): CitaCapacitacionConNombres {
   return {
@@ -46,6 +46,7 @@ export function useCitasCapacitacion() {
 
   const citasProximas = useState<CitaCapacitacionConNombres[]>('citas-proximas', () => [])
   const idsCitasDescartadas = useState<Set<string>>('citas-proximas-descartadas', () => new Set())
+  const tierActualCitas = useState<Map<string, number>>('citas-proximas-tier', () => new Map())
 
   async function fetchCitas(): Promise<CitaCapacitacionConNombres[]> {
     const { data, error } = await supabase
@@ -113,42 +114,48 @@ export function useCitasCapacitacion() {
 
   async function refrescarCitasProximas(): Promise<void> {
     const { perfil } = useMiPerfil()
-    const valorConfigurado = perfil.value?.settings?.umbral_alertas_minutos
-    const umbralMinutos = typeof valorConfigurado === 'number' ? valorConfigurado : UMBRAL_MINUTOS_DEFAULT
+    const umbralesMinutos = obtenerUmbralesMinutos(perfil.value?.settings)
 
     const pendientes = await fetchMisCitasPendientes()
     const ahora = Date.now()
+    const nuevoTier = new Map<string, number>()
     citasProximas.value = pendientes.filter((c) => {
-      if (idsCitasDescartadas.value.has(c.id)) return false
       const msRestante = new Date(c.fecha_hora).getTime() - ahora
-      return msRestante <= umbralMinutos * 60_000
+      const tier = calcularTierActual(msRestante, umbralesMinutos)
+      if (tier === null) return false
+      nuevoTier.set(c.id, tier)
+      return !idsCitasDescartadas.value.has(`${c.id}:${tier}`)
     })
+    tierActualCitas.value = nuevoTier
 
     const idsPendientes = new Set(pendientes.map((c) => c.id))
-    const idsPodados: string[] = []
-    for (const id of idsCitasDescartadas.value) {
-      if (!idsPendientes.has(id)) {
-        idsCitasDescartadas.value.delete(id)
-        idsPodados.push(id)
+    const idsPodados = new Set<string>()
+    for (const clave of idsCitasDescartadas.value) {
+      const citaId = clave.split(':')[0]
+      if (!idsPendientes.has(citaId)) {
+        idsCitasDescartadas.value.delete(clave)
+        idsPodados.add(citaId)
       }
     }
-    if (idsPodados.length > 0 && user.value) {
-      await supabase.from('citas_descartadas').delete().eq('user_id', user.value.sub).in('cita_id', idsPodados)
+    if (idsPodados.size > 0 && user.value) {
+      await supabase.from('citas_descartadas').delete().eq('user_id', user.value.sub).in('cita_id', [...idsPodados])
     }
   }
 
   async function descartarCitaProxima(id: string): Promise<void> {
     const citaDescartada = citasProximas.value.find((c) => c.id === id)
-    idsCitasDescartadas.value.add(id)
+    const tier = tierActualCitas.value.get(id) ?? 0
+    const clave = `${id}:${tier}`
+    idsCitasDescartadas.value.add(clave)
     citasProximas.value = citasProximas.value.filter((c) => c.id !== id)
 
     if (!user.value) return
     const { error } = await supabase
       .from('citas_descartadas')
-      .upsert({ user_id: user.value.sub, cita_id: id }, { onConflict: 'user_id,cita_id' })
+      .upsert({ user_id: user.value.sub, cita_id: id, umbral_minutos: tier }, { onConflict: 'user_id,cita_id,umbral_minutos' })
 
     if (error) {
-      idsCitasDescartadas.value.delete(id)
+      idsCitasDescartadas.value.delete(clave)
       if (citaDescartada) citasProximas.value = [...citasProximas.value, citaDescartada]
       toastError('No se pudo descartar el aviso, intenta de nuevo')
     }
@@ -158,11 +165,11 @@ export function useCitasCapacitacion() {
     if (!user.value) return
     const { data, error } = await supabase
       .from('citas_descartadas')
-      .select('cita_id')
+      .select('cita_id, umbral_minutos')
       .eq('user_id', user.value.sub)
 
     if (error) return
-    idsCitasDescartadas.value = new Set((data ?? []).map((d) => d.cita_id))
+    idsCitasDescartadas.value = new Set((data ?? []).map((d) => `${d.cita_id}:${d.umbral_minutos}`))
   }
 
   return {
