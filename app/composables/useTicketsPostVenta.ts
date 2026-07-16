@@ -152,6 +152,11 @@ export function useTicketsPostVenta() {
     return data
   }
 
+  async function eliminarTicket(id: string): Promise<void> {
+    const { error } = await supabase.from('tickets_post_venta').delete().eq('id', id)
+    if (error) throw error
+  }
+
   async function fetchTicketsPorIds(ids: string[]): Promise<Pick<TicketPostVenta, 'id' | 'n_guia'>[]> {
     if (!ids.length) return []
     const { data, error } = await supabase.from('tickets_post_venta').select('id, n_guia').in('id', ids)
@@ -175,6 +180,7 @@ export function useTicketsPostVenta() {
     getTicket,
     crearTicket,
     actualizarTicket,
+    eliminarTicket,
     fetchSeguimientos,
     agregarSeguimiento,
     fetchTicketsPorIds,

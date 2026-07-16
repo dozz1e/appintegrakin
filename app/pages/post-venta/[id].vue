@@ -8,13 +8,15 @@ definePageMeta({
 })
 
 const route = useRoute()
-const { getTicket, actualizarTicket } = useTicketsPostVenta()
+const { getTicket, actualizarTicket, eliminarTicket } = useTicketsPostVenta()
 const { can } = usePermissions()
 const { success, error } = useToast()
 
 const ticket = ref<TicketPostVentaConNombres | null>(null)
 const cargando = ref(true)
 const guardando = ref(false)
+const confirmandoEliminar = ref(false)
+const eliminando = ref(false)
 
 const estados: EstadoTicketPostVenta[] = [
   'pendiente_ingreso', 'ingreso_equipo', 'probando',
@@ -51,6 +53,20 @@ async function onCambiarFechaDespacho(fecha: string) {
     error('No se pudo actualizar la fecha de despacho')
   } finally {
     guardando.value = false
+  }
+}
+
+async function onConfirmarEliminar() {
+  if (!ticket.value) return
+  eliminando.value = true
+  try {
+    await eliminarTicket(ticket.value.id)
+    success('Ticket eliminado')
+    await navigateTo('/post-venta')
+  } catch (e) {
+    error('No se pudo eliminar el ticket. Intenta de nuevo.')
+    eliminando.value = false
+    confirmandoEliminar.value = false
   }
 }
 
@@ -108,10 +124,37 @@ function formatearFecha(fecha: string) {
           </div>
         </SharedCard>
 
-        <SharedCard titulo="Seguimiento">
-          <PostVentaSeguimientoTimeline :ticket-id="ticket.id" />
-        </SharedCard>
+        <div class="space-y-6">
+          <SharedCard titulo="Seguimiento">
+            <PostVentaSeguimientoTimeline :ticket-id="ticket.id" />
+          </SharedCard>
+
+          <SharedCard v-if="can('tickets_post_venta', 'delete')">
+            <div class="flex items-center justify-between">
+              <div>
+                <h2 class="text-sm font-semibold text-gray-700">Eliminar ticket</h2>
+                <p class="text-xs text-gray-400 mt-1">Esta acción no se puede deshacer.</p>
+              </div>
+              <button
+                type="button"
+                class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+                @click="confirmandoEliminar = true"
+              >
+                Eliminar ticket
+              </button>
+            </div>
+          </SharedCard>
+        </div>
       </div>
+
+      <SharedConfirmDialog
+        :open="confirmandoEliminar"
+        titulo="Eliminar ticket"
+        :mensaje="`¿Eliminar la guía &quot;${ticket.n_guia}&quot;? Esta acción no se puede deshacer.`"
+        :cargando="eliminando"
+        @confirmar="onConfirmarEliminar"
+        @cancelar="confirmandoEliminar = false"
+      />
     </template>
     <p v-else class="text-red-600">Ticket no encontrado</p>
   </div>
