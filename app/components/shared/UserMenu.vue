@@ -45,7 +45,6 @@ function abrirConfiguracion() {
         <p class="text-sm font-medium text-ink leading-tight">
           {{ perfil?.full_name || perfil?.email || '...' }}
         </p>
-        <p class="text-xs text-ink-muted leading-tight capitalize">{{ perfil?.roles?.join(', ') || '' }}</p>
       </div>
     </button>
 
