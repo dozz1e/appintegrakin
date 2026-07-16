@@ -583,6 +583,13 @@ el cliente. Solo se puebla vía SQL Editor de Supabase.
     registro (ver schema más arriba). Cubre interacciones de clientes y
     leads, y ambos tickets (servicio técnico y post-venta, este último el
     caso de uso principal: evidencia de falla/daño del equipo).
+32. ✅ **Permiso `ventas.view_all` para Natalia Quevedo (líder de
+    vendedoras)** — override individual en `user_permission_overrides`
+    (no rol nuevo, caso único). Además, selector de vendedor en
+    `/leads` (`app/pages/leads/index.vue`), mismo patrón client-side que
+    el filtro de `/clientes` (ver punto 21), gateado por
+    `can('leads', 'view_all')` (ver spec
+    `2026-07-16-natalia-permisos-filtro-leads-design.md`).
 
 ## Pendientes sueltos
 
@@ -596,17 +603,6 @@ el cliente. Solo se puebla vía SQL Editor de Supabase.
   que ya existe en `/clientes`, ver punto 21 del Roadmap).
 - Múltiples alarmas para `RecordatorioAlert` — hoy solo avisa a un umbral fijo
   (30 min antes), agregar varios umbrales configurables en vez de uno solo.
-- Natalia Quevedo es líder de vendedoras (además de post_venta y
-  servicio_tecnico, roles que ya tiene): necesita ver `ventas.view_all`
-  (hoy solo tiene `ventas.view/create/edit` propio vía rol `ventas`/
-  `post_venta`) y `leads.view_all` de cada vendedora (esto último ya lo
-  tiene gratis por unión de permisos, el rol `post_venta` ya incluye
-  `leads.view_all` — ver regla de "mayor permiso gana"). Falta solo agregar
-  `ventas.view_all`, vía override individual en `/admin/permisos` o un rol
-  nuevo tipo `lider_ventas`. Sin ejecutar aún, a definir el enfoque. Además,
-  en la vista de leads agregar un select para elegir vendedor y filtrar la
-  vista de leads por ese vendedor (similar al selector que ya existe en
-  `/clientes`, ver punto 21 del Roadmap).
 - Fix Supabase Auth: el link de invitación de usuario nuevo manda a
   `localhost` en vez del dominio real — revisar "Site URL"/"Redirect URLs"
   en la configuración de Auth del proyecto Supabase.
