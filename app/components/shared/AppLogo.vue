@@ -4,8 +4,8 @@ defineProps<{ size?: 'sm' | 'md' }>()
 
 <template>
   <img
-    src="https://integrakin.cl/wp-content/uploads/2024/09/Logo-Integrakin-2024-Sel-01-768x106.png"
-    alt="Integrakin"
+    src="/assets/images/logo.webp"
+    alt="Integrakin Logo"
     :class="size === 'sm' ? 'h-6' : 'h-8'"
     class="w-auto object-contain"
   />
