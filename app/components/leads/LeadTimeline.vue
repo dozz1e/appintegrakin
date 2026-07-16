@@ -3,6 +3,7 @@ import type { LeadInteraccion } from '~/composables/useLeadInteracciones'
 
 const props = defineProps<{ leadId: string }>()
 const { fetchInteracciones, agregarInteraccion, actualizarInteraccion, eliminarInteraccion } = useLeadInteracciones()
+const { subirImagen } = useEntidadImagenes()
 const { success, error } = useToast()
 
 const interacciones = ref<LeadInteraccion[]>([])
@@ -18,6 +19,8 @@ const guardandoEdicion = ref(false)
 
 const canal = ref<'whatsapp' | 'instagram' | 'facebook' | 'llamada' | 'web' | 'correo'>('correo')
 const nota = ref('')
+const archivoAdjunto = ref<File | null>(null)
+const inputArchivo = ref<HTMLInputElement | null>(null)
 
 const iconoCanal: Record<string, string> = {
   whatsapp: 'mdi:whatsapp',
@@ -36,12 +39,29 @@ async function cargar() {
 
 onMounted(cargar)
 
+function onArchivoSeleccionado(e: Event) {
+  archivoAdjunto.value = (e.target as HTMLInputElement).files?.[0] ?? null
+}
+
+function quitarAdjunto() {
+  archivoAdjunto.value = null
+  if (inputArchivo.value) inputArchivo.value.value = ''
+}
+
 async function onSubmit() {
   if (!nota.value.trim()) return
   guardando.value = true
   try {
-    await agregarInteraccion(props.leadId, canal.value, nota.value.trim())
+    const creada = await agregarInteraccion(props.leadId, canal.value, nota.value.trim())
+    if (archivoAdjunto.value) {
+      try {
+        await subirImagen('lead_interaccion', creada.id, archivoAdjunto.value)
+      } catch (e) {
+        error('Interacción registrada, pero no se pudo subir la imagen')
+      }
+    }
     nota.value = ''
+    quitarAdjunto()
     await cargar()
     success('Interacción registrada')
   } catch (e) {
@@ -121,12 +141,28 @@ async function onConfirmarEliminar() {
         @keyup.enter="onSubmit"
       />
       <button
+        type="button"
+        title="Adjuntar imagen"
+        class="border border-gray-200 rounded-lg px-3 py-2 text-gray-500 hover:text-[#1075B5] hover:border-[#1075B5] transition-colors"
+        @click="inputArchivo?.click()"
+      >
+        <Icon name="mdi:paperclip" class="w-4 h-4" />
+      </button>
+      <input ref="inputArchivo" type="file" accept="image/*" class="hidden" @change="onArchivoSeleccionado" />
+      <button
         :disabled="guardando || !nota.trim()"
         class="bg-[#1075B5] hover:bg-[#0C5D91] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
         @click="onSubmit"
       >
         {{ guardando ? 'Guardando...' : 'Agregar' }}
       </button>
+      <span v-if="archivoAdjunto" class="w-full flex items-center gap-1 text-xs text-gray-500">
+        <Icon name="mdi:image-outline" class="w-4 h-4 shrink-0" />
+        <span class="truncate">{{ archivoAdjunto.name }}</span>
+        <button type="button" class="text-gray-400 hover:text-danger" @click="quitarAdjunto">
+          <Icon name="mdi:close" class="w-3.5 h-3.5" />
+        </button>
+      </span>
     </div>
 
     <p v-if="cargando" class="text-sm text-gray-400">Cargando historial...</p>
@@ -182,24 +218,24 @@ async function onConfirmarEliminar() {
             <span class="text-xs text-gray-400">{{ formatearFecha(i.created_at) }}</span>
           </div>
           <SharedTextoExpandible :texto="i.nota" class="text-sm text-gray-700 mt-1" />
-          <SharedGaleriaImagenes entidad-tipo="lead_interaccion" :entidad-id="i.id" class="mt-2" />
+          <SharedGaleriaImagenes entidad-tipo="lead_interaccion" :entidad-id="i.id" :permitir-agregar="false" class="mt-2" />
         </div>
-        <div v-if="idEditando !== i.id" class="flex gap-1 shrink-0">
+        <div v-if="idEditando !== i.id" class="flex gap-3 shrink-0">
           <button
             type="button"
-            class="text-gray-300 hover:text-[#1075B5] transition-colors"
+            class="text-gray-300 hover:text-[#1075B5] transition-colors p-1"
             title="Editar"
             @click="onEditar(i)"
           >
-            <Icon name="mdi:pencil-outline" class="w-4 h-4" />
+            <Icon name="mdi:pencil-outline" class="w-5 h-5" />
           </button>
           <button
             type="button"
-            class="text-gray-300 hover:text-danger transition-colors"
+            class="text-gray-300 hover:text-danger transition-colors p-1"
             title="Eliminar"
             @click="aEliminar = i"
           >
-            <Icon name="mdi:trash-can-outline" class="w-4 h-4" />
+            <Icon name="mdi:trash-can-outline" class="w-5 h-5" />
           </button>
         </div>
       </li>

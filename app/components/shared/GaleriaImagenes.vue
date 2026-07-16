@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { EntidadImagen, EntidadImagenTipo } from '~/composables/useEntidadImagenes'
 
-const props = defineProps<{ entidadTipo: EntidadImagenTipo; entidadId: string }>()
+const props = defineProps<{ entidadTipo: EntidadImagenTipo; entidadId: string; permitirAgregar?: boolean }>()
 
 const { fetchImagenes, subirImagen, eliminarImagen } = useEntidadImagenes()
 const user = useSupabaseUser()
@@ -73,6 +73,7 @@ async function onConfirmarEliminar() {
       </div>
 
       <button
+        v-if="permitirAgregar !== false"
         type="button"
         :disabled="subiendo"
         title="Agregar imagen"
@@ -81,7 +82,7 @@ async function onConfirmarEliminar() {
       >
         <Icon :name="subiendo ? 'mdi:loading' : 'mdi:image-plus'" :class="subiendo ? 'animate-spin' : ''" class="w-5 h-5" />
       </button>
-      <input ref="inputArchivo" type="file" accept="image/*" class="hidden" @change="onArchivoSeleccionado" />
+      <input v-if="permitirAgregar !== false" ref="inputArchivo" type="file" accept="image/*" class="hidden" @change="onArchivoSeleccionado" />
     </div>
 
     <Teleport to="body">

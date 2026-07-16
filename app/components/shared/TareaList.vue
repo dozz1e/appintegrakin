@@ -246,22 +246,22 @@ function formatearFecha(fecha: string) {
             {{ formatearFecha(t.fecha_vencimiento) }}
           </span>
         </template>
-        <div v-if="idEditando !== t.id" class="flex gap-1 shrink-0">
+        <div v-if="idEditando !== t.id" class="flex gap-3 shrink-0">
           <button
             type="button"
-            class="text-gray-300 hover:text-[#1075B5] transition-colors"
+            class="text-gray-300 hover:text-[#1075B5] transition-colors p-1"
             title="Editar"
             @click="onEditar(t)"
           >
-            <Icon name="mdi:pencil-outline" class="w-4 h-4" />
+            <Icon name="mdi:pencil-outline" class="w-5 h-5" />
           </button>
           <button
             type="button"
-            class="text-gray-300 hover:text-red-600 transition-colors"
+            class="text-gray-300 hover:text-red-600 transition-colors p-1"
             title="Eliminar"
             @click="aEliminar = t"
           >
-            <Icon name="mdi:trash-can-outline" class="w-4 h-4" />
+            <Icon name="mdi:trash-can-outline" class="w-5 h-5" />
           </button>
         </div>
       </li>
