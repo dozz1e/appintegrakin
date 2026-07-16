@@ -221,7 +221,7 @@ git commit -m "feat: mostrar y editar ciudad/comuna en formulario, ficha y expor
 - Diff contra la base ya calculado: 1893 RUT matchean exactamente con `clientes.rut`, 1 no matchea (`1-9`, "CLIENTE BOLETA", sin otros datos reales), 0 clientes en la base quedan fuera del archivo.
 - 2 RUT duplicados dentro del archivo (`76.811.538-9`, `16.435.364-8`) — usar la última ocurrencia de cada uno.
 
-- [ ] **Step 1: Escribir y correr el script de transformación + carga**
+- [x] **Step 1: Escribir y correr el script de transformación + carga**
 
 Script (Node o Python, ejecutar localmente — no requiere commit al repo, es una herramienta de un solo uso):
 
@@ -235,7 +235,7 @@ Script (Node o Python, ejecutar localmente — no requiere commit al repo, es un
 4. Generar SQL: para cada RUT que matchea contra `clientes`, un `UPDATE clientes SET <solo campos con valor> WHERE rut = '<rut>'`; para el único RUT sin match, un `INSERT INTO clientes (rut, razon_social, owner_id, created_by) VALUES ('1-9', 'Cliente Boleta', NULL, NULL)` (sus otros campos vienen vacíos en el archivo, no hay nada más que insertar).
 5. Ejecutar el SQL generado vía `mcp__supabase__execute_sql`, en lotes si el statement es demasiado grande para una sola llamada.
 
-- [ ] **Step 2: Verificar el resultado**
+- [x] **Step 2: Verificar el resultado**
 
 ```sql
 select count(*) as total, count(ciudad) as con_ciudad, count(comuna) as con_comuna from clientes;
@@ -250,6 +250,14 @@ Expected: 1 fila, "Cliente Boleta", resto de campos en `NULL`.
 
 Tomar 5 RUT al azar del archivo y comparar contra `clientes` — confirmar capitalización correcta y que ningún campo que ya tenía dato bueno en la base quedó vacío.
 
-- [ ] **Step 3: Reportar al usuario**
+- [x] **Step 3: Reportar al usuario**
 
 Resumen de cuántos clientes se actualizaron, cuántos se crearon, y confirmación de que el build sigue limpio (no debería verse afectado, es solo datos). No requiere commit de código — la migración de Task 1 ya está commiteada; esta carga es solo datos en la base.
+
+## Resultado (2026-07-15, ~21:47)
+
+**Carga completada.** `clientes`: 1894 total (1893 actualizados por RUT + 1 creado: `CLIENTE BOLETA`, rut `1-9`, `owner_id`/`created_by` NULL). `con_ciudad` = 1848, `con_comuna` = 1849 (el resto quedó NULL porque el archivo traía celda vacía/"." para ese campo en esos clientes específicos, comportamiento esperado). Verificado: los 2 RUT duplicados del archivo (`76.811.538-9`, `16.435.364-8`) quedaron con los valores de la última ocurrencia, como especifica el diseño.
+
+**Mecánica real usada** (más simple que la del plan original): en vez de generar `UPDATE`/`INSERT` fila por fila, se cargaron los 1894 registros ya transformados en una tabla de staging (`_staging_fichas_import`, creada y luego dropeada tras el merge) vía POST masivo a la REST API de Supabase (`fichas_staging.json` generado por el script), y desde ahí un solo `UPDATE ... FROM staging` con `COALESCE` (no pisa valores existentes con NULL) + un `INSERT ... SELECT` para el único RUT sin match. Script fuente: `scripts/transformar_fichas_ciudad_comuna.py` (requiere `fichas.csv` en el directorio de trabajo, generado con `libreoffice --headless --convert-to csv fichas.xlsx`; produce `fichas_staging.json`, que se sube con `curl` a `${SUPABASE_URL}/rest/v1/_staging_fichas_import` usando `SUPABASE_SERVICE_ROLE_KEY`).
+
+**Incidente durante la ejecución:** la carga se hizo en dos sesiones separadas. La primera generó los `batch_*.sql` en el directorio scratchpad temporal (`/tmp/...`) y alcanzó a cargar 1087 de 1894 filas antes de cortarse la sesión — esos archivos se perdieron (el scratchpad es efímero, no sobrevive entre sesiones). La segunda sesión tuvo que rehacer la transformación desde cero. Al buscar `fichas.xlsx` se encontró primero un backup autosave de LibreOffice en `~/.config/libreoffice/.../backup/` con una columna extra (`Tipo Ficha`) y el orden `Ciudad`/`Comuna` invertido respecto al original — los valores de esas dos columnas estaban efectivamente cruzados para varias filas comparado con lo ya cargado en staging. Se detectó por verificación cruzada de una muestra antes de usarlo, y se descartó ese backup en favor del archivo original reconectando el disco externo (`/run/media/Respaldo/Oz/Escritorio/fichas.xlsx`), que sí coincidió con los datos ya verificados. Lección: no asumir que un backup de autosave tiene la misma estructura que el archivo que se venía usando — verificar contra una muestra ya confirmada antes de usarlo como fuente.
