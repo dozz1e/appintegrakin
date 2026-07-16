@@ -435,6 +435,17 @@ el cliente. Solo se puebla vía SQL Editor de Supabase.
     Cuando la intención es "lo mío" (ej. el popup de recordatorios), filtrar
     explícitamente por `owner_id`/`created_by` en la query, sin depender de
     que RLS lo acote.
+17. `TG_OP` dentro de un trigger de Postgres siempre viene en MAYÚSCULA
+    (`'INSERT'`/`'UPDATE'`/`'DELETE'`) — comparar contra literales en
+    minúscula (`tg_op in ('update','delete')`) nunca matchea. Este bug
+    exacto tuvo `registrar_auditoria()` desde su creación
+    (`20260702000800_audit_log.sql`) y dejó `datos_anteriores`/
+    `datos_nuevos` en `NULL` en el 100% de los ~4400 registros históricos
+    de `audit_log` — pasó desapercibido porque la columna `accion` sí se
+    guardaba bien (usa `lower(tg_op)` directo). Fix en
+    `20260716010000_fix_registrar_auditoria_tg_op.sql`. Si se escribe
+    lógica nueva basada en `tg_op`, comparar en mayúscula o pasarlo por
+    `lower()`/`upper()` primero, nunca asumir el casing.
 
 ## Roadmap — estado actual
 
@@ -563,8 +574,6 @@ el cliente. Solo se puebla vía SQL Editor de Supabase.
   testing automatizado de `has_permission()`/permisos efectivos (puntos 8-9
   del Roadmap).
 - Manual de uso por rol para la dueña y su equipo, no técnico (punto 10).
-- Revisar la página de auditoría (`/admin/auditoria`) — pendiente sin detalle
-  aún, el usuario lo va a precisar más adelante.
 - Fix visual: el correo se desborda de la card de usuario cuando es muy largo
   (falta precisar en qué pantalla exactamente — usuarios, admin/usuarios,
   perfil, etc.).
