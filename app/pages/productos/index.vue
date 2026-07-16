@@ -49,7 +49,6 @@ function onExportar() {
     nombre: p.nombre,
     sku: p.sku,
     categoria: p.categoria ?? '',
-    unidad_medida: p.unidad_medida ?? '',
     estado: p.estado,
   }))
   descargarCSV('productos', filas)
@@ -134,7 +133,6 @@ async function onArchivoSeleccionado(e: Event) {
             <th class="px-4 py-3 font-medium">Nombre</th>
             <th class="px-4 py-3 font-medium">SKU</th>
             <th class="px-4 py-3 font-medium">Categoría</th>
-            <th class="px-4 py-3 font-medium">Unidad</th>
             <th class="px-4 py-3 font-medium">Estado</th>
           </tr>
         </thead>
@@ -148,7 +146,6 @@ async function onArchivoSeleccionado(e: Event) {
             <td class="px-4 py-3 text-gray-700 font-medium">{{ p.nombre }}</td>
             <td class="px-4 py-3 text-gray-500">{{ p.sku }}</td>
             <td class="px-4 py-3 text-gray-500">{{ p.categoria || '—' }}</td>
-            <td class="px-4 py-3 text-gray-500">{{ p.unidad_medida || '—' }}</td>
             <td class="px-4 py-3">
               <SharedBadge :label="p.estado === 'activo' ? 'Activo' : 'Inactivo'" :clases="colorEstado[p.estado]" />
             </td>

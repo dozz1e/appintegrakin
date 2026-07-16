@@ -8,7 +8,6 @@ const form = reactive<Partial<Producto>>({
   nombre: props.modelValue?.nombre ?? '',
   sku: props.modelValue?.sku ?? '',
   categoria: props.modelValue?.categoria ?? '',
-  unidad_medida: props.modelValue?.unidad_medida ?? '',
   estado: props.modelValue?.estado ?? 'activo',
 })
 
@@ -55,23 +54,13 @@ const onSubmit = () => {
       <p v-if="errores.sku" class="text-sm text-red-600 mt-1">{{ errores.sku }}</p>
     </div>
 
-    <div class="grid grid-cols-2 gap-4">
-      <div>
-        <label class="block text-sm font-medium mb-1 text-gray-700">Categoría</label>
-        <input
-          v-model="form.categoria"
-          type="text"
-          class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30 focus:border-[#1075B5]"
-        />
-      </div>
-      <div>
-        <label class="block text-sm font-medium mb-1 text-gray-700">Unidad de medida</label>
-        <input
-          v-model="form.unidad_medida"
-          type="text"
-          class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30 focus:border-[#1075B5]"
-        />
-      </div>
+    <div>
+      <label class="block text-sm font-medium mb-1 text-gray-700">Categoría</label>
+      <input
+        v-model="form.categoria"
+        type="text"
+        class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30 focus:border-[#1075B5]"
+      />
     </div>
 
     <div v-if="mostrarEstado" class="flex items-center gap-2">
