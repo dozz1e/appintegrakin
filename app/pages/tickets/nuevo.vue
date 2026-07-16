@@ -8,6 +8,7 @@ const route = useRoute()
 const router = useRouter()
 const { createTicket } = useTickets()
 const { getCliente } = useClientes()
+const { subirImagen } = useEntidadImagenes()
 const { success, error } = useToast()
 
 const clienteIdFijo = route.query.cliente_id as string | undefined
@@ -21,10 +22,17 @@ onMounted(async () => {
   }
 })
 
-const onSubmit = async (payload: Record<string, unknown>) => {
+const onSubmit = async (payload: Record<string, unknown>, archivo: File | null) => {
   cargando.value = true
   try {
     const ticket = await createTicket(payload)
+    if (archivo) {
+      try {
+        await subirImagen('ticket', ticket.id, archivo)
+      } catch (e) {
+        error('Ticket creado, pero no se pudo subir la imagen')
+      }
+    }
     success('Ticket creado correctamente')
     await router.push(`/tickets/${ticket.id}`)
   } catch (e) {

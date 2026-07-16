@@ -3,7 +3,7 @@
 import type { Producto } from '~/composables/useProductos'
 
 const props = defineProps<{ cargando?: boolean }>()
-const emit = defineEmits<{ submit: [payload: Record<string, unknown>] }>()
+const emit = defineEmits<{ submit: [payload: Record<string, unknown>, archivo: File | null] }>()
 
 const { fetchVentasPorCliente } = useVentas()
 const { fetchProductosPorIds } = useProductos()
@@ -26,6 +26,18 @@ const form = reactive({
 })
 
 const errores = reactive<Record<string, string>>({})
+
+const archivoAdjunto = ref<File | null>(null)
+const inputArchivo = ref<HTMLInputElement | null>(null)
+
+function onArchivoSeleccionado(e: Event) {
+  archivoAdjunto.value = (e.target as HTMLInputElement).files?.[0] ?? null
+}
+
+function quitarAdjunto() {
+  archivoAdjunto.value = null
+  if (inputArchivo.value) inputArchivo.value.value = ''
+}
 
 watch(clienteDesconocido, (esDesconocido) => {
   if (esDesconocido) form.cliente_id = ''
@@ -64,19 +76,23 @@ function validar(): boolean {
 function onSubmit() {
   if (!validar()) return
 
-  emit('submit', {
-    n_guia: form.n_guia.trim(),
-    cliente_id: clienteDesconocido.value ? null : form.cliente_id || null,
-    cliente_nombre_libre: clienteDesconocido.value ? form.cliente_nombre_libre.trim() : null,
-    cliente_rut_libre: clienteDesconocido.value ? form.cliente_rut_libre.trim() || null : null,
-    cliente_celular_libre: clienteDesconocido.value ? form.cliente_celular_libre.trim() || null : null,
-    cliente_ciudad_libre: clienteDesconocido.value ? form.cliente_ciudad_libre.trim() || null : null,
-    producto_id: form.producto_id,
-    descripcion_falla: form.descripcion_falla.trim() || null,
-    fecha_ingreso: form.fecha_ingreso,
-    fecha_tope: form.fecha_tope || null,
-    observaciones: form.observaciones.trim() || null,
-  })
+  emit(
+    'submit',
+    {
+      n_guia: form.n_guia.trim(),
+      cliente_id: clienteDesconocido.value ? null : form.cliente_id || null,
+      cliente_nombre_libre: clienteDesconocido.value ? form.cliente_nombre_libre.trim() : null,
+      cliente_rut_libre: clienteDesconocido.value ? form.cliente_rut_libre.trim() || null : null,
+      cliente_celular_libre: clienteDesconocido.value ? form.cliente_celular_libre.trim() || null : null,
+      cliente_ciudad_libre: clienteDesconocido.value ? form.cliente_ciudad_libre.trim() || null : null,
+      producto_id: form.producto_id,
+      descripcion_falla: form.descripcion_falla.trim() || null,
+      fecha_ingreso: form.fecha_ingreso,
+      fecha_tope: form.fecha_tope || null,
+      observaciones: form.observaciones.trim() || null,
+    },
+    archivoAdjunto.value
+  )
 }
 
 const inputClase =
@@ -165,6 +181,26 @@ const inputClase =
     <div>
       <label class="block text-sm font-medium mb-1 text-gray-700">Observaciones</label>
       <textarea v-model="form.observaciones" rows="3" :class="inputClase"></textarea>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium mb-1 text-gray-700">Imagen (opcional)</label>
+      <button
+        type="button"
+        class="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-500 hover:text-[#1075B5] hover:border-[#1075B5] transition-colors flex items-center gap-2"
+        @click="inputArchivo?.click()"
+      >
+        <Icon name="mdi:paperclip" class="w-4 h-4" />
+        Adjuntar imagen
+      </button>
+      <input ref="inputArchivo" type="file" accept="image/*" class="hidden" @change="onArchivoSeleccionado" />
+      <div v-if="archivoAdjunto" class="flex items-center gap-1 text-xs text-gray-500 mt-1">
+        <Icon name="mdi:image-outline" class="w-4 h-4 shrink-0" />
+        <span class="truncate">{{ archivoAdjunto.name }}</span>
+        <button type="button" class="text-gray-400 hover:text-danger" @click="quitarAdjunto">
+          <Icon name="mdi:close" class="w-3.5 h-3.5" />
+        </button>
+      </div>
     </div>
 
     <button

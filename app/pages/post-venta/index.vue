@@ -8,6 +8,7 @@ definePageMeta({
 })
 
 const { fetchTickets, crearTicket, actualizarTicket } = useTicketsPostVenta()
+const { subirImagen } = useEntidadImagenes()
 const { success, error } = useToast()
 const { can } = usePermissions()
 
@@ -36,10 +37,17 @@ const ticketsFiltrados = computed(() => {
 
 onMounted(cargar)
 
-async function onSubmit(payload: Record<string, unknown>) {
+async function onSubmit(payload: Record<string, unknown>, archivo: File | null) {
   guardando.value = true
   try {
-    await crearTicket(payload as any)
+    const ticket = await crearTicket(payload as any)
+    if (archivo) {
+      try {
+        await subirImagen('ticket_post_venta', ticket.id, archivo)
+      } catch (e) {
+        error('Ticket creado, pero no se pudo subir la imagen')
+      }
+    }
     success('Ticket creado')
     modalAbierto.value = false
     await cargar()

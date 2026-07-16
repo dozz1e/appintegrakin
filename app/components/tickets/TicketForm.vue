@@ -7,7 +7,7 @@ const props = defineProps<{
   clienteNombreFijo?: string
   cargando?: boolean
 }>()
-const emit = defineEmits<{ submit: [payload: Partial<Ticket>] }>()
+const emit = defineEmits<{ submit: [payload: Partial<Ticket>, archivo: File | null] }>()
 
 const form = reactive<Partial<Ticket>>({
   cliente_id: props.modelValue?.cliente_id ?? props.clienteIdFijo ?? '',
@@ -18,6 +18,18 @@ const form = reactive<Partial<Ticket>>({
 
 const errores = reactive<Record<string, string>>({})
 
+const archivoAdjunto = ref<File | null>(null)
+const inputArchivo = ref<HTMLInputElement | null>(null)
+
+function onArchivoSeleccionado(e: Event) {
+  archivoAdjunto.value = (e.target as HTMLInputElement).files?.[0] ?? null
+}
+
+function quitarAdjunto() {
+  archivoAdjunto.value = null
+  if (inputArchivo.value) inputArchivo.value.value = ''
+}
+
 const validar = () => {
   errores.cliente_id = form.cliente_id ? '' : 'Debes seleccionar un cliente'
   errores.titulo = form.titulo ? '' : 'El título es obligatorio'
@@ -26,7 +38,7 @@ const validar = () => {
 
 const onSubmit = () => {
   if (!validar()) return
-  emit('submit', { ...form })
+  emit('submit', { ...form }, archivoAdjunto.value)
 }
 
 const inputClase =
@@ -67,6 +79,26 @@ const inputClase =
         <option value="alta">Alta</option>
         <option value="urgente">Urgente</option>
       </select>
+    </div>
+
+    <div v-if="!modelValue">
+      <label class="block text-sm font-medium mb-1 text-gray-700">Imagen (opcional)</label>
+      <button
+        type="button"
+        class="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-500 hover:text-[#1075B5] hover:border-[#1075B5] transition-colors flex items-center gap-2"
+        @click="inputArchivo?.click()"
+      >
+        <Icon name="mdi:paperclip" class="w-4 h-4" />
+        Adjuntar imagen
+      </button>
+      <input ref="inputArchivo" type="file" accept="image/*" class="hidden" @change="onArchivoSeleccionado" />
+      <div v-if="archivoAdjunto" class="flex items-center gap-1 text-xs text-gray-500 mt-1">
+        <Icon name="mdi:image-outline" class="w-4 h-4 shrink-0" />
+        <span class="truncate">{{ archivoAdjunto.name }}</span>
+        <button type="button" class="text-gray-400 hover:text-danger" @click="quitarAdjunto">
+          <Icon name="mdi:close" class="w-3.5 h-3.5" />
+        </button>
+      </div>
     </div>
 
     <button
