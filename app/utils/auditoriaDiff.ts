@@ -6,6 +6,9 @@ const FIELD_LABELS: Record<string, string> = {
   email: 'Email',
   kame_id: 'ID Kame',
   imagen_url: 'Imagen',
+  direccion: 'Dirección',
+  ciudad: 'Ciudad',
+  comuna: 'Comuna',
   owner_id: 'Responsable',
   created_by: 'Creado por',
   nombre: 'Nombre',
@@ -15,6 +18,15 @@ const FIELD_LABELS: Record<string, string> = {
   titulo: 'Título',
   descripcion: 'Descripción',
   prioridad: 'Prioridad',
+  tecnico_id: 'Técnico asignado',
+  fecha_cierre: 'Fecha de cierre',
+  archivado: 'Archivado',
+  sku: 'SKU',
+  categoria: 'Categoría',
+  unidad_medida: 'Unidad de medida',
+  producto_id: 'Producto',
+  valor: 'Valor',
+  fecha: 'Fecha',
 }
 
 const CAMPOS_EXCLUIDOS = new Set(['id', 'created_at', 'updated_at', 'version'])

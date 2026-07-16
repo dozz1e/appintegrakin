@@ -78,6 +78,31 @@ const labelAccion: Record<string, string> = {
 const toggle = (id: string) => {
   expandido.value = expandido.value === id ? null : id
 }
+
+const etiquetaTabla: Record<string, string> = {
+  clientes: 'Clientes',
+  leads: 'Leads',
+  tickets: 'Tickets',
+  productos: 'Productos',
+  ventas: 'Ventas',
+}
+
+// Campo "más descriptivo" de cada tabla para mostrar qué registro exacto
+// se modificó, en vez de solo el nombre de la tabla o un UUID pelado.
+const campoIdentificador: Record<string, string> = {
+  clientes: 'razon_social',
+  leads: 'nombre',
+  tickets: 'titulo',
+  productos: 'nombre',
+}
+
+function identificadorRegistro(r: AuditoriaEntry): string | null {
+  const datos = r.datos_nuevos ?? r.datos_anteriores
+  if (!datos) return null
+  const campo = campoIdentificador[r.tabla]
+  const valor = campo ? datos[campo] : null
+  return valor ? String(valor) : null
+}
 </script>
 
 <template>
@@ -96,6 +121,7 @@ const toggle = (id: string) => {
         <option value="leads">Leads</option>
         <option value="tickets">Tickets</option>
         <option value="productos">Productos</option>
+        <option value="ventas">Ventas</option>
       </select>
 
       <select v-model="filtroAccion" class="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30">
@@ -132,11 +158,15 @@ const toggle = (id: string) => {
               <SharedBadge :label="labelAccion[r.accion]" :clases="colorAccion[r.accion]" />
               <span class="text-sm text-gray-700">
                 <span class="font-medium">{{ r.usuario?.full_name || r.usuario?.email || 'Sistema' }}</span>
-                en <span class="text-gray-500">{{ r.tabla }}</span>
+                en <span class="text-gray-500">{{ etiquetaTabla[r.tabla] ?? r.tabla }}</span>
+                <template v-if="identificadorRegistro(r)">
+                  — <span class="font-medium text-gray-700">{{ identificadorRegistro(r) }}</span>
+                </template>
               </span>
             </div>
             <span class="text-xs text-gray-400">{{ new Date(r.created_at).toLocaleString('es-CL', { hour12: false }) }}</span>
           </div>
+          <p class="text-[11px] text-gray-300 mt-0.5 font-mono">ID: {{ r.registro_id }}</p>
 
           <template v-for="diff in expandido === r.id ? [calcularDiff(r.accion, r.datos_anteriores, r.datos_nuevos)] : []" :key="`${r.id}-diff`">
             <div class="mt-3 text-xs">
@@ -155,7 +185,10 @@ const toggle = (id: string) => {
                   <span v-else class="text-gray-700">{{ d.valor }}</span>
                 </li>
               </ul>
-              <p v-else class="text-gray-400">Sin cambios visibles en los campos</p>
+              <p v-else-if="!r.datos_anteriores && !r.datos_nuevos" class="text-gray-400">
+                Sin datos capturados (registro anterior al 16-07-2026, antes del fix del bug de auditoría)
+              </p>
+              <p v-else class="text-gray-400">Sin cambios en los campos registrados</p>
             </div>
           </template>
         </li>
