@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Lead, EstadoLead } from '~/composables/useLeads'
+import type { Usuario } from '~/composables/useUsuarios'
 
 definePageMeta({
   middleware: 'permission',
@@ -8,24 +9,32 @@ definePageMeta({
 
 const { fetchLeads, cambiarEstado, importLeads } = useLeads()
 const { can } = usePermissions()
+const { fetchUsuarios } = useUsuarios()
 const { parsearCSV, descargarCSV } = useCsv()
 const { success, error } = useToast()
 
 const leads = ref<Lead[]>([])
+const usuarios = ref<Usuario[]>([])
 const cargando = ref(true)
 const importando = ref(false)
 const inputArchivo = ref<HTMLInputElement | null>(null)
 const busqueda = ref('')
+const filtroVendedor = ref('')
 
 onMounted(async () => {
   leads.value = await fetchLeads()
+  usuarios.value = await fetchUsuarios()
   cargando.value = false
 })
 
 const leadsFiltrados = computed(() => {
   const q = busqueda.value.trim().toLowerCase()
-  if (!q) return leads.value
-  return leads.value.filter((l) => l.nombre.toLowerCase().includes(q))
+  return leads.value.filter((l) => {
+    if (q && !l.nombre.toLowerCase().includes(q)) return false
+    if (filtroVendedor.value === 'sin_asignar' && l.owner_id !== null) return false
+    if (filtroVendedor.value && filtroVendedor.value !== 'sin_asignar' && l.owner_id !== filtroVendedor.value) return false
+    return true
+  })
 })
 
 const onCambiarEstado = async (id: string, estado: EstadoLead) => {
@@ -102,6 +111,15 @@ async function onArchivoSeleccionado(e: Event) {
         placeholder="Buscar por nombre..."
         class="border border-gray-200 rounded-lg px-3 py-2 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30 focus:border-[#1075B5]"
       />
+      <select
+        v-if="can('leads', 'view_all')"
+        v-model="filtroVendedor"
+        class="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30"
+      >
+        <option value="">Todos los vendedores</option>
+        <option value="sin_asignar">Sin asignar</option>
+        <option v-for="u in usuarios" :key="u.id" :value="u.id">{{ u.full_name || u.email }}</option>
+      </select>
     </div>
 
     <p v-if="cargando" class="text-gray-400">Cargando...</p>
