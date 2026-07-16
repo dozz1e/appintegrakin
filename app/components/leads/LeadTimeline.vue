@@ -115,6 +115,7 @@ async function onConfirmarEliminar() {
             <span class="text-xs text-gray-400">{{ formatearFecha(i.created_at) }}</span>
           </div>
           <SharedTextoExpandible :texto="i.nota" class="text-sm text-gray-700 mt-1" />
+          <SharedGaleriaImagenes entidad-tipo="lead_interaccion" :entidad-id="i.id" class="mt-2" />
         </div>
         <button
           type="button"

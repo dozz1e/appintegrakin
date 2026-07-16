@@ -110,6 +110,10 @@ function formatearFecha(fecha: string) {
             </select>
           </SharedCard>
 
+          <SharedCard titulo="Imágenes">
+            <SharedGaleriaImagenes entidad-tipo="ticket" :entidad-id="ticket.id" />
+          </SharedCard>
+
           <SharedCard v-if="can('tickets', 'delete')">
             <div class="flex items-center justify-between">
               <div>
