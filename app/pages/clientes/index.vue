@@ -7,7 +7,7 @@ definePageMeta({
   permiso: { resource: 'clientes', actions: ['view', 'view_all'] },
 })
 
-const { fetchClientes, importClientes, deleteCliente } = useClientes()
+const { fetchClientes, importClientes, deleteCliente, createCliente, updateCliente, subirImagenCliente } = useClientes()
 const { fetchUsuariosPorRol } = useUsuarios()
 const { can } = usePermissions()
 const { parsearCSV, descargarCSV } = useCsv()
@@ -21,6 +21,30 @@ const importando = ref(false)
 const inputArchivo = ref<HTMLInputElement | null>(null)
 const clienteAEliminar = ref<Cliente | null>(null)
 const eliminando = ref(false)
+const modalNuevoAbierto = ref(false)
+const creando = ref(false)
+
+async function onSubmitNuevo(payload: Record<string, unknown>, archivoImagen?: File | null) {
+  creando.value = true
+  try {
+    let cliente = await createCliente(payload)
+    if (archivoImagen) {
+      try {
+        const imagen_url = await subirImagenCliente(cliente.id, archivoImagen)
+        cliente = await updateCliente(cliente.id, { imagen_url })
+      } catch (e) {
+        error('Cliente creado, pero no se pudo subir la imagen. Puedes intentarlo de nuevo editando el cliente.')
+      }
+    }
+    clientes.value.push(cliente)
+    success('Cliente creado correctamente')
+    modalNuevoAbierto.value = false
+  } catch (e) {
+    error('No se pudo crear el cliente. Intenta de nuevo.')
+  } finally {
+    creando.value = false
+  }
+}
 
 onMounted(async () => {
   clientes.value = await fetchClientes()
@@ -105,13 +129,14 @@ async function onConfirmarEliminar() {
             {{ importando ? 'Importando...' : 'Importar CSV' }}
           </button>
           <input ref="inputArchivo" type="file" accept=".csv" class="hidden" @change="onArchivoSeleccionado" />
-          <NuxtLink
+          <button
             v-if="can('clientes', 'create')"
-            to="/clientes/nuevo"
+            type="button"
             class="bg-[#1075B5] hover:bg-[#0C5D91] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+            @click="modalNuevoAbierto = true"
           >
             + Nuevo cliente
-          </NuxtLink>
+          </button>
         </div>
       </template>
     </SharedPageHeader>
@@ -134,5 +159,9 @@ async function onConfirmarEliminar() {
       @confirmar="onConfirmarEliminar"
       @cancelar="clienteAEliminar = null"
     />
+
+    <SharedModal :open="modalNuevoAbierto" titulo="Nuevo cliente" @cerrar="modalNuevoAbierto = false">
+      <ClientesClienteForm :cargando="creando" @submit="onSubmitNuevo" />
+    </SharedModal>
   </div>
 </template>

@@ -6,7 +6,7 @@ definePageMeta({
   permiso: { resource: 'productos', actions: ['view', 'view_all'] },
 })
 
-const { fetchProductos, importProductos, updateProducto, deleteProducto } = useProductos()
+const { fetchProductos, importProductos, createProducto, updateProducto, deleteProducto } = useProductos()
 const { can } = usePermissions()
 const { parsearCSV, descargarCSV } = useCsv()
 const { success, error } = useToast()
@@ -25,10 +25,30 @@ const productoEditando = ref<Producto | null>(null)
 const guardandoEdicion = ref(false)
 const confirmandoEliminar = ref(false)
 const eliminando = ref(false)
+const modalNuevoAbierto = ref(false)
+const creando = ref(false)
 
 function abrirEditar(p: Producto) {
   productoEditando.value = p
   modalEditarAbierto.value = true
+}
+
+async function onSubmitNuevo(payload: Record<string, unknown>) {
+  creando.value = true
+  try {
+    const producto = await createProducto(payload)
+    productos.value.push(producto)
+    success('Producto creado correctamente')
+    modalNuevoAbierto.value = false
+  } catch (e: any) {
+    if (e.code === '23505') {
+      error('Ya existe un producto con ese SKU.')
+    } else {
+      error('No se pudo crear el producto. Intenta de nuevo.')
+    }
+  } finally {
+    creando.value = false
+  }
 }
 
 async function onSubmitEdicion(payload: Record<string, unknown>) {
@@ -145,13 +165,14 @@ async function onArchivoSeleccionado(e: Event) {
             {{ importando ? 'Importando...' : 'Importar CSV' }}
           </button>
           <input ref="inputArchivo" type="file" accept=".csv" class="hidden" @change="onArchivoSeleccionado" />
-          <NuxtLink
+          <button
             v-if="can('productos', 'create')"
-            to="/productos/nuevo"
+            type="button"
             class="bg-[#1075B5] hover:bg-[#0C5D91] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+            @click="modalNuevoAbierto = true"
           >
             + Nuevo producto
-          </NuxtLink>
+          </button>
         </div>
       </template>
     </SharedPageHeader>
@@ -241,5 +262,9 @@ async function onArchivoSeleccionado(e: Event) {
       @confirmar="onConfirmarEliminar"
       @cancelar="confirmandoEliminar = false"
     />
+
+    <SharedModal :open="modalNuevoAbierto" titulo="Nuevo producto" @cerrar="modalNuevoAbierto = false">
+      <ProductosProductoForm :cargando="creando" @submit="onSubmitNuevo" />
+    </SharedModal>
   </div>
 </template>
