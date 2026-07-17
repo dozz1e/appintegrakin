@@ -1,17 +1,23 @@
 <script setup lang="ts">
 import type { Ticket } from '~/composables/useTickets'
 import type { Tecnico } from '~/composables/useTecnicos'
+import type { Producto } from '~/composables/useProductos'
 
 const props = defineProps<{
   modelValue?: Partial<Ticket>
   clienteIdFijo?: string
   clienteNombreFijo?: string
   cargando?: boolean
+  productosAsociados?: string[]
 }>()
-const emit = defineEmits<{ submit: [payload: Partial<Ticket>, archivo: File | null] }>()
+const emit = defineEmits<{
+  submit: [payload: Partial<Ticket>, archivo: File | null, productosIds: string[]]
+}>()
 
 const { fetchTecnicos } = useTecnicos()
 const { can } = usePermissions()
+const { fetchVentasPorCliente } = useVentas()
+const { fetchProductosPorIds } = useProductos()
 
 const form = reactive<Partial<Ticket>>({
   cliente_id: props.modelValue?.cliente_id ?? props.clienteIdFijo ?? '',
@@ -22,12 +28,36 @@ const form = reactive<Partial<Ticket>>({
 })
 
 const tecnicos = ref<Tecnico[]>([])
+const comprados = ref<Pick<Producto, 'id' | 'nombre' | 'sku'>[]>([])
+const productosSeleccionados = ref<string[]>([...(props.productosAsociados ?? [])])
 
 onMounted(async () => {
   if (!props.modelValue && can('tickets', 'assign')) {
     tecnicos.value = await fetchTecnicos()
   }
 })
+
+// Al elegir/tener cliente, muestra sus productos comprados (tabla
+// ventas) para unirlos al ticket - immediate porque el cliente puede
+// venir prefijado (clienteIdFijo) y el watch normal no dispara con el
+// valor inicial.
+watch(
+  () => form.cliente_id,
+  async (clienteId) => {
+    comprados.value = []
+    if (!clienteId) return
+    const ventas = await fetchVentasPorCliente(clienteId)
+    const ids = [...new Set(ventas.map((v) => v.producto_id))]
+    comprados.value = await fetchProductosPorIds(ids)
+  },
+  { immediate: true }
+)
+
+function toggleProducto(id: string) {
+  const idx = productosSeleccionados.value.indexOf(id)
+  if (idx === -1) productosSeleccionados.value.push(id)
+  else productosSeleccionados.value.splice(idx, 1)
+}
 
 const errores = reactive<Record<string, string>>({})
 
@@ -51,7 +81,7 @@ const validar = () => {
 
 const onSubmit = () => {
   if (!validar()) return
-  emit('submit', { ...form, tecnico_id: form.tecnico_id || null }, archivoAdjunto.value)
+  emit('submit', { ...form, tecnico_id: form.tecnico_id || null }, archivoAdjunto.value, productosSeleccionados.value)
 }
 
 const inputClase =
@@ -71,6 +101,24 @@ const inputClase =
         :value="clienteNombreFijo ?? clienteIdFijo"
       />
       <p v-if="errores.cliente_id" class="text-sm text-red-600 mt-1">{{ errores.cliente_id }}</p>
+    </div>
+
+    <div v-if="comprados.length">
+      <label class="block text-sm font-medium mb-1 text-gray-700">Productos comprados</label>
+      <div class="flex flex-wrap gap-1.5">
+        <button
+          v-for="p in comprados"
+          :key="p.id"
+          type="button"
+          class="text-xs px-2.5 py-1 rounded-full border transition-colors"
+          :class="productosSeleccionados.includes(p.id)
+            ? 'bg-[#1075B5] text-white border-[#1075B5]'
+            : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'"
+          @click="toggleProducto(p.id)"
+        >
+          {{ p.nombre }}
+        </button>
+      </div>
     </div>
 
     <div>
