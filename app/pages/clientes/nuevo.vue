@@ -24,7 +24,7 @@ const onSubmit = async (payload: Record<string, unknown>, archivoImagen?: File |
       }
     }
 
-    await router.push(`/clientes/${cliente.id}`)
+    await router.push('/clientes')
   } catch (e) {
     error('No se pudo crear el cliente. Intenta de nuevo.')
   } finally {

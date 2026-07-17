@@ -3,16 +3,18 @@ import type { Cliente } from '~/composables/useClientes'
 import type { Ticket } from '~/composables/useTickets'
 import type { Usuario } from '~/composables/useUsuarios'
 
-const props = defineProps<{ clientes: Cliente[]; usuarios: Usuario[] }>()
+const props = defineProps<{ clientes: Cliente[]; usuarios: Usuario[]; clienteIdInicial?: string }>()
 const emit = defineEmits<{ eliminar: [cliente: Cliente]; actualizar: [cliente: Cliente] }>()
 
 const { fetchTicketsPorCliente } = useTickets()
 const { fetchUltimasInteracciones } = useClienteInteracciones()
-const { asignarCliente } = useClientes()
+const { asignarCliente, updateCliente, subirImagenCliente } = useClientes()
 const { can } = usePermissions()
 const { success, error } = useToast()
 
 const asignando = ref(false)
+const modalEditarAbierto = ref(false)
+const guardandoEdicion = ref(false)
 
 async function onAsignarVendedor(vendedorId: string) {
   if (!seleccionado.value) return
@@ -28,12 +30,40 @@ async function onAsignarVendedor(vendedorId: string) {
   }
 }
 
+async function onSubmitEdicion(payload: Record<string, unknown>, archivoImagen?: File | null) {
+  if (!seleccionado.value) return
+  guardandoEdicion.value = true
+  try {
+    let payloadFinal = payload
+    if (archivoImagen) {
+      const imagen_url = await subirImagenCliente(seleccionado.value.id, archivoImagen)
+      payloadFinal = { ...payload, imagen_url }
+    } else if (archivoImagen === null) {
+      payloadFinal = { ...payload, imagen_url: null }
+    }
+
+    const actualizado = await updateCliente(seleccionado.value.id, payloadFinal, seleccionado.value.version)
+    emit('actualizar', actualizado)
+    success('Cliente actualizado')
+    modalEditarAbierto.value = false
+  } catch (e: any) {
+    if (e.message === 'CONFLICTO_VERSION') {
+      error('Alguien más modificó este cliente mientras lo tenías abierto. Vuelve a abrirlo para ver los datos actuales.')
+      modalEditarAbierto.value = false
+    } else {
+      error('No se pudo guardar el cambio. Intenta de nuevo.')
+    }
+  } finally {
+    guardandoEdicion.value = false
+  }
+}
+
 const busqueda = ref('')
 const filtroVendedor = ref('')
 const filtroFechaDesde = ref('')
 const filtroFechaHasta = ref('')
 const filtroAntiguedad = ref('')
-const seleccionadoId = ref<string | null>(null)
+const seleccionadoId = ref<string | null>(props.clienteIdInicial ?? null)
 const ticketsSeleccionado = ref<Ticket[]>([])
 const tabActiva = ref<'info' | 'tickets' | 'ventas' | 'interacciones'>('info')
 const ultimasInteracciones = ref<Record<string, string>>({})
@@ -303,13 +333,15 @@ async function onInteraccionRegistrada() {
             </div>
           </div>
 
-          <NuxtLink
-            :to="`/clientes/${seleccionado.id}`"
+          <button
+            v-if="can('clientes', 'edit')"
+            type="button"
             class="inline-flex items-center gap-1 text-sm text-[#1075B5] hover:underline font-medium"
+            @click="modalEditarAbierto = true"
           >
             <Icon name="mdi:pencil-outline" class="w-4 h-4" />
-            {{ can('clientes', 'edit') ? 'Editar cliente' : 'Ver detalle' }}
-          </NuxtLink>
+            Editar cliente
+          </button>
         </div>
 
         <div v-else-if="tabActiva === 'interacciones'">
@@ -352,5 +384,14 @@ async function onInteraccionRegistrada() {
     <div v-if="seleccionado" class="w-96 shrink-0">
       <SharedTareaList entidad-tipo="cliente" :entidad-id="seleccionado.id" />
     </div>
+
+    <SharedModal
+      v-if="seleccionado"
+      :open="modalEditarAbierto"
+      :titulo="`Editar ${seleccionado.razon_social}`"
+      @cerrar="modalEditarAbierto = false"
+    >
+      <ClientesClienteForm :model-value="seleccionado" :cargando="guardandoEdicion" @submit="onSubmitEdicion" />
+    </SharedModal>
   </div>
 </template>

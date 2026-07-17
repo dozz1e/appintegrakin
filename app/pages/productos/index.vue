@@ -6,7 +6,7 @@ definePageMeta({
   permiso: { resource: 'productos', actions: ['view', 'view_all'] },
 })
 
-const { fetchProductos, importProductos } = useProductos()
+const { fetchProductos, importProductos, updateProducto, deleteProducto } = useProductos()
 const { can } = usePermissions()
 const { parsearCSV, descargarCSV } = useCsv()
 const { success, error } = useToast()
@@ -19,6 +19,58 @@ const inputArchivo = ref<HTMLInputElement | null>(null)
 const busqueda = ref('')
 const filtroCategoria = ref('')
 const filtroEstado = ref<'' | 'activo' | 'inactivo'>('')
+
+const modalEditarAbierto = ref(false)
+const productoEditando = ref<Producto | null>(null)
+const guardandoEdicion = ref(false)
+const confirmandoEliminar = ref(false)
+const eliminando = ref(false)
+
+function abrirEditar(p: Producto) {
+  productoEditando.value = p
+  modalEditarAbierto.value = true
+}
+
+async function onSubmitEdicion(payload: Record<string, unknown>) {
+  if (!productoEditando.value) return
+  guardandoEdicion.value = true
+  try {
+    const actualizado = await updateProducto(productoEditando.value.id, payload, productoEditando.value.version)
+    const idx = productos.value.findIndex((p) => p.id === actualizado.id)
+    if (idx !== -1) productos.value[idx] = actualizado
+    productoEditando.value = actualizado
+    success('Producto actualizado')
+    modalEditarAbierto.value = false
+  } catch (e: any) {
+    if (e.code === '23505') {
+      error('Ya existe un producto con ese SKU.')
+    } else if (e.message === 'CONFLICTO_VERSION') {
+      error('Alguien más modificó este producto mientras lo tenías abierto. Vuelve a abrirlo para ver los datos actuales.')
+      modalEditarAbierto.value = false
+      productos.value = await fetchProductos()
+    } else {
+      error('No se pudo guardar el cambio. Intenta de nuevo.')
+    }
+  } finally {
+    guardandoEdicion.value = false
+  }
+}
+
+async function onConfirmarEliminar() {
+  if (!productoEditando.value) return
+  eliminando.value = true
+  try {
+    await deleteProducto(productoEditando.value.id)
+    productos.value = productos.value.filter((p) => p.id !== productoEditando.value?.id)
+    success('Producto eliminado')
+    confirmandoEliminar.value = false
+    modalEditarAbierto.value = false
+  } catch (e) {
+    error('No se pudo eliminar el producto. Intenta de nuevo.')
+  } finally {
+    eliminando.value = false
+  }
+}
 
 onMounted(async () => {
   productos.value = await fetchProductos()
@@ -141,7 +193,7 @@ async function onArchivoSeleccionado(e: Event) {
             v-for="p in productosFiltrados"
             :key="p.id"
             class="cursor-pointer hover:bg-gray-50"
-            @click="navigateTo(`/productos/${p.id}`)"
+            @click="abrirEditar(p)"
           >
             <td class="px-4 py-3 text-gray-700 font-medium">{{ p.nombre }}</td>
             <td class="px-4 py-3 text-gray-500">{{ p.sku }}</td>
@@ -153,5 +205,41 @@ async function onArchivoSeleccionado(e: Event) {
         </tbody>
       </table>
     </div>
+
+    <SharedModal
+      :open="modalEditarAbierto"
+      :titulo="productoEditando?.nombre ?? 'Editar producto'"
+      @cerrar="modalEditarAbierto = false"
+    >
+      <ProductosProductoForm
+        :model-value="productoEditando ?? undefined"
+        :cargando="guardandoEdicion"
+        mostrar-estado
+        @submit="(payload) => (can('productos', 'edit') ? onSubmitEdicion(payload) : undefined)"
+      />
+
+      <div v-if="can('productos', 'delete')" class="flex items-center justify-between mt-6 pt-6 border-t border-gray-100">
+        <div>
+          <h2 class="text-sm font-semibold text-gray-700">Eliminar producto</h2>
+          <p class="text-xs text-gray-400 mt-1">Esta acción no se puede deshacer.</p>
+        </div>
+        <button
+          type="button"
+          class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+          @click="confirmandoEliminar = true"
+        >
+          Eliminar
+        </button>
+      </div>
+    </SharedModal>
+
+    <SharedConfirmDialog
+      :open="confirmandoEliminar"
+      titulo="Eliminar producto"
+      :mensaje="`¿Eliminar ${productoEditando?.nombre}? Esta acción no se puede deshacer.`"
+      :cargando="eliminando"
+      @confirmar="onConfirmarEliminar"
+      @cancelar="confirmandoEliminar = false"
+    />
   </div>
 </template>

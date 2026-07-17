@@ -12,6 +12,7 @@ const { fetchUsuariosPorRol } = useUsuarios()
 const { can } = usePermissions()
 const { parsearCSV, descargarCSV } = useCsv()
 const { success, error } = useToast()
+const route = useRoute()
 
 const clientes = ref<Cliente[]>([])
 const usuarios = ref<Usuario[]>([])
@@ -120,6 +121,7 @@ async function onConfirmarEliminar() {
       v-else
       :clientes="clientes"
       :usuarios="usuarios"
+      :cliente-id-inicial="route.query.cliente_id as string | undefined"
       @eliminar="clienteAEliminar = $event"
       @actualizar="onActualizar"
     />

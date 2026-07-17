@@ -88,7 +88,7 @@ onUnmounted(() => document.removeEventListener('click', onClickFuera))
             v-for="c in resultados.clientes"
             :key="c.id"
             class="w-full text-left px-4 py-2 hover:bg-surface-2 transition-colors duration-150 flex flex-col"
-            @click="irA(`/clientes/${c.id}`)"
+            @click="irA(`/clientes?cliente_id=${c.id}`)"
           >
             <span class="text-sm font-medium text-ink">{{ c.razon_social }}</span>
             <span class="text-xs text-ink-muted">{{ c.nombre_contacto || c.email || c.telefono || '' }}</span>

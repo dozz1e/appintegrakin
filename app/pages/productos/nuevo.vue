@@ -14,7 +14,7 @@ const onSubmit = async (payload: Record<string, unknown>) => {
   try {
     const producto = await createProducto(payload)
     success('Producto creado correctamente')
-    await router.push(`/productos/${producto.id}`)
+    await router.push('/productos')
   } catch (e: any) {
     if (e.code === '23505') {
       error('Ya existe un producto con ese SKU.')
