@@ -4,11 +4,29 @@ import type { Ticket } from '~/composables/useTickets'
 import type { Usuario } from '~/composables/useUsuarios'
 
 const props = defineProps<{ clientes: Cliente[]; usuarios: Usuario[] }>()
-const emit = defineEmits<{ eliminar: [cliente: Cliente] }>()
+const emit = defineEmits<{ eliminar: [cliente: Cliente]; actualizar: [cliente: Cliente] }>()
 
 const { fetchTicketsPorCliente } = useTickets()
 const { fetchUltimasInteracciones } = useClienteInteracciones()
+const { asignarCliente } = useClientes()
 const { can } = usePermissions()
+const { success, error } = useToast()
+
+const asignando = ref(false)
+
+async function onAsignarVendedor(vendedorId: string) {
+  if (!seleccionado.value) return
+  asignando.value = true
+  try {
+    const actualizado = await asignarCliente(seleccionado.value.id, vendedorId || null)
+    emit('actualizar', actualizado)
+    success('Vendedor asignado')
+  } catch (e) {
+    error('No se pudo asignar el vendedor. Intenta de nuevo.')
+  } finally {
+    asignando.value = false
+  }
+}
 
 const busqueda = ref('')
 const filtroVendedor = ref('')
@@ -266,6 +284,22 @@ async function onInteraccionRegistrada() {
             <div>
               <p class="text-xs text-gray-400 mb-1">Ciudad</p>
               <p class="text-gray-700">{{ seleccionado.ciudad || '—' }}</p>
+            </div>
+            <div class="col-span-2">
+              <p class="text-xs text-gray-400 mb-1">Vendedor asignado</p>
+              <select
+                v-if="can('clientes', 'assign')"
+                :value="seleccionado.owner_id ?? ''"
+                :disabled="asignando"
+                class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30 focus:border-[#1075B5]"
+                @change="onAsignarVendedor(($event.target as HTMLSelectElement).value)"
+              >
+                <option value="">Sin asignar</option>
+                <option v-for="u in usuarios" :key="u.id" :value="u.id">{{ u.full_name || u.email }}</option>
+              </select>
+              <p v-else class="text-gray-700">
+                {{ usuarios.find((u) => u.id === seleccionado.owner_id)?.full_name || 'Sin asignar' }}
+              </p>
             </div>
           </div>
 

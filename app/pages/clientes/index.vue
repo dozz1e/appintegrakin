@@ -59,6 +59,11 @@ async function onArchivoSeleccionado(e: Event) {
   }
 }
 
+function onActualizar(cliente: Cliente) {
+  const idx = clientes.value.findIndex((c) => c.id === cliente.id)
+  if (idx !== -1) clientes.value[idx] = cliente
+}
+
 async function onConfirmarEliminar() {
   if (!clienteAEliminar.value) return
   eliminando.value = true
@@ -111,7 +116,13 @@ async function onConfirmarEliminar() {
     </SharedPageHeader>
 
     <p v-if="cargando" class="text-gray-400">Cargando...</p>
-    <ClientesClienteSplitView v-else :clientes="clientes" :usuarios="usuarios" @eliminar="clienteAEliminar = $event" />
+    <ClientesClienteSplitView
+      v-else
+      :clientes="clientes"
+      :usuarios="usuarios"
+      @eliminar="clienteAEliminar = $event"
+      @actualizar="onActualizar"
+    />
 
     <SharedConfirmDialog
       :open="!!clienteAEliminar"

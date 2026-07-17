@@ -89,6 +89,9 @@ export const useClientes = () => {
     return data as Cliente
   }
 
+  // requiere permiso clientes.assign (se valida por RLS del lado servidor)
+  const asignarCliente = (id: string, vendedorId: string | null) => updateCliente(id, { owner_id: vendedorId })
+
   const deleteCliente = async (id: string) => {
     const { error } = await supabase.from('clientes').delete().eq('id', id)
     if (error) throw error
@@ -175,5 +178,5 @@ export const useClientes = () => {
     return data.publicUrl
   }
 
-  return { fetchClientes, getCliente, createCliente, updateCliente, deleteCliente, importClientes, subirImagenCliente, buscarClientes }
+  return { fetchClientes, getCliente, createCliente, updateCliente, asignarCliente, deleteCliente, importClientes, subirImagenCliente, buscarClientes }
 }
