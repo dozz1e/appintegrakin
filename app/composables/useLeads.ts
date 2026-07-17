@@ -37,7 +37,12 @@ export const useLeads = () => {
   }
 
   const createLead = async (payload: Partial<Lead>) => {
-    const { data, error } = await supabase.from('leads').insert(payload).select().single()
+    const user = useSupabaseUser()
+    const { data, error } = await supabase
+      .from('leads')
+      .insert({ ...payload, owner_id: payload.owner_id ?? user.value?.sub, created_by: user.value?.sub })
+      .select()
+      .single()
     if (error) throw error
     return data as Lead
   }

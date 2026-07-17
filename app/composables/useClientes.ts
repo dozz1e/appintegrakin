@@ -62,9 +62,10 @@ export const useClientes = () => {
   }
 
   const createCliente = async (payload: Partial<Cliente>) => {
+    const user = useSupabaseUser()
     const { data, error } = await supabase
       .from('clientes')
-      .insert(payload)
+      .insert({ ...payload, owner_id: payload.owner_id ?? user.value?.sub, created_by: user.value?.sub })
       .select()
       .single()
     if (error) throw error

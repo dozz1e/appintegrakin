@@ -53,7 +53,12 @@ export const useTickets = () => {
   }
 
   const createTicket = async (payload: Partial<Ticket>) => {
-    const { data, error } = await supabase.from('tickets').insert(payload).select().single()
+    const user = useSupabaseUser()
+    const { data, error } = await supabase
+      .from('tickets')
+      .insert({ ...payload, owner_id: payload.owner_id ?? user.value?.sub, created_by: user.value?.sub })
+      .select()
+      .single()
     if (error) throw error
     return data as Ticket
   }
