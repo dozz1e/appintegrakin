@@ -74,7 +74,7 @@ const chartsVisibles = computed(() => widgetsVisibles.value.filter((w) => w.tipo
       <div
         v-if="kpisVisibles.length"
         class="grid gap-4 mb-6"
-        :style="{ gridTemplateColumns: `repeat(${Math.min(kpisVisibles.length, 7)}, minmax(0, 1fr))` }"
+        :style="{ gridTemplateColumns: `repeat(${Math.min(kpisVisibles.length, 8)}, minmax(0, 1fr))` }"
       >
         <component
           :is="componentMap[w.component]"
