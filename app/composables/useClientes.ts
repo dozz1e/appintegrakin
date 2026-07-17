@@ -32,6 +32,13 @@ export const useClientes = () => {
     return data as Cliente[]
   }
 
+  const fetchClientesPorIds = async (ids: string[]): Promise<Pick<Cliente, 'id' | 'razon_social'>[]> => {
+    if (!ids.length) return []
+    const { data, error } = await supabase.from('clientes').select('id, razon_social').in('id', ids)
+    if (error) throw error
+    return data as Pick<Cliente, 'id' | 'razon_social'>[]
+  }
+
   const getCliente = async (id: string) => {
     const { data, error } = await supabase
       .from('clientes')
@@ -178,5 +185,5 @@ export const useClientes = () => {
     return data.publicUrl
   }
 
-  return { fetchClientes, getCliente, createCliente, updateCliente, asignarCliente, deleteCliente, importClientes, subirImagenCliente, buscarClientes }
+  return { fetchClientes, fetchClientesPorIds, getCliente, createCliente, updateCliente, asignarCliente, deleteCliente, importClientes, subirImagenCliente, buscarClientes }
 }

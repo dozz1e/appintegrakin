@@ -9,14 +9,57 @@ definePageMeta({
 
 const { fetchAuditoria } = useAuditoria()
 const { fetchUsuarios } = useUsuarios()
+const { fetchClientesPorIds } = useClientes()
+const { fetchProductosPorIds } = useProductos()
 
 const registros = ref<AuditoriaEntry[]>([])
 const usuarios = ref<Usuario[]>([])
+const clientesMap = ref<Record<string, string>>({})
+const productosMap = ref<Record<string, string>>({})
 const cargando = ref(true)
 const cargandoMas = ref(false)
 const hasMore = ref(false)
 const pagina = ref(0)
 const expandido = ref<string | null>(null)
+
+const usuariosMap = computed(() =>
+  Object.fromEntries(usuarios.value.map((u) => [u.id, u.full_name || u.email || u.id]))
+)
+
+// Junta los UUIDs de owner_id/created_by/cliente_id/producto_id/tecnico_id que
+// aparecen en los registros cargados y resuelve los que todavía no están en
+// clientesMap/productosMap (usuarios ya viene completo desde fetchUsuarios).
+async function resolverReferencias(nuevos: AuditoriaEntry[]) {
+  const idsCliente = new Set<string>()
+  const idsProducto = new Set<string>()
+
+  for (const r of nuevos) {
+    for (const datos of [r.datos_anteriores, r.datos_nuevos]) {
+      if (!datos) continue
+      const cliente = datos.cliente_id
+      const producto = datos.producto_id
+      if (typeof cliente === 'string' && !clientesMap.value[cliente]) idsCliente.add(cliente)
+      if (typeof producto === 'string' && !productosMap.value[producto]) idsProducto.add(producto)
+    }
+  }
+
+  const [clientesNuevos, productosNuevos] = await Promise.all([
+    fetchClientesPorIds([...idsCliente]),
+    fetchProductosPorIds([...idsProducto]),
+  ])
+
+  for (const c of clientesNuevos) clientesMap.value[c.id] = c.razon_social
+  for (const p of productosNuevos) productosMap.value[p.id] = p.nombre
+}
+
+function contextoDe(r: AuditoriaEntry) {
+  return {
+    tabla: r.tabla,
+    usuarios: usuariosMap.value,
+    clientes: clientesMap.value,
+    productos: productosMap.value,
+  }
+}
 
 const filtroUsuario = ref('')
 const filtroTabla = ref('')
@@ -44,6 +87,7 @@ async function cargarPrimeraPagina() {
   const resultado = await fetchAuditoria(construirFiltros(), 0)
   registros.value = resultado.registros
   hasMore.value = resultado.hasMore
+  await resolverReferencias(resultado.registros)
   cargando.value = false
 }
 
@@ -53,6 +97,7 @@ async function cargarMas() {
   const resultado = await fetchAuditoria(construirFiltros(), pagina.value)
   registros.value = [...registros.value, ...resultado.registros]
   hasMore.value = resultado.hasMore
+  await resolverReferencias(resultado.registros)
   cargandoMas.value = false
 }
 
@@ -168,7 +213,7 @@ function identificadorRegistro(r: AuditoriaEntry): string | null {
           </div>
           <p class="text-[11px] text-gray-300 mt-0.5 font-mono">ID: {{ r.registro_id }}</p>
 
-          <template v-for="diff in expandido === r.id ? [calcularDiff(r.accion, r.datos_anteriores, r.datos_nuevos)] : []" :key="`${r.id}-diff`">
+          <template v-for="diff in expandido === r.id ? [calcularDiff(r.accion, r.datos_anteriores, r.datos_nuevos, contextoDe(r))] : []" :key="`${r.id}-diff`">
             <div class="mt-3 text-xs">
               <ul v-if="diff.length" class="divide-y divide-gray-50">
                 <li
