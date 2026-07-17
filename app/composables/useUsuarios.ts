@@ -43,9 +43,19 @@ export const useUsuarios = () => {
     return (data as unknown as FilaUsuario[]).map(mapearUsuario)
   }
 
-  const fetchUsuariosPorRol = async (roleName: string) => {
-    const todos = await fetchUsuarios()
-    return todos.filter((u) => u.roles.some((r) => r.name === roleName))
+  // RPC security definer, no el join client-side de fetchUsuarios() -
+  // profile_roles tiene RLS que oculta los roles ajenos a quien no sea
+  // admin (dashboard_widgets.assign), así que filtrar en JS dejaba a
+  // cualquier otro usuario viéndose solo a sí mismo en este selector.
+  const fetchUsuariosPorRol = async (roleName: string): Promise<Usuario[]> => {
+    const { data, error } = await supabase.rpc('usuarios_por_rol', { p_rol: roleName })
+    if (error) throw error
+    return (data ?? []).map((u: { id: string; full_name: string | null; email: string | null }) => ({
+      id: u.id,
+      full_name: u.full_name,
+      email: u.email,
+      roles: [],
+    }))
   }
 
   return { fetchUsuarios, fetchUsuariosPorRol }
