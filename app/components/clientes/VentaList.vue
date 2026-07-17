@@ -17,7 +17,6 @@ const guardando = ref(false)
 const productoId = ref('')
 const fecha = ref('')
 const hora = ref('')
-const valor = ref<number | null>(null)
 
 const idEditando = ref<string | null>(null)
 const productoIdEditado = ref('')
@@ -82,7 +81,6 @@ function validar(): boolean {
   errores.productoId = productoId.value ? '' : 'Selecciona un producto'
   errores.fecha = fecha.value ? '' : 'Ingresa la fecha'
   errores.hora = hora.value ? '' : 'Ingresa la hora'
-  errores.valor = valor.value && valor.value > 0 ? '' : 'Ingresa el valor'
   return !Object.values(errores).some(Boolean)
 }
 
@@ -90,11 +88,10 @@ async function onSubmit() {
   if (!validar()) return
   guardando.value = true
   try {
-    await crearVenta(props.clienteId, productoId.value, valor.value ?? 0, construirFecha(fecha.value, hora.value))
+    await crearVenta(props.clienteId, productoId.value, 0, construirFecha(fecha.value, hora.value))
     productoId.value = ''
     fecha.value = ''
     hora.value = ''
-    valor.value = null
     await cargar()
     success('Venta registrada')
   } catch (e) {
@@ -179,14 +176,6 @@ async function onConfirmarEliminar() {
           type="time"
           class="flex-1 min-w-0 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30"
         />
-        <input
-          v-model.number="valor"
-          type="number"
-          min="0"
-          step="1"
-          placeholder="Valor"
-          class="flex-1 min-w-0 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30"
-        />
         <button
           :disabled="guardando"
           class="w-full sm:w-auto bg-[#1075B5] hover:bg-[#0C5D91] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
@@ -197,7 +186,6 @@ async function onConfirmarEliminar() {
       </div>
       <p v-if="errores.fecha" class="text-xs text-red-600">{{ errores.fecha }}</p>
       <p v-if="errores.hora" class="text-xs text-red-600">{{ errores.hora }}</p>
-      <p v-if="errores.valor" class="text-xs text-red-600">{{ errores.valor }}</p>
     </div>
 
     <p v-if="cargando" class="text-sm text-gray-400">Cargando ventas...</p>

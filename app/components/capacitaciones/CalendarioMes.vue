@@ -11,7 +11,7 @@ const emit = defineEmits<{
   'update:fechaSeleccionada': [fecha: string | null]
 }>()
 
-const DIAS_SEMANA = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
+const DIAS_SEMANA = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
 const MESES = [
   'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
@@ -63,7 +63,7 @@ interface CeldaCalendario {
 const celdas = computed<CeldaCalendario[]>(() => {
   const primerDiaMes = new Date(mesCursor.value.getFullYear(), mesCursor.value.getMonth(), 1)
   const inicioGrilla = new Date(primerDiaMes)
-  inicioGrilla.setDate(inicioGrilla.getDate() - primerDiaMes.getDay())
+  inicioGrilla.setDate(inicioGrilla.getDate() - ((primerDiaMes.getDay() + 6) % 7))
 
   const resultado: CeldaCalendario[] = []
   const cursor = new Date(inicioGrilla)
