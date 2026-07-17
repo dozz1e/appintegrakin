@@ -9,17 +9,13 @@ definePageMeta({
 
 const { fetchCatalogo, fetchWidgetsDeUsuario, asignarWidget, quitarWidget } = useDashboardWidgets()
 const { fetchUsuarios } = useUsuarios()
-const { fetchRecursosVisiblesDeUsuario } = usePermisosOverrides()
 const { success, error } = useToast()
 
 const catalogo = ref<WidgetCatalogo[]>([])
 const usuarios = ref<Usuario[]>([])
 const usuarioSeleccionado = ref('')
 const widgetsAsignados = ref<Set<string>>(new Set()) // widget_id
-const recursosVisibles = ref<Set<string>>(new Set())
 const cargando = ref(true)
-
-const catalogoFiltrado = computed(() => catalogo.value.filter((w) => recursosVisibles.value.has(w.resource)))
 
 onMounted(async () => {
   catalogo.value = await fetchCatalogo()
@@ -31,12 +27,10 @@ const seleccionarUsuario = async (userId: string) => {
   usuarioSeleccionado.value = userId
   if (!userId) {
     widgetsAsignados.value = new Set()
-    recursosVisibles.value = new Set()
     return
   }
   const rows = await fetchWidgetsDeUsuario(userId)
   widgetsAsignados.value = new Set(rows.map((r) => r.widget_id))
-  recursosVisibles.value = await fetchRecursosVisiblesDeUsuario(userId)
 }
 
 const toggleWidget = async (widgetId: string) => {
@@ -81,7 +75,7 @@ const toggleWidget = async (widgetId: string) => {
           </h2>
           <ul class="space-y-1">
             <li
-              v-for="w in catalogoFiltrado.filter((c) => c.tipo === tipo)"
+              v-for="w in catalogo.filter((c) => c.tipo === tipo)"
               :key="w.id"
               class="flex items-center justify-between text-sm border rounded px-3 py-2"
             >

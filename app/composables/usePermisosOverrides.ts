@@ -62,24 +62,11 @@ export const usePermisosOverrides = () => {
     if (error) throw error
   }
 
-  // Usado por /admin/dashboards (Task 4) para filtrar el catálogo de widgets
-  // a solo los recursos que el usuario objetivo puede ver.
-  const fetchRecursosVisiblesDeUsuario = async (userId: string) => {
-    const { data, error } = await supabase.rpc('permisos_efectivos_usuario', { p_user: userId })
-    if (error) throw error
-    const recursos = new Set<string>()
-    for (const row of (data ?? []) as { resource: string; action: string }[]) {
-      if (row.action === 'view' || row.action === 'view_all') recursos.add(row.resource)
-    }
-    return recursos
-  }
-
   return {
     fetchCatalogoPermisos,
     fetchHeredadosDeRoles,
     fetchOverridesDeUsuario,
     setOverride,
     quitarOverride,
-    fetchRecursosVisiblesDeUsuario,
   }
 }

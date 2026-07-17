@@ -1,10 +1,13 @@
 <!-- app/pages/index.vue -->
 <script setup lang="ts">
-// Home = dashboard personal. Cada usuario ve solo los widgets que le
-// asignó la dueña o el superadmin (tabla user_dashboard_widgets) Y que
-// además puede ver según sus permisos actuales (si se le asignó un widget
-// y luego se le revocó el acceso a esa página, el widget deja de mostrarse
-// sin que haya que ir a desasignarlo a mano).
+// Home = dashboard personal. Cada usuario ve exactamente los widgets que
+// le asignó la dueña o el superadmin (tabla user_dashboard_widgets) -
+// la asignación ya no depende de que el usuario tenga además permiso de
+// view/view_all sobre el resource del widget (antes sí, pedido explícito
+// para poder darle cualquier dashboard a cualquier usuario). Si se le
+// revoca el permiso de un módulo después de asignarle un widget de ese
+// módulo, el widget sigue visible hasta que se desasigna a mano desde
+// /admin/dashboards.
 //
 // El componente se resuelve con un mapa explícito, NO con <component :is="string">
 // dependiendo del registro global de Nuxt (por defecto Nuxt NO registra los
@@ -40,7 +43,6 @@ const componentMap: Record<string, any> = {
 }
 
 const { misWidgets, cargarMisWidgets } = useDashboardWidgets()
-const { can } = usePermissions()
 const cargando = ref(true)
 
 onMounted(async () => {
@@ -48,7 +50,7 @@ onMounted(async () => {
   cargando.value = false
 })
 
-const widgetsVisibles = computed(() => misWidgets.value.filter((w) => can(w.resource, 'view') || can(w.resource, 'view_all')))
+const widgetsVisibles = computed(() => misWidgets.value)
 const kpisVisibles = computed(() => widgetsVisibles.value.filter((w) => w.tipo === 'kpi'))
 const chartsVisibles = computed(() => widgetsVisibles.value.filter((w) => w.tipo === 'chart'))
 </script>
