@@ -7,7 +7,7 @@ definePageMeta({
   permiso: { resource: 'leads', actions: ['view', 'view_all'] },
 })
 
-const { fetchLeads, cambiarEstado, importLeads } = useLeads()
+const { fetchLeads, cambiarEstado, importLeads, createLead } = useLeads()
 const { can } = usePermissions()
 const { fetchUsuariosPorRol } = useUsuarios()
 const { parsearCSV, descargarCSV } = useCsv()
@@ -16,6 +16,8 @@ const { success, error } = useToast()
 const leads = ref<Lead[]>([])
 const usuarios = ref<Usuario[]>([])
 const cargando = ref(true)
+const guardando = ref(false)
+const modalAbierto = ref(false)
 const importando = ref(false)
 const inputArchivo = ref<HTMLInputElement | null>(null)
 const busqueda = ref('')
@@ -26,6 +28,20 @@ onMounted(async () => {
   usuarios.value = await fetchUsuariosPorRol('ventas')
   cargando.value = false
 })
+
+async function onSubmit(payload: Record<string, unknown>) {
+  guardando.value = true
+  try {
+    await createLead(payload)
+    success('Lead creado correctamente')
+    modalAbierto.value = false
+    leads.value = await fetchLeads()
+  } catch (e) {
+    error('No se pudo crear el lead. Intenta de nuevo.')
+  } finally {
+    guardando.value = false
+  }
+}
 
 const leadsFiltrados = computed(() => {
   const q = busqueda.value.trim().toLowerCase()
@@ -93,13 +109,13 @@ async function onArchivoSeleccionado(e: Event) {
             {{ importando ? 'Importando...' : 'Importar CSV' }}
           </button>
           <input ref="inputArchivo" type="file" accept=".csv" class="hidden" @change="onArchivoSeleccionado" />
-          <NuxtLink
+          <button
             v-if="can('leads', 'create')"
-            to="/leads/nuevo"
             class="bg-[#1075B5] hover:bg-[#0C5D91] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+            @click="modalAbierto = true"
           >
             + Nuevo lead
-          </NuxtLink>
+          </button>
         </div>
       </template>
     </SharedPageHeader>
@@ -124,5 +140,9 @@ async function onArchivoSeleccionado(e: Event) {
 
     <p v-if="cargando" class="text-gray-400">Cargando...</p>
     <LeadsLeadKanban v-else :leads="leadsFiltrados" @cambiar-estado="onCambiarEstado" />
+
+    <SharedModal :open="modalAbierto" titulo="Nuevo lead" @cerrar="modalAbierto = false">
+      <LeadsLeadForm :cargando="guardando" @submit="onSubmit" />
+    </SharedModal>
   </div>
 </template>
