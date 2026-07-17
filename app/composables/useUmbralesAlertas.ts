@@ -21,12 +21,13 @@ export function obtenerUmbralesMinutos(settings: Record<string, unknown> | undef
 }
 
 // null = todavía no entró en ningún umbral (no se muestra el aviso).
-// 0 = ya venció (tier especial, separado de los umbrales configurados).
-// Si no venció, el tier es el umbral configurado más chico que ya fue
-// cruzado (umbral_minutos >= minutos_restantes) — el más específico/
-// urgente vigente en este momento.
+// Vencida = mismo tier que el umbral configurado más chico (no es un
+// tier nuevo): si el usuario ya descartó ese umbral, vencer no debe
+// hacer reaparecer el aviso. Si no venció, el tier es el umbral
+// configurado más chico que ya fue cruzado (umbral_minutos >=
+// minutos_restantes) — el más específico/urgente vigente en este momento.
 export function calcularTierActual(msRestante: number, umbralesMinutosAsc: number[]): number | null {
-  if (msRestante <= 0) return 0
+  if (msRestante <= 0) return umbralesMinutosAsc[0]
   const minutosRestantes = msRestante / 60_000
   return umbralesMinutosAsc.find((u) => u >= minutosRestantes) ?? null
 }
