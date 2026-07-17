@@ -260,10 +260,10 @@ async function onInteraccionRegistrada() {
           </div>
         </div>
 
-        <div class="flex gap-2 mb-4">
+        <div class="flex gap-2 mb-4 overflow-x-auto">
           <button
             type="button"
-            class="rounded-lg px-4 py-2 text-base font-medium transition-colors"
+            class="shrink-0 rounded-lg px-4 py-2 text-base font-medium transition-colors"
             :class="tabActiva === 'info' ? 'bg-primary text-ink-onprimary' : 'bg-surface-2 text-ink-muted hover:bg-primary-subtle hover:text-primary-ink'"
             @click="tabActiva = 'info'"
           >
@@ -271,7 +271,7 @@ async function onInteraccionRegistrada() {
           </button>
           <button
             type="button"
-            class="rounded-lg px-4 py-2 text-base font-medium transition-colors"
+            class="shrink-0 rounded-lg px-4 py-2 text-base font-medium transition-colors"
             :class="tabActiva === 'interacciones' ? 'bg-primary text-ink-onprimary' : 'bg-surface-2 text-ink-muted hover:bg-primary-subtle hover:text-primary-ink'"
             @click="tabActiva = 'interacciones'"
           >
@@ -280,7 +280,7 @@ async function onInteraccionRegistrada() {
           <button
             v-if="puedeVerTickets"
             type="button"
-            class="rounded-lg px-4 py-2 text-base font-medium transition-colors"
+            class="shrink-0 rounded-lg px-4 py-2 text-base font-medium transition-colors"
             :class="tabActiva === 'tickets' ? 'bg-primary text-ink-onprimary' : 'bg-surface-2 text-ink-muted hover:bg-primary-subtle hover:text-primary-ink'"
             @click="tabActiva = 'tickets'"
           >
@@ -289,7 +289,7 @@ async function onInteraccionRegistrada() {
           <button
             v-if="puedeVerVentas"
             type="button"
-            class="rounded-lg px-4 py-2 text-base font-medium transition-colors"
+            class="shrink-0 rounded-lg px-4 py-2 text-base font-medium transition-colors"
             :class="tabActiva === 'ventas' ? 'bg-primary text-ink-onprimary' : 'bg-surface-2 text-ink-muted hover:bg-primary-subtle hover:text-primary-ink'"
             @click="tabActiva = 'ventas'"
           >
