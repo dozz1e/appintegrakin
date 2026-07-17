@@ -658,6 +658,13 @@ el cliente. Solo se puebla vía SQL Editor de Supabase.
     pero de selección múltiple; se asocian al crear el ticket y se
     puede agregar/quitar al editarlo (ver spec
     `2026-07-16-ventas-editar-eliminar-ticket-productos-design.md`).
+36. ✅ **Asignar clientes por vendedor** — permiso nuevo `clientes.assign`
+    (dueña + override individual de Natalia Quevedo, superadmin bypasea)
+    que en `clientes_update` actúa como bypass total (a diferencia de
+    `clientes.edit`, no requiere ser dueño del cliente ni `view_all`).
+    Selector editable "Vendedor asignado" en la tab Información de
+    `ClienteSplitView.vue`, reusa la misma lista de vendedores (rol
+    `ventas`) que ya trae el filtro de solo lectura existente.
 
 ## Pendientes sueltos
 
@@ -666,9 +673,6 @@ el cliente. Solo se puebla vía SQL Editor de Supabase.
   testing automatizado de `has_permission()`/permisos efectivos (puntos 8-9
   del Roadmap).
 - Manual de uso por rol para la dueña y su equipo, no técnico (punto 10).
-- Asignar clientes por vendedor — funcionalidad para asignar/reasignar
-  `owner_id` de clientes a un vendedor (distinto del filtro de solo lectura
-  que ya existe en `/clientes`, ver punto 21 del Roadmap).
 - **Responsive, fase 2 y 4** (fase 1 shell y fase 3 Kanban ya completas,
   ver specs `2026-07-16-responsive-shell-design.md` y
   `2026-07-16-responsive-kanban-design.md`) — falta: tablas/listados
