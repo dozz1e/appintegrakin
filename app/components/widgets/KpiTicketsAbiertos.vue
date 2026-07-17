@@ -11,5 +11,5 @@ onMounted(async () => {
 </script>
 
 <template>
-  <WidgetsKpiCard label="Tickets abiertos" :valor="cantidad" :cargando="cargando" icono="🎫" />
+  <WidgetsKpiCard label="Tickets abiertos (Servicio técnico)" :valor="cantidad" :cargando="cargando" icono="🎫" />
 </template>
