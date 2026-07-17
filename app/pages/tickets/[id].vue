@@ -13,6 +13,7 @@ const { fetchTecnicos } = useTecnicos()
 const { fetchProductosDeTicket, agregarProductoATicket, quitarProductoDeTicket } = useTicketProductos()
 const { can } = usePermissions()
 const { success, error } = useToast()
+const user = useSupabaseUser()
 
 const ticket = ref<Ticket | null>(null)
 const tecnicos = ref<Tecnico[]>([])
@@ -22,6 +23,8 @@ const guardando = ref(false)
 const asignando = ref(false)
 const confirmandoEliminar = ref(false)
 const eliminando = ref(false)
+
+const puedeEliminar = computed(() => can('tickets', 'delete') || ticket.value?.owner_id === user.value?.sub)
 
 onMounted(async () => {
   ticket.value = await getTicket(route.params.id as string)
@@ -133,7 +136,7 @@ function formatearFecha(fecha: string) {
             <SharedGaleriaImagenes entidad-tipo="ticket" :entidad-id="ticket.id" />
           </SharedCard>
 
-          <SharedCard v-if="can('tickets', 'delete')">
+          <SharedCard v-if="puedeEliminar">
             <div class="flex items-center justify-between">
               <div>
                 <h2 class="text-sm font-semibold text-gray-700">Eliminar ticket</h2>
