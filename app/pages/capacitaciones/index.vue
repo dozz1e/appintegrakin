@@ -211,7 +211,6 @@ function formatearFecha(fecha: string) {
                 Cancelar
               </button>
               <button
-                v-if="can('capacitaciones', 'delete')"
                 class="text-gray-300 hover:text-red-600 transition-colors p-1"
                 title="Eliminar"
                 @click="aEliminar = c"
