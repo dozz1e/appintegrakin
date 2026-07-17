@@ -8,6 +8,7 @@ const route = useRoute()
 const router = useRouter()
 const { createTicket } = useTickets()
 const { getCliente } = useClientes()
+const { agregarProductoATicket } = useTicketProductos()
 const { subirImagen } = useEntidadImagenes()
 const { success, error } = useToast()
 
@@ -22,7 +23,7 @@ onMounted(async () => {
   }
 })
 
-const onSubmit = async (payload: Record<string, unknown>, archivo: File | null) => {
+const onSubmit = async (payload: Record<string, unknown>, archivo: File | null, productosIds: string[]) => {
   cargando.value = true
   try {
     const ticket = await createTicket(payload)
@@ -31,6 +32,13 @@ const onSubmit = async (payload: Record<string, unknown>, archivo: File | null) 
         await subirImagen('ticket', ticket.id, archivo)
       } catch (e) {
         error('Ticket creado, pero no se pudo subir la imagen')
+      }
+    }
+    if (productosIds.length) {
+      try {
+        await Promise.all(productosIds.map((id) => agregarProductoATicket(ticket.id, id)))
+      } catch (e) {
+        error('Ticket creado, pero no se pudieron asociar los productos')
       }
     }
     success('Ticket creado correctamente')

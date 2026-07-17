@@ -10,11 +10,13 @@ definePageMeta({
 const route = useRoute()
 const { getTicket, updateTicket, deleteTicket, asignarTecnico } = useTickets()
 const { fetchTecnicos } = useTecnicos()
+const { fetchProductosDeTicket, agregarProductoATicket, quitarProductoDeTicket } = useTicketProductos()
 const { can } = usePermissions()
 const { success, error } = useToast()
 
 const ticket = ref<Ticket | null>(null)
 const tecnicos = ref<Tecnico[]>([])
+const productosAsociadosIds = ref<string[]>([])
 const cargando = ref(true)
 const guardando = ref(false)
 const asignando = ref(false)
@@ -26,14 +28,26 @@ onMounted(async () => {
   if (can('tickets', 'assign')) {
     tecnicos.value = await fetchTecnicos()
   }
+  const productos = await fetchProductosDeTicket(route.params.id as string)
+  productosAsociadosIds.value = productos.map((p) => p.id)
   cargando.value = false
 })
 
-const onSubmit = async (payload: Record<string, unknown>) => {
+const onSubmit = async (payload: Record<string, unknown>, _archivo: File | null, productosIds: string[]) => {
   if (!ticket.value) return
   guardando.value = true
   try {
     ticket.value = await updateTicket(ticket.value.id, payload, ticket.value.version)
+
+    const ticketId = ticket.value.id
+    const agregados = productosIds.filter((id) => !productosAsociadosIds.value.includes(id))
+    const quitados = productosAsociadosIds.value.filter((id) => !productosIds.includes(id))
+    await Promise.all([
+      ...agregados.map((id) => agregarProductoATicket(ticketId, id)),
+      ...quitados.map((id) => quitarProductoDeTicket(ticketId, id)),
+    ])
+    productosAsociadosIds.value = productosIds
+
     success('Ticket actualizado')
   } catch (e: any) {
     if (e.message === 'CONFLICTO_VERSION') {
@@ -92,7 +106,12 @@ function formatearFecha(fecha: string) {
 
       <div class="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] gap-6 items-start">
         <SharedCard>
-          <TicketsTicketForm :model-value="ticket" :cargando="guardando" @submit="onSubmit" />
+          <TicketsTicketForm
+            :model-value="ticket"
+            :productos-asociados="productosAsociadosIds"
+            :cargando="guardando"
+            @submit="onSubmit"
+          />
         </SharedCard>
 
         <div class="space-y-6">
