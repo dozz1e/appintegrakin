@@ -70,6 +70,7 @@ const tabActiva = ref<'info' | 'tickets' | 'ventas' | 'interacciones'>('info')
 const ultimasInteracciones = ref<Record<string, string>>({})
 
 const puedeVerTickets = computed(() => can('tickets', 'view') || can('tickets', 'view_all'))
+const puedeVerResumenTickets = computed(() => can('clientes', 'view_tickets_resumen'))
 const puedeVerVentas = computed(() => can('ventas', 'view') || can('ventas', 'view_all'))
 
 const opcionesAntiguedad = [
@@ -136,7 +137,9 @@ watch(seleccionadoId, async (id) => {
   ticketsSeleccionado.value = []
   conteoTickets.value = { total: 0, abiertos: 0, resueltos: 0 }
   if (!id) return
-  conteoTickets.value = await fetchConteoTicketsCliente(id)
+  if (puedeVerResumenTickets.value) {
+    conteoTickets.value = await fetchConteoTicketsCliente(id)
+  }
   if (puedeVerTickets.value) {
     ticketsSeleccionado.value = await fetchTicketsPorCliente(id)
   }
@@ -249,7 +252,7 @@ async function onInteraccionRegistrada() {
           </button>
         </div>
 
-        <div class="grid grid-cols-3 gap-3 mb-4">
+        <div v-if="puedeVerResumenTickets" class="grid grid-cols-3 gap-3 mb-4">
           <div class="bg-gray-50 rounded-xl p-3 text-center">
             <p class="text-xs text-gray-400">Total tickets</p>
             <p class="text-xl font-semibold text-gray-800">{{ totalTickets }}</p>
