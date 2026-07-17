@@ -172,10 +172,17 @@ export function useCitasCapacitacion() {
     idsCitasDescartadas.value = new Set((data ?? []).map((d) => `${d.cita_id}:${d.umbral_minutos}`))
   }
 
+  async function eliminarCita(id: string): Promise<void> {
+    const { data, error } = await supabase.from('citas_capacitacion').delete().eq('id', id).select()
+    if (error) throw error
+    if (!data?.length) throw new Error('No se pudo eliminar la capacitación')
+  }
+
   return {
     fetchCitas,
     crearCita,
     actualizarCita,
+    eliminarCita,
     citasProximas,
     refrescarCitasProximas,
     descartarCitaProxima,

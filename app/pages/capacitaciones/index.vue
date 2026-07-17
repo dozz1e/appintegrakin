@@ -7,7 +7,7 @@ definePageMeta({
   permiso: { resource: 'capacitaciones', actions: ['view', 'view_all'] },
 })
 
-const { fetchCitas, crearCita, actualizarCita } = useCitasCapacitacion()
+const { fetchCitas, crearCita, actualizarCita, eliminarCita } = useCitasCapacitacion()
 const { success, error } = useToast()
 const { can } = usePermissions()
 
@@ -19,6 +19,8 @@ const citaEditando = ref<CitaCapacitacionConNombres | null>(null)
 const filtroDesde = ref('')
 const filtroHasta = ref('')
 const fechaSeleccionada = ref<string | null>(null)
+const aEliminar = ref<CitaCapacitacionConNombres | null>(null)
+const eliminando = ref(false)
 
 function diaLocal(fechaIso: string): string {
   const d = new Date(fechaIso)
@@ -117,6 +119,21 @@ async function cambiarEstado(c: CitaCapacitacionConNombres, estado: 'completada'
   }
 }
 
+async function onConfirmarEliminar() {
+  if (!aEliminar.value) return
+  eliminando.value = true
+  try {
+    await eliminarCita(aEliminar.value.id)
+    citas.value = citas.value.filter((c) => c.id !== aEliminar.value?.id)
+    aEliminar.value = null
+    success('Capacitación eliminada')
+  } catch (e) {
+    error('No se pudo eliminar la capacitación')
+  } finally {
+    eliminando.value = false
+  }
+}
+
 function formatearFecha(fecha: string) {
   return new Date(fecha).toLocaleString('es-CL', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false })
 }
@@ -193,6 +210,14 @@ function formatearFecha(fecha: string) {
               >
                 Cancelar
               </button>
+              <button
+                v-if="can('capacitaciones', 'delete')"
+                class="text-gray-300 hover:text-red-600 transition-colors p-1"
+                title="Eliminar"
+                @click="aEliminar = c"
+              >
+                <Icon name="mdi:trash-can-outline" class="w-4 h-4" />
+              </button>
             </div>
           </li>
         </ul>
@@ -206,5 +231,14 @@ function formatearFecha(fecha: string) {
     >
       <CapacitacionesCitaForm :model-value="citaEditando ?? undefined" :cargando="guardando" @submit="onSubmit" />
     </SharedModal>
+
+    <SharedConfirmDialog
+      :open="!!aEliminar"
+      titulo="Eliminar capacitación"
+      mensaje="¿Eliminar esta capacitación? Esta acción no se puede deshacer."
+      :cargando="eliminando"
+      @confirmar="onConfirmarEliminar"
+      @cancelar="aEliminar = null"
+    />
   </div>
 </template>
