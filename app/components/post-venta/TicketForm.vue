@@ -70,6 +70,10 @@ function validar(): boolean {
     : form.cliente_id ? '' : 'Debes seleccionar un cliente'
   errores.producto_id = form.producto_id ? '' : 'Debes seleccionar un equipo'
   errores.fecha_ingreso = form.fecha_ingreso ? '' : 'La fecha de ingreso es obligatoria'
+  errores.fecha_tope =
+    form.fecha_tope && form.fecha_ingreso && form.fecha_tope <= form.fecha_ingreso
+      ? 'La fecha tope debe ser posterior a la fecha de ingreso'
+      : ''
   return !Object.values(errores).some(Boolean)
 }
 
@@ -175,6 +179,7 @@ const inputClase =
       <div>
         <label class="block text-sm font-medium mb-1 text-gray-700">Fecha tope</label>
         <input v-model="form.fecha_tope" type="date" :class="inputClase" @click="abrirPicker" />
+        <p v-if="errores.fecha_tope" class="text-sm text-red-600 mt-1">{{ errores.fecha_tope }}</p>
       </div>
     </div>
 
