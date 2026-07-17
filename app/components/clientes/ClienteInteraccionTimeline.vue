@@ -218,7 +218,7 @@ async function onConfirmarEliminar() {
         <div v-else class="flex-1">
           <div class="flex items-center gap-2">
             <SharedBadge :label="colorCanal(i.canal).label" :clases="colorCanal(i.canal).clases" />
-            <span class="text-xs text-gray-400">{{ formatearFecha(i.created_at) }}</span>
+            <span class="text-sm text-gray-400">{{ formatearFecha(i.created_at) }}</span>
           </div>
           <SharedTextoExpandible :texto="i.nota" class="text-sm text-gray-700 mt-1" />
           <SharedGaleriaImagenes entidad-tipo="cliente_interaccion" :entidad-id="i.id" :permitir-agregar="false" class="mt-2" />

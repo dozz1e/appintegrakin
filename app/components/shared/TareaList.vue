@@ -187,8 +187,8 @@ function formatearFecha(fecha: string) {
       <li
         v-for="t in tareas"
         :key="t.id"
-        class="flex items-start gap-3 p-2 rounded-lg"
-        :class="esVencida(t) ? 'bg-red-50' : 'bg-gray-50'"
+        class="flex items-start gap-3 py-2 pl-3 pr-2 rounded-lg border-l-4"
+        :class="esVencida(t) ? 'bg-red-50 border-red-300' : 'bg-gray-50 border-gray-300'"
       >
         <input
           v-if="idEditando !== t.id"

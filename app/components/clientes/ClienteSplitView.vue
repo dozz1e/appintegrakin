@@ -363,7 +363,7 @@ async function onInteraccionRegistrada() {
             <li
               v-for="t in ticketsSeleccionado"
               :key="t.id"
-              class="text-sm border border-gray-100 rounded-xl p-3 flex items-center justify-between"
+              class="text-sm border border-gray-100 border-l-4 border-l-gray-300 rounded-xl p-3 flex items-center justify-between"
             >
               <NuxtLink :to="`/tickets/${t.id}`" class="hover:underline text-gray-700 font-medium">
                 {{ t.titulo }}

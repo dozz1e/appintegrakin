@@ -204,7 +204,7 @@ async function onConfirmarEliminar() {
     <p v-else-if="!ventas.length" class="text-sm text-gray-400">Sin ventas todavía.</p>
 
     <ul v-else class="space-y-2">
-      <li v-for="v in ventas" :key="v.id" class="p-2 rounded-lg bg-gray-50 text-sm">
+      <li v-for="v in ventas" :key="v.id" class="py-2 pl-3 pr-2 rounded-lg bg-gray-50 text-sm border-l-4 border-gray-300">
         <div v-if="idEditando === v.id" class="space-y-2">
           <ProductosProductoBuscador v-model="productoIdEditado" />
           <div class="flex flex-wrap gap-2">
