@@ -155,8 +155,9 @@ export function useTicketsPostVenta() {
   }
 
   async function eliminarTicket(id: string): Promise<void> {
-    const { error } = await supabase.from('tickets_post_venta').delete().eq('id', id)
+    const { data, error } = await supabase.from('tickets_post_venta').delete().eq('id', id).select()
     if (error) throw error
+    if (!data?.length) throw new Error('No se pudo eliminar el ticket')
   }
 
   async function fetchTicketsPorIds(ids: string[]): Promise<Pick<TicketPostVenta, 'id' | 'n_guia'>[]> {
