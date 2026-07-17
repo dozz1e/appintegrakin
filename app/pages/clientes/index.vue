@@ -8,7 +8,7 @@ definePageMeta({
 })
 
 const { fetchClientes, importClientes, deleteCliente } = useClientes()
-const { fetchUsuarios } = useUsuarios()
+const { fetchUsuariosPorRol } = useUsuarios()
 const { can } = usePermissions()
 const { parsearCSV, descargarCSV } = useCsv()
 const { success, error } = useToast()
@@ -23,7 +23,7 @@ const eliminando = ref(false)
 
 onMounted(async () => {
   clientes.value = await fetchClientes()
-  usuarios.value = await fetchUsuarios()
+  usuarios.value = await fetchUsuariosPorRol('ventas')
   cargando.value = false
 })
 
