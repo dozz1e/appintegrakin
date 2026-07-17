@@ -381,7 +381,7 @@ async function onInteraccionRegistrada() {
       </div>
     </div>
 
-    <div v-if="seleccionado" class="w-96 shrink-0">
+    <div v-if="seleccionado" class="w-[28rem] shrink-0">
       <SharedTareaList entidad-tipo="cliente" :entidad-id="seleccionado.id" />
     </div>
 
