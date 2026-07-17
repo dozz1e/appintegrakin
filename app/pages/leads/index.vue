@@ -9,7 +9,7 @@ definePageMeta({
 
 const { fetchLeads, cambiarEstado, importLeads } = useLeads()
 const { can } = usePermissions()
-const { fetchUsuarios } = useUsuarios()
+const { fetchUsuariosPorRol } = useUsuarios()
 const { parsearCSV, descargarCSV } = useCsv()
 const { success, error } = useToast()
 
@@ -23,7 +23,7 @@ const filtroVendedor = ref('')
 
 onMounted(async () => {
   leads.value = await fetchLeads()
-  usuarios.value = await fetchUsuarios()
+  usuarios.value = await fetchUsuariosPorRol('ventas')
   cargando.value = false
 })
 
