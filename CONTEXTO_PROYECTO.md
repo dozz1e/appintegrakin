@@ -5,7 +5,8 @@
 > cuenta nueva de Claude (pegarlo como primer mensaje) o para cualquier
 > desarrollador que se sume.
 >
-> Última actualización: 15 de julio de 2026 (historial de estados y archivado).
+> Última actualización: 16 de julio de 2026 (editar/eliminar ventas +
+> productos comprados en tickets).
 
 ## Stack y dependencias reales
 
@@ -287,14 +288,22 @@ el cliente. Solo se puebla vía SQL Editor de Supabase.
   (fecha y hora), combinada en `ClientesVentaList.vue` igual que
   `fecha_vencimiento` de tareas pero **sin** default de hora — hora vacía
   es error de validación, no se omite. **Con `owner_id`** (a diferencia de
-  `productos`) — RLS igual que `tickets` (propio vs `view_all`). UI: nueva
-  pestaña "Ventas" en `ClienteSplitView.vue` (antes solo tenía
-  Información/Tickets), formulario de alta + historial de solo lectura, sin
-  editar/borrar. Sin precio de lista en `productos` — el valor se tipea a
-  mano en cada venta. Permisos propios (`ventas.view/view_all/create/edit/
-  delete`); seed inicial: `dueña` (todo), rol `ventas` y `post_venta`
-  (view+create+edit), `finanzas`/`operaciones` (view_all), `logistica`
-  (view).
+  `productos`) — RLS igual que `tickets` (propio vs `view_all`). UI: pestaña
+  "Ventas" en `ClienteSplitView.vue`, formulario de alta con edición y
+  borrado inline (mismo patrón que `TareaList.vue`), gateado por
+  `can('ventas','edit'/'delete')`. Sin precio de lista en `productos` — el
+  valor se tipea a mano en cada venta. Permisos propios (`ventas.view/
+  view_all/create/edit/delete`); seed inicial: `dueña` (todo), rol `ventas`
+  y `post_venta` (view+create+edit, sin delete), `finanzas`/`operaciones`
+  (view_all), `logistica` (view).
+- **`ticket_productos`** (ver `20260716060000_ticket_productos.sql`):
+  relación muchos a muchos entre `tickets` (servicio técnico, no
+  `tickets_post_venta`) y `productos` — un ticket puede tener varios
+  productos comprados asociados. `ticket_id, producto_id, created_by,
+  created_at`, unique del par. RLS en cascada igual patrón que
+  `entidad_imagenes`: la condición reusa las reglas de
+  `tickets_select`/`tickets_update` contra la fila padre, sin trigger de
+  auditoría propio.
 - **`tareas`** (ver `20260705000000_tareas.sql`): `entidad_tipo
   (lead/cliente/ticket), entidad_id, titulo, fecha_vencimiento, completada,
   owner_id, created_by`. Sin trigger de `updated_at` (columna con default
@@ -635,6 +644,20 @@ el cliente. Solo se puebla vía SQL Editor de Supabase.
     con descarte independiente por umbral cruzado (ver schema de
     `tareas_descartadas`/`citas_descartadas` más arriba y spec
     `2026-07-16-multiples-umbrales-alertas-design.md`).
+34. ✅ **Editar/eliminar ventas + campo valor** — `VentaList.vue` pasó de
+    solo-alta a permitir editar (producto/fecha/valor) y eliminar,
+    mismo patrón inline que `TareaList.vue`, gateado por
+    `can('ventas','edit'/'delete')`. De paso se agregó el input de
+    `valor` que faltaba en el form (antes `crearVenta` siempre recibía
+    `0` hardcodeado) y se reemplazó el buscador de producto hecho a
+    mano por el componente compartido `ProductosProductoBuscador`.
+35. ✅ **Productos comprados en tickets de servicio técnico** — tabla
+    nueva `ticket_productos` (ver schema arriba). Al elegir/tener
+    cliente en `TicketForm.vue` aparecen chips de productos que compró
+    (misma fuente que el picker de post-venta, `fetchVentasPorCliente`)
+    pero de selección múltiple; se asocian al crear el ticket y se
+    puede agregar/quitar al editarlo (ver spec
+    `2026-07-16-ventas-editar-eliminar-ticket-productos-design.md`).
 
 ## Pendientes sueltos
 
@@ -646,12 +669,13 @@ el cliente. Solo se puebla vía SQL Editor de Supabase.
 - Asignar clientes por vendedor — funcionalidad para asignar/reasignar
   `owner_id` de clientes a un vendedor (distinto del filtro de solo lectura
   que ya existe en `/clientes`, ver punto 21 del Roadmap).
-- **Responsive, fase 2-4** (fase 1 completa: shell/sidebar+topbar, ver
-  spec `2026-07-16-responsive-shell-design.md`) — falta: tablas/listados
-  (clientes, productos, admin, etc.) en pantalla angosta; Kanban
-  (leads/tickets/post-venta); formularios/modales y vistas de detalle
-  multi-columna (`ClienteSplitView`, leads 3 columnas, tickets 2
-  columnas) colapsando a 1 columna.
+- **Responsive, fase 2 y 4** (fase 1 shell y fase 3 Kanban ya completas,
+  ver specs `2026-07-16-responsive-shell-design.md` y
+  `2026-07-16-responsive-kanban-design.md`) — falta: tablas/listados
+  (clientes, productos, admin, etc.) en pantalla angosta (fase 2);
+  formularios/modales y vistas de detalle multi-columna
+  (`ClienteSplitView`, leads 3 columnas, tickets 2 columnas) colapsando
+  a 1 columna (fase 4).
 - Fix Supabase Auth: el link de invitación de usuario nuevo manda a
   `localhost` en vez del dominio real — revisar "Site URL"/"Redirect URLs"
   en la configuración de Auth del proyecto Supabase.
