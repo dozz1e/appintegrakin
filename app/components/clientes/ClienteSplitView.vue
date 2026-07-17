@@ -148,8 +148,11 @@ async function onInteraccionRegistrada() {
 </script>
 
 <template>
-  <div class="flex gap-4 items-start">
-    <div class="w-72 shrink-0 bg-white border border-gray-100 rounded-2xl shadow-sm p-3 max-h-[70vh] overflow-y-auto">
+  <div class="flex flex-col lg:flex-row gap-4 items-start">
+    <div
+      class="w-full lg:w-72 shrink-0 bg-white border border-gray-100 rounded-2xl shadow-sm p-3 max-h-[70vh] overflow-y-auto"
+      :class="seleccionadoId ? 'hidden lg:block' : ''"
+    >
       <input
         v-model="busqueda"
         type="text"
@@ -208,12 +211,21 @@ async function onInteraccionRegistrada() {
 
     <div
       v-if="!seleccionado"
-      class="flex-1 min-w-0 bg-white border border-gray-100 rounded-2xl shadow-sm p-8 text-center text-sm text-gray-400"
+      class="hidden lg:block flex-1 min-w-0 bg-white border border-gray-100 rounded-2xl shadow-sm p-8 text-center text-sm text-gray-400"
     >
       Selecciona un cliente de la lista para ver su detalle.
     </div>
 
-    <div v-else class="flex-1 min-w-0">
+    <div v-else class="flex-1 min-w-0 w-full">
+      <button
+        type="button"
+        class="lg:hidden flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-3"
+        @click="seleccionadoId = null"
+      >
+        <Icon name="mdi:arrow-left" class="w-4 h-4" />
+        Volver a la lista
+      </button>
+
       <div class="bg-white border border-gray-100 rounded-2xl shadow-sm p-5">
         <div class="flex items-center justify-between gap-3 mb-4">
           <div class="flex items-center gap-3">
@@ -381,7 +393,7 @@ async function onInteraccionRegistrada() {
       </div>
     </div>
 
-    <div v-if="seleccionado" class="w-[28rem] shrink-0">
+    <div v-if="seleccionado" class="w-full lg:w-[28rem] shrink-0">
       <SharedTareaList entidad-tipo="cliente" :entidad-id="seleccionado.id" />
     </div>
 
