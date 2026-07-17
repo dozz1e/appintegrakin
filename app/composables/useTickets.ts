@@ -85,6 +85,16 @@ export const useTickets = () => {
     if (error) throw error
   }
 
+  // RPC en vez de select directo: tickets_select exige permiso 'tickets',
+  // pero el conteo (cards de la ficha de cliente) lo debe ver cualquiera
+  // que pueda ver al cliente. fn_conteo_tickets_cliente (security definer)
+  // valida eso adentro y expone solo el conteo, no las filas.
+  const fetchConteoTicketsCliente = async (clienteId: string) => {
+    const { data, error } = await supabase.rpc('fn_conteo_tickets_cliente', { p_cliente_id: clienteId }).single()
+    if (error) throw error
+    return data as { total: number; abiertos: number; resueltos: number }
+  }
+
   const fetchTicketsPorIds = async (ids: string[]): Promise<Pick<Ticket, 'id' | 'titulo'>[]> => {
     if (!ids.length) return []
     const { data, error } = await supabase.from('tickets').select('id, titulo').in('id', ids)
@@ -110,6 +120,7 @@ export const useTickets = () => {
   return {
     fetchTickets,
     fetchTicketsPorCliente,
+    fetchConteoTicketsCliente,
     getTicket,
     createTicket,
     updateTicket,

@@ -6,7 +6,7 @@ import type { Usuario } from '~/composables/useUsuarios'
 const props = defineProps<{ clientes: Cliente[]; usuarios: Usuario[]; clienteIdInicial?: string }>()
 const emit = defineEmits<{ eliminar: [cliente: Cliente]; actualizar: [cliente: Cliente] }>()
 
-const { fetchTicketsPorCliente } = useTickets()
+const { fetchTicketsPorCliente, fetchConteoTicketsCliente } = useTickets()
 const { fetchUltimasInteracciones } = useClienteInteracciones()
 const { asignarCliente, updateCliente, subirImagenCliente } = useClientes()
 const { can } = usePermissions()
@@ -65,6 +65,7 @@ const filtroFechaHasta = ref('')
 const filtroAntiguedad = ref('')
 const seleccionadoId = ref<string | null>(props.clienteIdInicial ?? null)
 const ticketsSeleccionado = ref<Ticket[]>([])
+const conteoTickets = ref({ total: 0, abiertos: 0, resueltos: 0 })
 const tabActiva = ref<'info' | 'tickets' | 'ventas' | 'interacciones'>('info')
 const ultimasInteracciones = ref<Record<string, string>>({})
 
@@ -126,14 +127,17 @@ function formatearFechaCorta(fecha: string) {
 
 const seleccionado = computed(() => props.clientes.find((c) => c.id === seleccionadoId.value) ?? null)
 
-const totalTickets = computed(() => ticketsSeleccionado.value.length)
-const ticketsAbiertos = computed(() => ticketsSeleccionado.value.filter((t) => t.estado !== 'cerrado').length)
-const ticketsResueltos = computed(() => ticketsSeleccionado.value.filter((t) => t.estado === 'resuelto').length)
+const totalTickets = computed(() => conteoTickets.value.total)
+const ticketsAbiertos = computed(() => conteoTickets.value.abiertos)
+const ticketsResueltos = computed(() => conteoTickets.value.resueltos)
 
 watch(seleccionadoId, async (id) => {
   tabActiva.value = 'info'
   ticketsSeleccionado.value = []
-  if (id && puedeVerTickets.value) {
+  conteoTickets.value = { total: 0, abiertos: 0, resueltos: 0 }
+  if (!id) return
+  conteoTickets.value = await fetchConteoTicketsCliente(id)
+  if (puedeVerTickets.value) {
     ticketsSeleccionado.value = await fetchTicketsPorCliente(id)
   }
 })
@@ -245,7 +249,7 @@ async function onInteraccionRegistrada() {
           </button>
         </div>
 
-        <div v-if="puedeVerTickets" class="grid grid-cols-3 gap-3 mb-4">
+        <div class="grid grid-cols-3 gap-3 mb-4">
           <div class="bg-gray-50 rounded-xl p-3 text-center">
             <p class="text-xs text-gray-400">Total tickets</p>
             <p class="text-xl font-semibold text-gray-800">{{ totalTickets }}</p>
