@@ -21,6 +21,7 @@
 import KpiClientesTotales from '~/components/widgets/KpiClientesTotales.vue'
 import KpiLeadsActivos from '~/components/widgets/KpiLeadsActivos.vue'
 import KpiTicketsAbiertos from '~/components/widgets/KpiTicketsAbiertos.vue'
+import KpiTicketsAbiertosPostVenta from '~/components/widgets/KpiTicketsAbiertosPostVenta.vue'
 import KpiTasaConversion from '~/components/widgets/KpiTasaConversion.vue'
 import KpiTotalLeads from '~/components/widgets/KpiTotalLeads.vue'
 import KpiLeadsGanados from '~/components/widgets/KpiLeadsGanados.vue'
@@ -32,6 +33,7 @@ const componentMap: Record<string, any> = {
   WidgetsKpiClientesTotales: KpiClientesTotales,
   WidgetsKpiLeadsActivos: KpiLeadsActivos,
   WidgetsKpiTicketsAbiertos: KpiTicketsAbiertos,
+  WidgetsKpiTicketsAbiertosPostVenta: KpiTicketsAbiertosPostVenta,
   WidgetsKpiTasaConversion: KpiTasaConversion,
   WidgetsKpiTotalLeads: KpiTotalLeads,
   WidgetsKpiLeadsGanados: KpiLeadsGanados,
