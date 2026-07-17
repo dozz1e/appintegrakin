@@ -237,14 +237,16 @@ function formatearFecha(fecha: string) {
           </div>
         </div>
         <template v-else>
-          <SharedTextoExpandible
-            :texto="t.titulo"
-            class="flex-1 min-w-0 text-sm"
-            :class="t.completada ? 'line-through text-gray-400' : 'text-gray-700'"
-          />
-          <span v-if="t.fecha_vencimiento" class="text-xs shrink-0" :class="esVencida(t) ? 'text-red-600 font-medium' : 'text-gray-400'">
-            {{ formatearFecha(t.fecha_vencimiento) }}
-          </span>
+          <div class="flex-1 min-w-0">
+            <SharedTextoExpandible
+              :texto="t.titulo"
+              class="text-sm"
+              :class="t.completada ? 'line-through text-gray-400' : 'text-gray-700'"
+            />
+            <span v-if="t.fecha_vencimiento" class="block text-sm mt-1" :class="esVencida(t) ? 'text-red-600 font-medium' : 'text-gray-400'">
+              {{ formatearFecha(t.fecha_vencimiento) }}
+            </span>
+          </div>
         </template>
         <div v-if="idEditando !== t.id" class="flex gap-3 shrink-0">
           <button
