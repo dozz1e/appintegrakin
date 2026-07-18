@@ -27,7 +27,8 @@ const esActivoListado = (path: string) =>
   route.path === path ||
   (route.path.startsWith(path + '/') &&
     !route.path.startsWith(`${path}/historial-movimientos`) &&
-    !route.path.startsWith(`${path}/cerrados`))
+    !route.path.startsWith(`${path}/cerrados`) &&
+    !route.path.startsWith(`${path}/dashboard`))
 
 const navCrm = [
   { path: '/clientes', label: 'Clientes', permiso: ['view', 'view_all'] as const, resource: 'clientes', icono: 'mdi:account-group-outline' },
@@ -88,6 +89,7 @@ const navCrm = [
         <div v-if="can('tickets', 'view') || can('tickets', 'view_all')">
           <p class="px-3 text-[11px] font-semibold text-ink-muted uppercase tracking-wide mb-1">Servicio Técnico</p>
           <div class="space-y-0.5">
+            <SharedNavLink to="/tickets/dashboard" icono="mdi:view-dashboard-outline" :activo="esActivo('/tickets/dashboard')">Dashboard</SharedNavLink>
             <SharedNavLink to="/tickets" icono="mdi:wrench-outline" :activo="esActivoListado('/tickets')">Tickets</SharedNavLink>
             <SharedNavLink to="/tickets/historial-movimientos" icono="mdi:history" :activo="esActivo('/tickets/historial-movimientos')">
               Historial de movimientos
@@ -99,6 +101,7 @@ const navCrm = [
         <div v-if="can('tickets_post_venta', 'view')">
           <p class="px-3 text-[11px] font-semibold text-ink-muted uppercase tracking-wide mb-1">Post Venta</p>
           <div class="space-y-0.5">
+            <SharedNavLink to="/post-venta/dashboard" icono="mdi:view-dashboard-outline" :activo="esActivo('/post-venta/dashboard')">Dashboard</SharedNavLink>
             <SharedNavLink to="/post-venta" icono="mdi:truck-delivery-outline" :activo="esActivoListado('/post-venta')">Tickets</SharedNavLink>
             <SharedNavLink to="/post-venta/historial-movimientos" icono="mdi:history" :activo="esActivo('/post-venta/historial-movimientos')">
               Historial de movimientos
