@@ -24,6 +24,7 @@ const guardandoEdicion = ref(false)
 const titulo = ref('')
 const fechaVencimiento = ref('')
 const horaVencimiento = ref('')
+const modalNuevaAbierto = ref(false)
 
 async function cargar() {
   cargando.value = true
@@ -55,6 +56,7 @@ async function onSubmit() {
     titulo.value = ''
     fechaVencimiento.value = ''
     horaVencimiento.value = ''
+    modalNuevaAbierto.value = false
     await cargar()
     success('Tarea creada')
   } catch (e) {
@@ -150,44 +152,21 @@ function formatearFecha(fecha: string) {
 <template>
   <SharedCard>
     <div class="flex items-center gap-2 mb-4">
-      <h2 class="text-sm font-semibold text-ink">Tareas y recordatorios</h2>
+      <h2 class="text-sm font-semibold text-ink flex-1">Tareas y recordatorios</h2>
       <span
         v-if="tareas.length"
         class="text-xs font-medium text-ink-muted bg-surface-2 rounded-full px-2 py-0.5"
       >
         {{ tareas.length }}
       </span>
-    </div>
-
-    <div class="mb-4 space-y-2">
-      <input
-        v-model="titulo"
-        type="text"
-        placeholder="Ej: Llamar en 3 días"
-        class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30"
-        @keyup.enter="onSubmit"
-      />
-      <div class="flex flex-wrap gap-2">
-        <input
-          v-model="fechaVencimiento"
-          type="date"
-          class="flex-1 min-w-0 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30"
-          @click="abrirPicker"
-        />
-        <input
-          v-model="horaVencimiento"
-          type="time"
-          class="flex-1 min-w-0 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30"
-          @click="abrirPicker"
-        />
-        <button
-          :disabled="guardando || !titulo.trim()"
-          class="w-full sm:w-auto bg-[#1075B5] hover:bg-[#0C5D91] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
-          @click="onSubmit"
-        >
-          Agregar
-        </button>
-      </div>
+      <button
+        type="button"
+        title="Nueva tarea"
+        class="w-8 h-8 flex items-center justify-center rounded-full bg-primary text-ink-onprimary hover:bg-primary-hover transition-colors duration-150"
+        @click="modalNuevaAbierto = true"
+      >
+        <Icon name="mdi:plus" class="w-5 h-5" />
+      </button>
     </div>
 
     <p v-if="cargando" class="text-sm text-gray-400">Cargando tareas...</p>
@@ -289,5 +268,38 @@ function formatearFecha(fecha: string) {
       @confirmar="onConfirmarEliminar"
       @cancelar="aEliminar = null"
     />
+
+    <SharedModal :open="modalNuevaAbierto" titulo="Nueva tarea" @cerrar="modalNuevaAbierto = false">
+      <div class="space-y-2">
+        <input
+          v-model="titulo"
+          type="text"
+          placeholder="Ej: Llamar en 3 días"
+          class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30"
+          @keyup.enter="onSubmit"
+        />
+        <div class="flex flex-wrap gap-2">
+          <input
+            v-model="fechaVencimiento"
+            type="date"
+            class="flex-1 min-w-0 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30"
+            @click="abrirPicker"
+          />
+          <input
+            v-model="horaVencimiento"
+            type="time"
+            class="flex-1 min-w-0 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30"
+            @click="abrirPicker"
+          />
+        </div>
+        <button
+          :disabled="guardando || !titulo.trim()"
+          class="w-full bg-[#1075B5] hover:bg-[#0C5D91] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+          @click="onSubmit"
+        >
+          Agregar
+        </button>
+      </div>
+    </SharedModal>
   </SharedCard>
 </template>
