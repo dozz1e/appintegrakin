@@ -6,15 +6,57 @@ import type { Usuario } from '~/composables/useUsuarios'
 const props = defineProps<{ clientes: Cliente[]; usuarios: Usuario[]; clienteIdInicial?: string }>()
 const emit = defineEmits<{ eliminar: [cliente: Cliente]; actualizar: [cliente: Cliente] }>()
 
-const { fetchTicketsPorCliente, fetchConteoTicketsCliente } = useTickets()
+const { fetchTicketsPorCliente, fetchConteoTicketsCliente, createTicket } = useTickets()
 const { fetchUltimasInteracciones } = useClienteInteracciones()
 const { asignarCliente, updateCliente, subirImagenCliente } = useClientes()
+const { agregarProductoATicket } = useTicketProductos()
+const { subirImagen } = useEntidadImagenes()
 const { can } = usePermissions()
 const { success, error } = useToast()
 
 const asignando = ref(false)
 const modalEditarAbierto = ref(false)
 const guardandoEdicion = ref(false)
+const modalNuevoTicketAbierto = ref(false)
+const guardandoTicket = ref(false)
+
+async function recargarTickets() {
+  if (!seleccionado.value) return
+  if (puedeVerResumenTickets.value) {
+    conteoTickets.value = await fetchConteoTicketsCliente(seleccionado.value.id)
+  }
+  if (puedeVerTickets.value) {
+    ticketsSeleccionado.value = await fetchTicketsPorCliente(seleccionado.value.id)
+  }
+}
+
+async function onSubmitTicket(payload: Partial<Ticket>, archivo: File | null, productosIds: string[]) {
+  guardandoTicket.value = true
+  try {
+    const ticket = await createTicket(payload)
+    if (archivo) {
+      try {
+        await subirImagen('ticket', ticket.id, archivo)
+      } catch (e) {
+        error('Ticket creado, pero no se pudo subir la imagen')
+      }
+    }
+    if (productosIds.length) {
+      try {
+        await Promise.all(productosIds.map((id) => agregarProductoATicket(ticket.id, id)))
+      } catch (e) {
+        error('Ticket creado, pero no se pudieron asociar los productos')
+      }
+    }
+    modalNuevoTicketAbierto.value = false
+    await recargarTickets()
+    success('Ticket creado correctamente')
+  } catch (e) {
+    error('No se pudo crear el ticket. Intenta de nuevo.')
+  } finally {
+    guardandoTicket.value = false
+  }
+}
 
 async function onAsignarVendedor(vendedorId: string) {
   if (!seleccionado.value) return
@@ -379,14 +421,15 @@ async function onInteraccionRegistrada() {
         <div v-else-if="tabActiva === 'tickets'">
           <div class="flex items-center justify-between mb-3">
             <p class="text-base font-semibold text-gray-700">Tickets de servicio técnico</p>
-            <NuxtLink
+            <button
               v-if="can('tickets', 'create')"
-              :to="`/tickets/nuevo?cliente_id=${seleccionado.id}`"
+              type="button"
               title="Nuevo ticket"
               class="w-8 h-8 flex items-center justify-center rounded-full bg-primary text-ink-onprimary hover:bg-primary-hover transition-colors duration-150"
+              @click="modalNuevoTicketAbierto = true"
             >
               <Icon name="mdi:plus" class="w-5 h-5" />
-            </NuxtLink>
+            </button>
           </div>
           <ul v-if="ticketsSeleccionado.length" class="space-y-2">
             <li
@@ -420,6 +463,20 @@ async function onInteraccionRegistrada() {
       @cerrar="modalEditarAbierto = false"
     >
       <ClientesClienteForm :model-value="seleccionado" :cargando="guardandoEdicion" @submit="onSubmitEdicion" />
+    </SharedModal>
+
+    <SharedModal
+      v-if="seleccionado"
+      :open="modalNuevoTicketAbierto"
+      titulo="Nuevo ticket"
+      @cerrar="modalNuevoTicketAbierto = false"
+    >
+      <TicketsTicketForm
+        :cargando="guardandoTicket"
+        :cliente-id-fijo="seleccionado.id"
+        :cliente-nombre-fijo="seleccionado.razon_social"
+        @submit="onSubmitTicket"
+      />
     </SharedModal>
   </div>
 </template>
