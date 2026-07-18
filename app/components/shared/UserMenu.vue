@@ -27,7 +27,7 @@ function abrirPerfil() {
 <template>
   <div ref="contenedor" class="relative">
     <button
-      class="flex items-center gap-2.5 rounded-xl border border-border bg-surface-2/70 px-2.5 py-1.5 hover:bg-surface-2 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-ring"
+      class="flex items-center gap-2.5 rounded-xl border border-border bg-surface px-2.5 py-1.5 shadow-sm hover:bg-surface-2 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-ring"
       @click="abierto = !abierto"
     >
       <SharedAvatar

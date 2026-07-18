@@ -16,13 +16,18 @@ const textoSlot = computed(() => {
   <NuxtLink
     :to="props.to"
     :title="props.colapsado ? textoSlot : undefined"
-    class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-ring"
+    class="flex items-center gap-3 px-2 py-1.5 rounded-lg text-sm font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-ring"
     :class="[
       props.activo ? 'bg-primary-subtle text-primary-ink' : 'text-ink-secondary hover:bg-surface-2 hover:text-ink',
-      props.colapsado ? 'justify-center px-0' : '',
+      props.colapsado ? 'justify-center' : '',
     ]"
   >
-    <Icon v-if="icono" :name="icono" class="w-4 h-4 shrink-0" />
+    <span
+      v-if="icono"
+      class="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center shrink-0"
+    >
+      <Icon :name="icono" class="w-5 h-5" :class="props.activo ? 'text-primary' : 'text-ink-secondary'" />
+    </span>
     <span
       class="truncate transition-[opacity,width] duration-150 overflow-hidden"
       :class="props.colapsado ? 'w-0 opacity-0' : 'w-auto opacity-100'"

@@ -57,13 +57,13 @@ const navCrm = [
       @click="mobileMenuAbierto = false"
     />
     <aside
-      class="fixed inset-y-0 left-0 z-40 w-64 bg-surface border-r border-border flex flex-col transition-[transform,width] duration-200 lg:static lg:translate-x-0 lg:shrink-0"
+      class="fixed inset-y-0 left-0 z-40 w-64 bg-surface border-r border-border lg:bg-transparent lg:border-r-0 flex flex-col transition-[transform,width] duration-200 lg:static lg:translate-x-0 lg:shrink-0"
       :class="[
         mobileMenuAbierto ? 'translate-x-0' : '-translate-x-full',
         sidebarColapsado ? 'lg:w-[4.5rem]' : 'lg:w-64',
       ]"
     >
-      <div class="h-16 flex items-center border-b border-border" :class="sidebarMostrandoColapsado ? 'justify-center px-2' : 'justify-between px-5'">
+      <div class="h-16 flex items-center border-b border-border lg:border-transparent" :class="sidebarMostrandoColapsado ? 'justify-center px-2' : 'justify-between px-5'">
         <SharedAppLogo v-if="!sidebarMostrandoColapsado" />
         <button
           type="button"
