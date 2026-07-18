@@ -4,7 +4,6 @@ const { logout } = useAuth()
 
 const abierto = ref(false)
 const perfilAbierto = ref(false)
-const configuracionAbierta = ref(false)
 const contenedor = ref<HTMLElement | null>(null)
 
 onMounted(() => {
@@ -23,17 +22,12 @@ function abrirPerfil() {
   abierto.value = false
   perfilAbierto.value = true
 }
-
-function abrirConfiguracion() {
-  abierto.value = false
-  configuracionAbierta.value = true
-}
 </script>
 
 <template>
   <div ref="contenedor" class="relative">
     <button
-      class="flex items-center gap-3 rounded-lg px-2 py-1 hover:bg-surface-2 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-ring"
+      class="flex items-center gap-2.5 rounded-xl border border-border bg-surface-2/70 px-2.5 py-1.5 hover:bg-surface-2 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-ring"
       @click="abierto = !abierto"
     >
       <SharedAvatar
@@ -63,13 +57,6 @@ function abrirConfiguracion() {
       >
         Perfil
       </button>
-      <button
-        type="button"
-        class="w-full text-left px-4 py-2 text-sm text-ink hover:bg-surface-2 transition-colors duration-150"
-        @click="abrirConfiguracion"
-      >
-        Configuración
-      </button>
       <hr class="border-border my-1" />
       <button
         type="button"
@@ -81,6 +68,5 @@ function abrirConfiguracion() {
     </div>
 
     <SharedPerfilModal :open="perfilAbierto" @cerrar="perfilAbierto = false" />
-    <SharedConfiguracionModal :open="configuracionAbierta" @cerrar="configuracionAbierta = false" />
   </div>
 </template>

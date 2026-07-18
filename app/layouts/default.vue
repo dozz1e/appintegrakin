@@ -8,6 +8,18 @@ const { esSuperadmin } = useSuperadmin()
 const { perfil, cargarMiPerfil } = useMiPerfil()
 
 const mobileMenuAbierto = ref(false)
+const configAbierta = ref(false)
+
+// Colapso de sidebar es solo de escritorio (el botón que lo activa está
+// oculto en mobile) - persiste en localStorage para que no vuelva a
+// expandirse cada vez que se recarga la página.
+const sidebarColapsado = ref(false)
+const sidebarMostrandoColapsado = computed(() => sidebarColapsado.value && !mobileMenuAbierto.value)
+
+function alternarSidebar() {
+  sidebarColapsado.value = !sidebarColapsado.value
+  localStorage.setItem('sidebar-colapsado', String(sidebarColapsado.value))
+}
 
 watch(() => route.path, () => {
   mobileMenuAbierto.value = false
@@ -15,6 +27,7 @@ watch(() => route.path, () => {
 
 onMounted(async () => {
   if (!perfil.value) await cargarMiPerfil()
+  sidebarColapsado.value = localStorage.getItem('sidebar-colapsado') === 'true'
 })
 
 const esActivo = (path: string) => route.path === path || route.path.startsWith(path + '/')
@@ -44,22 +57,33 @@ const navCrm = [
       @click="mobileMenuAbierto = false"
     />
     <aside
-      class="fixed inset-y-0 left-0 z-40 w-64 bg-surface border-r border-border flex flex-col transition-transform duration-200 lg:static lg:translate-x-0 lg:shrink-0"
-      :class="mobileMenuAbierto ? 'translate-x-0' : '-translate-x-full'"
+      class="fixed inset-y-0 left-0 z-40 w-64 bg-surface border-r border-border flex flex-col transition-[transform,width] duration-200 lg:static lg:translate-x-0 lg:shrink-0"
+      :class="[
+        mobileMenuAbierto ? 'translate-x-0' : '-translate-x-full',
+        sidebarColapsado ? 'lg:w-[4.5rem]' : 'lg:w-64',
+      ]"
     >
-      <div class="h-16 flex items-center px-5 border-b border-border">
-        <SharedAppLogo />
+      <div class="h-16 flex items-center border-b border-border" :class="sidebarMostrandoColapsado ? 'justify-center px-2' : 'justify-between px-5'">
+        <SharedAppLogo v-if="!sidebarMostrandoColapsado" />
+        <button
+          type="button"
+          class="hidden lg:flex w-7 h-7 items-center justify-center rounded-lg text-ink-muted hover:bg-surface-2 hover:text-ink transition-colors duration-150 shrink-0"
+          :title="sidebarColapsado ? 'Expandir menú' : 'Colapsar menú'"
+          @click="alternarSidebar"
+        >
+          <Icon :name="sidebarColapsado ? 'mdi:chevron-double-right' : 'mdi:chevron-double-left'" class="w-4 h-4" />
+        </button>
       </div>
 
-      <nav class="flex-1 overflow-y-auto py-4 px-3 space-y-6">
+      <nav class="flex-1 overflow-y-auto py-4 space-y-6" :class="sidebarMostrandoColapsado ? 'px-2' : 'px-3'">
         <div>
-          <SharedNavLink to="/" icono="mdi:view-dashboard-outline" :activo="esActivo('/') && route.path === '/'">
+          <SharedNavLink to="/" icono="mdi:view-dashboard-outline" :activo="esActivo('/') && route.path === '/'" :colapsado="sidebarMostrandoColapsado">
             Dashboard
           </SharedNavLink>
         </div>
 
         <div>
-          <p class="px-3 text-[11px] font-semibold text-ink-muted uppercase tracking-wide mb-1">CRM</p>
+          <p v-if="!sidebarMostrandoColapsado" class="px-3 text-[11px] font-semibold text-ink-muted uppercase tracking-wide mb-1">CRM</p>
           <div class="space-y-0.5">
             <SharedNavLink
               v-for="item in navCrm"
@@ -68,6 +92,7 @@ const navCrm = [
               :to="item.path"
               :icono="item.icono"
               :activo="esActivo(item.path)"
+              :colapsado="sidebarMostrandoColapsado"
             >
               {{ item.label }}
             </SharedNavLink>
@@ -75,67 +100,67 @@ const navCrm = [
         </div>
 
         <div v-if="can('leads', 'view') || can('leads', 'view_all')">
-          <p class="px-3 text-[11px] font-semibold text-ink-muted uppercase tracking-wide mb-1">Leads</p>
+          <p v-if="!sidebarMostrandoColapsado" class="px-3 text-[11px] font-semibold text-ink-muted uppercase tracking-wide mb-1">Leads</p>
           <div class="space-y-0.5">
-            <SharedNavLink to="/leads" icono="mdi:account-arrow-right-outline" :activo="esActivoListado('/leads')">Listado</SharedNavLink>
-            <SharedNavLink to="/leads/historial-movimientos" icono="mdi:history" :activo="esActivo('/leads/historial-movimientos')">
+            <SharedNavLink to="/leads" icono="mdi:account-arrow-right-outline" :activo="esActivoListado('/leads')" :colapsado="sidebarMostrandoColapsado">Listado</SharedNavLink>
+            <SharedNavLink to="/leads/historial-movimientos" icono="mdi:history" :activo="esActivo('/leads/historial-movimientos')" :colapsado="sidebarMostrandoColapsado">
               Historial de movimientos
             </SharedNavLink>
-            <SharedNavLink to="/leads/cerrados" icono="mdi:archive-outline" :activo="esActivo('/leads/cerrados')">Historial de cerrados</SharedNavLink>
+            <SharedNavLink to="/leads/cerrados" icono="mdi:archive-outline" :activo="esActivo('/leads/cerrados')" :colapsado="sidebarMostrandoColapsado">Historial de cerrados</SharedNavLink>
           </div>
         </div>
 
         <div v-if="can('tickets', 'view') || can('tickets', 'view_all')">
-          <p class="px-3 text-[11px] font-semibold text-ink-muted uppercase tracking-wide mb-1">Servicio Técnico</p>
+          <p v-if="!sidebarMostrandoColapsado" class="px-3 text-[11px] font-semibold text-ink-muted uppercase tracking-wide mb-1">Servicio Técnico</p>
           <div class="space-y-0.5">
-            <SharedNavLink to="/tickets" icono="mdi:wrench-outline" :activo="esActivoListado('/tickets')">Tickets</SharedNavLink>
-            <SharedNavLink to="/tickets/historial-movimientos" icono="mdi:history" :activo="esActivo('/tickets/historial-movimientos')">
+            <SharedNavLink to="/tickets" icono="mdi:wrench-outline" :activo="esActivoListado('/tickets')" :colapsado="sidebarMostrandoColapsado">Tickets</SharedNavLink>
+            <SharedNavLink to="/tickets/historial-movimientos" icono="mdi:history" :activo="esActivo('/tickets/historial-movimientos')" :colapsado="sidebarMostrandoColapsado">
               Historial de movimientos
             </SharedNavLink>
-            <SharedNavLink to="/tickets/cerrados" icono="mdi:archive-outline" :activo="esActivo('/tickets/cerrados')">Historial de cerrados</SharedNavLink>
+            <SharedNavLink to="/tickets/cerrados" icono="mdi:archive-outline" :activo="esActivo('/tickets/cerrados')" :colapsado="sidebarMostrandoColapsado">Historial de cerrados</SharedNavLink>
           </div>
         </div>
 
         <div v-if="can('tickets_post_venta', 'view')">
-          <p class="px-3 text-[11px] font-semibold text-ink-muted uppercase tracking-wide mb-1">Post Venta</p>
+          <p v-if="!sidebarMostrandoColapsado" class="px-3 text-[11px] font-semibold text-ink-muted uppercase tracking-wide mb-1">Post Venta</p>
           <div class="space-y-0.5">
-            <SharedNavLink to="/post-venta" icono="mdi:truck-delivery-outline" :activo="esActivoListado('/post-venta')">Tickets</SharedNavLink>
-            <SharedNavLink to="/post-venta/historial-movimientos" icono="mdi:history" :activo="esActivo('/post-venta/historial-movimientos')">
+            <SharedNavLink to="/post-venta" icono="mdi:truck-delivery-outline" :activo="esActivoListado('/post-venta')" :colapsado="sidebarMostrandoColapsado">Tickets</SharedNavLink>
+            <SharedNavLink to="/post-venta/historial-movimientos" icono="mdi:history" :activo="esActivo('/post-venta/historial-movimientos')" :colapsado="sidebarMostrandoColapsado">
               Historial de movimientos
             </SharedNavLink>
-            <SharedNavLink to="/post-venta/cerrados" icono="mdi:archive-outline" :activo="esActivo('/post-venta/cerrados')">Historial de cerrados</SharedNavLink>
+            <SharedNavLink to="/post-venta/cerrados" icono="mdi:archive-outline" :activo="esActivo('/post-venta/cerrados')" :colapsado="sidebarMostrandoColapsado">Historial de cerrados</SharedNavLink>
           </div>
         </div>
 
         <div v-if="can('capacitaciones', 'view') || can('capacitaciones', 'view_all')">
-          <p class="px-3 text-[11px] font-semibold text-ink-muted uppercase tracking-wide mb-1">Capacitaciones</p>
-          <SharedNavLink to="/capacitaciones" icono="mdi:school-outline" :activo="esActivo('/capacitaciones')">
+          <p v-if="!sidebarMostrandoColapsado" class="px-3 text-[11px] font-semibold text-ink-muted uppercase tracking-wide mb-1">Capacitaciones</p>
+          <SharedNavLink to="/capacitaciones" icono="mdi:school-outline" :activo="esActivo('/capacitaciones')" :colapsado="sidebarMostrandoColapsado">
             Agenda
           </SharedNavLink>
         </div>
 
         <div v-if="can('dashboard_widgets', 'assign') || can('auditoria', 'view_all')">
-          <p class="px-3 text-[11px] font-semibold text-ink-muted uppercase tracking-wide mb-1">Administración</p>
+          <p v-if="!sidebarMostrandoColapsado" class="px-3 text-[11px] font-semibold text-ink-muted uppercase tracking-wide mb-1">Administración</p>
           <div class="space-y-0.5">
-            <SharedNavLink v-if="can('dashboard_widgets', 'assign')" to="/admin/dashboards" icono="mdi:view-dashboard-edit-outline" :activo="esActivo('/admin/dashboards')">
+            <SharedNavLink v-if="can('dashboard_widgets', 'assign')" to="/admin/dashboards" icono="mdi:view-dashboard-edit-outline" :activo="esActivo('/admin/dashboards')" :colapsado="sidebarMostrandoColapsado">
               Dashboards
             </SharedNavLink>
-            <SharedNavLink v-if="can('dashboard_widgets', 'assign')" to="/admin/permisos" icono="mdi:shield-lock-outline" :activo="esActivo('/admin/permisos')">
+            <SharedNavLink v-if="can('dashboard_widgets', 'assign')" to="/admin/permisos" icono="mdi:shield-lock-outline" :activo="esActivo('/admin/permisos')" :colapsado="sidebarMostrandoColapsado">
               Permisos
             </SharedNavLink>
-            <SharedNavLink v-if="can('dashboard_widgets', 'assign')" to="/admin/usuarios" icono="mdi:account-cog-outline" :activo="esActivo('/admin/usuarios')">
+            <SharedNavLink v-if="can('dashboard_widgets', 'assign')" to="/admin/usuarios" icono="mdi:account-cog-outline" :activo="esActivo('/admin/usuarios')" :colapsado="sidebarMostrandoColapsado">
               Usuarios
             </SharedNavLink>
-            <SharedNavLink v-if="can('auditoria', 'view_all')" to="/admin/auditoria" icono="mdi:file-search-outline" :activo="esActivo('/admin/auditoria')">
+            <SharedNavLink v-if="can('auditoria', 'view_all')" to="/admin/auditoria" icono="mdi:file-search-outline" :activo="esActivo('/admin/auditoria')" :colapsado="sidebarMostrandoColapsado">
               Auditoría
             </SharedNavLink>
           </div>
         </div>
 
         <div v-if="esSuperadmin">
-          <p class="px-3 text-[11px] font-semibold text-ink-muted uppercase tracking-wide mb-1">Sistema</p>
+          <p v-if="!sidebarMostrandoColapsado" class="px-3 text-[11px] font-semibold text-ink-muted uppercase tracking-wide mb-1">Sistema</p>
           <div class="space-y-0.5">
-            <SharedNavLink to="/panel-dev" icono="mdi:tools" :activo="esActivo('/panel-dev')">
+            <SharedNavLink to="/panel-dev" icono="mdi:tools" :activo="esActivo('/panel-dev')" :colapsado="sidebarMostrandoColapsado">
               Panel dev
             </SharedNavLink>
           </div>
@@ -145,8 +170,8 @@ const navCrm = [
 
     <!-- Contenido -->
     <div class="flex-1 flex flex-col min-w-0">
-      <!-- Topbar -->
-      <header class="h-16 bg-surface border-b border-border flex items-center gap-3 px-4 sm:px-6 shrink-0">
+      <!-- Topbar: transparente, se funde con el fondo gris de la página -->
+      <header class="h-16 flex items-center gap-3 px-4 sm:px-6 shrink-0">
         <button
           type="button"
           class="lg:hidden text-ink-secondary hover:text-ink p-2 -ml-2"
@@ -159,9 +184,20 @@ const navCrm = [
           <SharedGlobalSearch />
         </div>
 
-        <div class="flex items-center gap-3 shrink-0 ml-auto">
+        <div class="flex items-center gap-4 shrink-0 ml-auto">
           <SharedNotificationBell />
-          <SharedUserMenu />
+          <div class="w-px h-6 bg-border" />
+          <div class="flex items-center gap-2">
+            <SharedUserMenu />
+            <button
+              type="button"
+              class="w-9 h-9 flex items-center justify-center rounded-full text-ink-secondary hover:bg-surface-2 hover:text-ink transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-ring"
+              title="Configuración"
+              @click="configAbierta = true"
+            >
+              <Icon name="mdi:cog-outline" class="w-5 h-5" />
+            </button>
+          </div>
         </div>
       </header>
 
@@ -172,5 +208,6 @@ const navCrm = [
 
     <SharedToastContainer />
     <SharedRecordatorioAlertContainer />
+    <SharedConfiguracionModal :open="configAbierta" @cerrar="configAbierta = false" />
   </div>
 </template>
