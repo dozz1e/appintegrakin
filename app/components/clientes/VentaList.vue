@@ -27,6 +27,7 @@ const guardandoEdicion = ref(false)
 
 const aEliminar = ref<Venta | null>(null)
 const eliminando = ref(false)
+const modalNuevaAbierta = ref(false)
 
 const errores = reactive<Record<string, string>>({})
 
@@ -92,6 +93,7 @@ async function onSubmit() {
     productoId.value = ''
     fecha.value = ''
     hora.value = ''
+    modalNuevaAbierta.value = false
     await cargar()
     success('Venta registrada')
   } catch (e) {
@@ -161,38 +163,23 @@ async function onConfirmarEliminar() {
 
 <template>
   <div>
-    <div class="mb-4 space-y-1">
-      <ProductosProductoBuscador v-model="productoId" />
-      <p v-if="errores.productoId" class="text-xs text-red-600">{{ errores.productoId }}</p>
-
-      <div class="flex flex-wrap gap-2 pt-1">
-        <input
-          v-model="fecha"
-          type="date"
-          class="flex-1 min-w-0 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30"
-        />
-        <input
-          v-model="hora"
-          type="time"
-          class="flex-1 min-w-0 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30"
-        />
-        <button
-          :disabled="guardando"
-          class="w-full sm:w-auto bg-[#1075B5] hover:bg-[#0C5D91] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
-          @click="onSubmit"
-        >
-          Registrar venta
-        </button>
-      </div>
-      <p v-if="errores.fecha" class="text-xs text-red-600">{{ errores.fecha }}</p>
-      <p v-if="errores.hora" class="text-xs text-red-600">{{ errores.hora }}</p>
+    <div class="flex items-center justify-between mb-3">
+      <p class="text-base font-semibold text-gray-700">Historial de ventas</p>
+      <button
+        type="button"
+        title="Registrar venta"
+        class="w-8 h-8 flex items-center justify-center rounded-full bg-primary text-ink-onprimary hover:bg-primary-hover transition-colors duration-150"
+        @click="modalNuevaAbierta = true"
+      >
+        <Icon name="mdi:plus" class="w-5 h-5" />
+      </button>
     </div>
 
     <p v-if="cargando" class="text-sm text-gray-400">Cargando ventas...</p>
     <p v-else-if="!ventas.length" class="text-sm text-gray-400">Sin ventas todavía.</p>
 
     <ul v-else class="space-y-2">
-      <li v-for="v in ventas" :key="v.id" class="py-2 pl-3 pr-2 rounded-lg bg-gray-50 text-sm border-l-4 border-gray-300">
+      <li v-for="v in ventas" :key="v.id" class="py-2.5 px-3 rounded-xl bg-gray-50 text-sm">
         <div v-if="idEditando === v.id" class="space-y-2">
           <ProductosProductoBuscador v-model="productoIdEditado" />
           <div class="flex flex-wrap gap-2">
@@ -269,5 +256,35 @@ async function onConfirmarEliminar() {
       @confirmar="onConfirmarEliminar"
       @cancelar="aEliminar = null"
     />
+
+    <SharedModal :open="modalNuevaAbierta" titulo="Registrar venta" @cerrar="modalNuevaAbierta = false">
+      <div class="space-y-1">
+        <ProductosProductoBuscador v-model="productoId" />
+        <p v-if="errores.productoId" class="text-xs text-red-600">{{ errores.productoId }}</p>
+
+        <div class="flex flex-wrap gap-2 pt-1">
+          <input
+            v-model="fecha"
+            type="date"
+            class="flex-1 min-w-0 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30"
+          />
+          <input
+            v-model="hora"
+            type="time"
+            class="flex-1 min-w-0 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30"
+          />
+        </div>
+        <p v-if="errores.fecha" class="text-xs text-red-600">{{ errores.fecha }}</p>
+        <p v-if="errores.hora" class="text-xs text-red-600">{{ errores.hora }}</p>
+
+        <button
+          :disabled="guardando"
+          class="w-full bg-[#1075B5] hover:bg-[#0C5D91] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 mt-1"
+          @click="onSubmit"
+        >
+          Registrar venta
+        </button>
+      </div>
+    </SharedModal>
   </div>
 </template>

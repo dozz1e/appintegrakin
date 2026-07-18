@@ -22,6 +22,7 @@ const canal = ref<ClienteInteraccion['canal']>('correo')
 const nota = ref('')
 const archivoAdjunto = ref<File | null>(null)
 const inputArchivo = ref<HTMLInputElement | null>(null)
+const modalNuevaAbierto = ref(false)
 
 const iconoCanal: Record<string, string> = {
   whatsapp: 'mdi:whatsapp',
@@ -63,6 +64,7 @@ async function onSubmit() {
     }
     nota.value = ''
     quitarAdjunto()
+    modalNuevaAbierto.value = false
     await cargar()
     emit('registrada')
     success('Interacción registrada')
@@ -123,48 +125,16 @@ async function onConfirmarEliminar() {
 
 <template>
   <div>
-    <div class="flex flex-wrap gap-2 mb-4">
-      <select
-        v-model="canal"
-        class="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring"
-      >
-        <option value="whatsapp">WhatsApp</option>
-        <option value="instagram">Instagram</option>
-        <option value="facebook">Facebook</option>
-        <option value="llamada">Llamada</option>
-        <option value="web">Web</option>
-        <option value="correo">Correo</option>
-      </select>
-      <input
-        v-model="nota"
-        type="text"
-        placeholder="¿Qué se conversó?"
-        class="flex-1 min-w-0 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring"
-        @keyup.enter="onSubmit"
-      />
+    <div class="flex items-center justify-between mb-3">
+      <p class="text-base font-semibold text-gray-700">Historial de interacciones</p>
       <button
         type="button"
-        title="Adjuntar imagen"
-        class="border border-gray-200 rounded-lg px-3 py-2 text-gray-500 hover:text-primary hover:border-primary transition-colors"
-        @click="inputArchivo?.click()"
+        title="Nueva interacción"
+        class="w-8 h-8 flex items-center justify-center rounded-full bg-primary text-ink-onprimary hover:bg-primary-hover transition-colors duration-150"
+        @click="modalNuevaAbierto = true"
       >
-        <Icon name="mdi:paperclip" class="w-4 h-4" />
+        <Icon name="mdi:plus" class="w-5 h-5" />
       </button>
-      <input ref="inputArchivo" type="file" accept="image/*" class="hidden" @change="onArchivoSeleccionado" />
-      <button
-        :disabled="guardando || !nota.trim()"
-        class="bg-primary hover:bg-primary-hover text-ink-onprimary px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
-        @click="onSubmit"
-      >
-        {{ guardando ? 'Guardando...' : 'Agregar' }}
-      </button>
-      <span v-if="archivoAdjunto" class="w-full flex items-center gap-1 text-xs text-gray-500">
-        <Icon name="mdi:image-outline" class="w-4 h-4 shrink-0" />
-        <span class="truncate">{{ archivoAdjunto.name }}</span>
-        <button type="button" class="text-gray-400 hover:text-danger" @click="quitarAdjunto">
-          <Icon name="mdi:close" class="w-3.5 h-3.5" />
-        </button>
-      </span>
     </div>
 
     <p v-if="cargando" class="text-sm text-gray-400">Cargando historial...</p>
@@ -252,5 +222,53 @@ async function onConfirmarEliminar() {
       @confirmar="onConfirmarEliminar"
       @cancelar="aEliminar = null"
     />
+
+    <SharedModal :open="modalNuevaAbierto" titulo="Nueva interacción" @cerrar="modalNuevaAbierto = false">
+      <div class="space-y-2">
+        <select
+          v-model="canal"
+          class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring"
+        >
+          <option value="whatsapp">WhatsApp</option>
+          <option value="instagram">Instagram</option>
+          <option value="facebook">Facebook</option>
+          <option value="llamada">Llamada</option>
+          <option value="web">Web</option>
+          <option value="correo">Correo</option>
+        </select>
+        <input
+          v-model="nota"
+          type="text"
+          placeholder="¿Qué se conversó?"
+          class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring"
+          @keyup.enter="onSubmit"
+        />
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            title="Adjuntar imagen"
+            class="border border-gray-200 rounded-lg px-3 py-2 text-gray-500 hover:text-primary hover:border-primary transition-colors shrink-0"
+            @click="inputArchivo?.click()"
+          >
+            <Icon name="mdi:paperclip" class="w-4 h-4" />
+          </button>
+          <input ref="inputArchivo" type="file" accept="image/*" class="hidden" @change="onArchivoSeleccionado" />
+          <span v-if="archivoAdjunto" class="flex-1 min-w-0 flex items-center gap-1 text-xs text-gray-500">
+            <Icon name="mdi:image-outline" class="w-4 h-4 shrink-0" />
+            <span class="truncate">{{ archivoAdjunto.name }}</span>
+            <button type="button" class="text-gray-400 hover:text-danger shrink-0" @click="quitarAdjunto">
+              <Icon name="mdi:close" class="w-3.5 h-3.5" />
+            </button>
+          </span>
+        </div>
+        <button
+          :disabled="guardando || !nota.trim()"
+          class="w-full bg-primary hover:bg-primary-hover text-ink-onprimary px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+          @click="onSubmit"
+        >
+          {{ guardando ? 'Guardando...' : 'Agregar' }}
+        </button>
+      </div>
+    </SharedModal>
   </div>
 </template>

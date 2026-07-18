@@ -377,13 +377,14 @@ async function onInteraccionRegistrada() {
 
         <div v-else-if="tabActiva === 'tickets'">
           <div class="flex items-center justify-between mb-3">
-            <p class="text-sm font-semibold text-gray-700">Tickets de servicio técnico</p>
+            <p class="text-base font-semibold text-gray-700">Tickets de servicio técnico</p>
             <NuxtLink
               v-if="can('tickets', 'create')"
               :to="`/tickets/nuevo?cliente_id=${seleccionado.id}`"
-              class="text-xs text-[#1075B5] hover:underline font-medium"
+              title="Nuevo ticket"
+              class="w-8 h-8 flex items-center justify-center rounded-full bg-primary text-ink-onprimary hover:bg-primary-hover transition-colors duration-150"
             >
-              + Nuevo ticket
+              <Icon name="mdi:plus" class="w-5 h-5" />
             </NuxtLink>
           </div>
           <ul v-if="ticketsSeleccionado.length" class="space-y-2">
@@ -402,7 +403,6 @@ async function onInteraccionRegistrada() {
         </div>
 
         <div v-else-if="tabActiva === 'ventas'">
-          <p class="text-sm font-semibold text-gray-700 mb-3">Ventas</p>
           <ClientesVentaList :cliente-id="seleccionado.id" />
         </div>
       </div>
