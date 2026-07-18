@@ -16,12 +16,10 @@ const performanceData = computed(() =>
   performance.value.map((p) => ({
     vendedor: p.full_name ?? 'Sin nombre',
     leads_ganados: p.leads_ganados,
-    tickets_resueltos: p.tickets_resueltos,
   }))
 )
 const categorias = {
   leads_ganados: { name: 'Leads ganados', color: '#22c55e' },
-  tickets_resueltos: { name: 'Tickets resueltos', color: '#1075B5' },
 }
 const xFormatter = (i: number) => performanceData.value[i]?.vendedor ?? ''
 </script>
@@ -34,7 +32,7 @@ const xFormatter = (i: number) => performanceData.value[i]?.vendedor ?? ''
       v-else
       :data="performanceData"
       :categories="categorias"
-      :y-axis="['leads_ganados', 'tickets_resueltos']"
+      :y-axis="['leads_ganados']"
       :height="320"
       :x-formatter="xFormatter"
       x-label="Vendedor"

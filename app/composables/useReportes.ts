@@ -9,8 +9,6 @@ export interface PerformanceVendedor {
   leads_total: number
   leads_ganados: number
   leads_perdidos: number
-  tickets_total: number
-  tickets_resueltos: number
 }
 
 export function useReportes() {
