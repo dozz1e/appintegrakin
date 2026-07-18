@@ -66,7 +66,7 @@ const filtroAntiguedad = ref('')
 const seleccionadoId = ref<string | null>(props.clienteIdInicial ?? null)
 const ticketsSeleccionado = ref<Ticket[]>([])
 const conteoTickets = ref({ total: 0, abiertos: 0, resueltos: 0 })
-const tabActiva = ref<'info' | 'tickets' | 'ventas' | 'interacciones'>('info')
+const tabActiva = ref<'interacciones' | 'tickets' | 'ventas'>('interacciones')
 const ultimasInteracciones = ref<Record<string, string>>({})
 
 const puedeVerTickets = computed(() => can('tickets', 'view') || can('tickets', 'view_all'))
@@ -133,7 +133,7 @@ const ticketsAbiertos = computed(() => conteoTickets.value.abiertos)
 const ticketsResueltos = computed(() => conteoTickets.value.resueltos)
 
 watch(seleccionadoId, async (id) => {
-  tabActiva.value = 'info'
+  tabActiva.value = 'interacciones'
   ticketsSeleccionado.value = []
   conteoTickets.value = { total: 0, abiertos: 0, resueltos: 0 }
   if (!id) return
@@ -234,22 +234,97 @@ async function onInteraccionRegistrada() {
       </button>
 
       <div class="bg-white border border-gray-100 rounded-2xl shadow-sm p-5">
-        <div class="flex items-center justify-between gap-3 mb-4">
-          <div class="flex items-center gap-3">
-            <SharedAvatar :nombre="seleccionado.razon_social" :imagen-url="seleccionado.imagen_url" size="md" />
-            <div>
-              <h2 class="text-lg font-semibold text-gray-800">{{ seleccionado.razon_social }}</h2>
-              <p v-if="seleccionado.nombre_contacto" class="text-xs text-gray-400">{{ seleccionado.nombre_contacto }}</p>
+        <div class="flex flex-col sm:flex-row gap-5 mb-5">
+          <SharedAvatar
+            :nombre="seleccionado.razon_social"
+            :imagen-url="seleccionado.imagen_url"
+            size="lg"
+            class="mx-auto sm:mx-0 shrink-0"
+          />
+
+          <div class="flex-1 min-w-0">
+            <div class="flex items-start justify-between gap-3 mb-3">
+              <div>
+                <h2 class="text-xl font-semibold text-gray-800">{{ seleccionado.razon_social }}</h2>
+                <p v-if="seleccionado.nombre_contacto" class="text-sm text-gray-400 mt-0.5">{{ seleccionado.nombre_contacto }}</p>
+              </div>
+              <div class="flex items-center gap-1 shrink-0">
+                <a
+                  v-if="seleccionado.telefono"
+                  :href="`tel:${seleccionado.telefono}`"
+                  title="Llamar"
+                  class="w-9 h-9 flex items-center justify-center rounded-full text-ink-secondary hover:bg-surface-2 hover:text-primary transition-colors duration-150"
+                >
+                  <Icon name="mdi:phone-outline" class="w-5 h-5" />
+                </a>
+                <a
+                  v-if="seleccionado.email"
+                  :href="`mailto:${seleccionado.email}`"
+                  title="Enviar email"
+                  class="w-9 h-9 flex items-center justify-center rounded-full text-ink-secondary hover:bg-surface-2 hover:text-primary transition-colors duration-150"
+                >
+                  <Icon name="mdi:email-outline" class="w-5 h-5" />
+                </a>
+                <button
+                  v-if="can('clientes', 'edit')"
+                  type="button"
+                  title="Editar cliente"
+                  class="w-9 h-9 flex items-center justify-center rounded-full text-ink-secondary hover:bg-surface-2 hover:text-primary transition-colors duration-150"
+                  @click="modalEditarAbierto = true"
+                >
+                  <Icon name="mdi:pencil-outline" class="w-5 h-5" />
+                </button>
+                <button
+                  v-if="can('clientes', 'delete')"
+                  type="button"
+                  title="Eliminar"
+                  class="w-9 h-9 flex items-center justify-center rounded-full text-ink-secondary hover:bg-red-50 hover:text-red-600 transition-colors duration-150"
+                  @click="emit('eliminar', seleccionado)"
+                >
+                  <Icon name="mdi:trash-can-outline" class="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+              <div>
+                <p class="text-xs text-gray-400">RUT</p>
+                <p class="text-gray-700">{{ seleccionado.rut || '—' }}</p>
+              </div>
+              <div>
+                <p class="text-xs text-gray-400">Teléfono</p>
+                <p class="text-gray-700">{{ seleccionado.telefono || '—' }}</p>
+              </div>
+              <div>
+                <p class="text-xs text-gray-400">Email</p>
+                <p class="text-gray-700">{{ seleccionado.email || '—' }}</p>
+              </div>
+              <div>
+                <p class="text-xs text-gray-400">Comuna</p>
+                <p class="text-gray-700">{{ seleccionado.comuna || '—' }}</p>
+              </div>
+              <div class="col-span-2">
+                <p class="text-xs text-gray-400">Dirección</p>
+                <p class="text-gray-700">{{ seleccionado.direccion || '—' }}, {{ seleccionado.ciudad || '—' }}</p>
+              </div>
+              <div class="col-span-2">
+                <p class="text-xs text-gray-400 mb-1">Vendedor asignado</p>
+                <select
+                  v-if="can('clientes', 'assign')"
+                  :value="seleccionado.owner_id ?? ''"
+                  :disabled="asignando"
+                  class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30 focus:border-[#1075B5]"
+                  @change="onAsignarVendedor(($event.target as HTMLSelectElement).value)"
+                >
+                  <option value="">Sin asignar</option>
+                  <option v-for="u in usuarios" :key="u.id" :value="u.id">{{ u.full_name || u.email }}</option>
+                </select>
+                <p v-else class="text-gray-700">
+                  {{ usuarios.find((u) => u.id === seleccionado.owner_id)?.full_name || 'Sin asignar' }}
+                </p>
+              </div>
             </div>
           </div>
-          <button
-            v-if="can('clientes', 'delete')"
-            type="button"
-            class="text-red-600 hover:underline text-sm font-medium shrink-0"
-            @click="emit('eliminar', seleccionado)"
-          >
-            Eliminar
-          </button>
         </div>
 
         <div v-if="puedeVerResumenTickets" class="grid grid-cols-3 gap-3 mb-4">
@@ -268,14 +343,6 @@ async function onInteraccionRegistrada() {
         </div>
 
         <div class="flex gap-2 mb-4 overflow-x-auto">
-          <button
-            type="button"
-            class="shrink-0 rounded-lg px-4 py-2 text-base font-medium transition-colors"
-            :class="tabActiva === 'info' ? 'bg-primary text-ink-onprimary' : 'bg-surface-2 text-ink-muted hover:bg-primary-subtle hover:text-primary-ink'"
-            @click="tabActiva = 'info'"
-          >
-            Información
-          </button>
           <button
             type="button"
             class="shrink-0 rounded-lg px-4 py-2 text-base font-medium transition-colors"
@@ -304,66 +371,7 @@ async function onInteraccionRegistrada() {
           </button>
         </div>
 
-        <div v-if="tabActiva === 'info'" class="space-y-4">
-          <div class="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <p class="text-xs text-gray-400 mb-1">RUT</p>
-              <p class="text-gray-700">{{ seleccionado.rut || '—' }}</p>
-            </div>
-            <div>
-              <p class="text-xs text-gray-400 mb-1">Nombre de contacto</p>
-              <p class="text-gray-700">{{ seleccionado.nombre_contacto || '—' }}</p>
-            </div>
-            <div>
-              <p class="text-xs text-gray-400 mb-1">Teléfono</p>
-              <p class="text-gray-700">{{ seleccionado.telefono || '—' }}</p>
-            </div>
-            <div>
-              <p class="text-xs text-gray-400 mb-1">Email</p>
-              <p class="text-gray-700">{{ seleccionado.email || '—' }}</p>
-            </div>
-            <div class="col-span-2">
-              <p class="text-xs text-gray-400 mb-1">Dirección</p>
-              <p class="text-gray-700">{{ seleccionado.direccion || '—' }}</p>
-            </div>
-            <div>
-              <p class="text-xs text-gray-400 mb-1">Comuna</p>
-              <p class="text-gray-700">{{ seleccionado.comuna || '—' }}</p>
-            </div>
-            <div>
-              <p class="text-xs text-gray-400 mb-1">Ciudad</p>
-              <p class="text-gray-700">{{ seleccionado.ciudad || '—' }}</p>
-            </div>
-            <div class="col-span-2">
-              <p class="text-xs text-gray-400 mb-1">Vendedor asignado</p>
-              <select
-                v-if="can('clientes', 'assign')"
-                :value="seleccionado.owner_id ?? ''"
-                :disabled="asignando"
-                class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30 focus:border-[#1075B5]"
-                @change="onAsignarVendedor(($event.target as HTMLSelectElement).value)"
-              >
-                <option value="">Sin asignar</option>
-                <option v-for="u in usuarios" :key="u.id" :value="u.id">{{ u.full_name || u.email }}</option>
-              </select>
-              <p v-else class="text-gray-700">
-                {{ usuarios.find((u) => u.id === seleccionado.owner_id)?.full_name || 'Sin asignar' }}
-              </p>
-            </div>
-          </div>
-
-          <button
-            v-if="can('clientes', 'edit')"
-            type="button"
-            class="inline-flex items-center gap-1 text-sm text-[#1075B5] hover:underline font-medium"
-            @click="modalEditarAbierto = true"
-          >
-            <Icon name="mdi:pencil-outline" class="w-4 h-4" />
-            Editar cliente
-          </button>
-        </div>
-
-        <div v-else-if="tabActiva === 'interacciones'">
+        <div v-if="tabActiva === 'interacciones'">
           <ClientesClienteInteraccionTimeline :cliente-id="seleccionado.id" @registrada="onInteraccionRegistrada" />
         </div>
 
@@ -382,7 +390,7 @@ async function onInteraccionRegistrada() {
             <li
               v-for="t in ticketsSeleccionado"
               :key="t.id"
-              class="text-sm border border-gray-100 border-l-4 border-l-gray-300 rounded-xl p-3 flex items-center justify-between"
+              class="text-sm bg-gray-50 rounded-xl p-3 flex items-center justify-between"
             >
               <NuxtLink :to="`/tickets/${t.id}`" class="hover:underline text-gray-700 font-medium">
                 {{ t.titulo }}

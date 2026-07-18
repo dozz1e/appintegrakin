@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const props = defineProps<{ nombre: string; size?: 'sm' | 'md'; imagenUrl?: string | null }>()
+const props = defineProps<{ nombre: string; size?: 'sm' | 'md' | 'lg'; imagenUrl?: string | null }>()
 
 const errorImagen = ref(false)
 
@@ -30,7 +30,11 @@ const colorClase = computed(() => {
   return paleta[hash % paleta.length]
 })
 
-const tamano = computed(() => (props.size === 'sm' ? 'w-7 h-7 text-xs' : 'w-9 h-9 text-sm'))
+const tamano = computed(() => {
+  if (props.size === 'sm') return 'w-7 h-7 text-xs'
+  if (props.size === 'lg') return 'w-24 h-24 text-2xl'
+  return 'w-9 h-9 text-sm'
+})
 </script>
 
 <template>

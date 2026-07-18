@@ -148,7 +148,17 @@ function formatearFecha(fecha: string) {
 </script>
 
 <template>
-  <SharedCard titulo="Tareas y recordatorios">
+  <SharedCard>
+    <div class="flex items-center gap-2 mb-4">
+      <h2 class="text-sm font-semibold text-ink">Tareas y recordatorios</h2>
+      <span
+        v-if="tareas.length"
+        class="text-xs font-medium text-ink-muted bg-surface-2 rounded-full px-2 py-0.5"
+      >
+        {{ tareas.length }}
+      </span>
+    </div>
+
     <div class="mb-4 space-y-2">
       <input
         v-model="titulo"
@@ -187,16 +197,18 @@ function formatearFecha(fecha: string) {
       <li
         v-for="t in tareas"
         :key="t.id"
-        class="flex items-start gap-3 py-2 pl-3 pr-2 rounded-lg border-l-4"
-        :class="esVencida(t) ? 'bg-red-50 border-red-300' : 'bg-gray-50 border-gray-300'"
+        class="flex items-start gap-3 py-2.5 px-3 rounded-xl"
+        :class="esVencida(t) ? 'bg-red-50' : 'bg-gray-50'"
       >
-        <input
+        <button
           v-if="idEditando !== t.id"
-          type="checkbox"
-          :checked="t.completada"
-          class="w-4 h-4 accent-[#1075B5] mt-0.5"
-          @change="onToggle(t)"
-        />
+          type="button"
+          class="w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 mt-0.5 transition-colors"
+          :class="t.completada ? 'bg-[#1075B5] border-[#1075B5]' : 'border-gray-300 hover:border-[#1075B5]'"
+          @click="onToggle(t)"
+        >
+          <Icon v-if="t.completada" name="mdi:check-bold" class="w-3.5 h-3.5 text-white" />
+        </button>
         <div v-if="idEditando === t.id" class="flex-1 space-y-2">
           <input
             v-model="tituloEditado"
