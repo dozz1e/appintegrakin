@@ -28,6 +28,18 @@ import KpiLeadsGanados from '~/components/widgets/KpiLeadsGanados.vue'
 import KpiLeadsPerdidos from '~/components/widgets/KpiLeadsPerdidos.vue'
 import ChartFunnelLeads from '~/components/widgets/ChartFunnelLeads.vue'
 import ChartPerformanceVendedores from '~/components/widgets/ChartPerformanceVendedores.vue'
+import KpiTicketsTotal from '~/components/widgets/KpiTicketsTotal.vue'
+import KpiTicketsResueltos from '~/components/widgets/KpiTicketsResueltos.vue'
+import KpiTicketsCerrados from '~/components/widgets/KpiTicketsCerrados.vue'
+import ChartTicketsPorEstado from '~/components/widgets/ChartTicketsPorEstado.vue'
+import ChartTicketsPorPrioridad from '~/components/widgets/ChartTicketsPorPrioridad.vue'
+import ChartTicketsTendencia from '~/components/widgets/ChartTicketsTendencia.vue'
+import KpiTicketsPostVentaTotal from '~/components/widgets/KpiTicketsPostVentaTotal.vue'
+import KpiTicketsPostVentaDespachados from '~/components/widgets/KpiTicketsPostVentaDespachados.vue'
+import KpiTicketsPostVentaVencidos from '~/components/widgets/KpiTicketsPostVentaVencidos.vue'
+import ChartTicketsPostVentaPorEstado from '~/components/widgets/ChartTicketsPostVentaPorEstado.vue'
+import ChartTicketsPostVentaVencidos from '~/components/widgets/ChartTicketsPostVentaVencidos.vue'
+import ChartTicketsPostVentaTendencia from '~/components/widgets/ChartTicketsPostVentaTendencia.vue'
 
 const componentMap: Record<string, any> = {
   WidgetsKpiClientesTotales: KpiClientesTotales,
@@ -40,6 +52,18 @@ const componentMap: Record<string, any> = {
   WidgetsKpiLeadsPerdidos: KpiLeadsPerdidos,
   WidgetsChartFunnelLeads: ChartFunnelLeads,
   WidgetsChartPerformanceVendedores: ChartPerformanceVendedores,
+  WidgetsKpiTicketsTotal: KpiTicketsTotal,
+  WidgetsKpiTicketsResueltos: KpiTicketsResueltos,
+  WidgetsKpiTicketsCerrados: KpiTicketsCerrados,
+  WidgetsChartTicketsPorEstado: ChartTicketsPorEstado,
+  WidgetsChartTicketsPorPrioridad: ChartTicketsPorPrioridad,
+  WidgetsChartTicketsTendencia: ChartTicketsTendencia,
+  WidgetsKpiTicketsPostVentaTotal: KpiTicketsPostVentaTotal,
+  WidgetsKpiTicketsPostVentaDespachados: KpiTicketsPostVentaDespachados,
+  WidgetsKpiTicketsPostVentaVencidos: KpiTicketsPostVentaVencidos,
+  WidgetsChartTicketsPostVentaPorEstado: ChartTicketsPostVentaPorEstado,
+  WidgetsChartTicketsPostVentaVencidos: ChartTicketsPostVentaVencidos,
+  WidgetsChartTicketsPostVentaTendencia: ChartTicketsPostVentaTendencia,
 }
 
 const { misWidgets, cargarMisWidgets } = useDashboardWidgets()
