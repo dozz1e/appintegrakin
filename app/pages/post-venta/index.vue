@@ -11,6 +11,7 @@ const { fetchTickets, crearTicket, actualizarTicket } = useTicketsPostVenta()
 const { subirImagen } = useEntidadImagenes()
 const { success, error } = useToast()
 const { can } = usePermissions()
+const { descargarCSV } = useCsv()
 
 const tickets = ref<TicketPostVentaConNombres[]>([])
 const cargando = ref(true)
@@ -58,6 +59,20 @@ async function onSubmit(payload: Record<string, unknown>, archivo: File | null) 
   }
 }
 
+function onExportar() {
+  const filas = tickets.value.map((t) => ({
+    cliente: t.cliente_nombre,
+    rut: t.cliente_rut ?? '',
+    n_guia: t.n_guia,
+    producto: t.producto_nombre,
+    estado: t.estado,
+    ingreso: t.fecha_ingreso,
+    tope: t.fecha_tope ?? '',
+    despacho: t.fecha_despacho ?? '',
+  }))
+  descargarCSV('tickets_post_venta', filas)
+}
+
 async function onCambiarEstado(id: string, estado: EstadoTicketPostVenta) {
   try {
     await actualizarTicket(id, { estado })
@@ -72,13 +87,21 @@ async function onCambiarEstado(id: string, estado: EstadoTicketPostVenta) {
   <div class="p-6">
     <SharedPageHeader titulo="Post Venta">
       <template #accion>
-        <button
-          v-if="can('tickets_post_venta', 'create')"
-          class="bg-[#1075B5] hover:bg-[#0C5D91] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-          @click="modalAbierto = true"
-        >
-          + Nuevo ticket
-        </button>
+        <div class="flex items-center gap-2">
+          <button
+            class="border border-gray-200 text-gray-600 hover:bg-gray-50 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+            @click="onExportar"
+          >
+            Exportar CSV
+          </button>
+          <button
+            v-if="can('tickets_post_venta', 'create')"
+            class="bg-[#1075B5] hover:bg-[#0C5D91] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+            @click="modalAbierto = true"
+          >
+            + Nuevo ticket
+          </button>
+        </div>
       </template>
     </SharedPageHeader>
 

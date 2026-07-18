@@ -32,7 +32,7 @@ const colorClase = computed(() => {
 
 const tamano = computed(() => {
   if (props.size === 'sm') return 'w-7 h-7 text-xs'
-  if (props.size === 'lg') return 'w-52 h-52 text-5xl'
+  if (props.size === 'lg') return 'w-56 h-56 text-5xl'
   return 'w-9 h-9 text-sm'
 })
 

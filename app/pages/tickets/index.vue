@@ -11,6 +11,7 @@ const { agregarProductoATicket } = useTicketProductos()
 const { subirImagen } = useEntidadImagenes()
 const { can } = usePermissions()
 const { success, error } = useToast()
+const { descargarCSV } = useCsv()
 
 const tickets = ref<Ticket[]>([])
 const cargando = ref(true)
@@ -32,6 +33,19 @@ const ticketsFiltrados = computed(() => {
       t.clientes?.rut?.toLowerCase().includes(q)
   )
 })
+
+function onExportar() {
+  const filas = tickets.value.map((t) => ({
+    cliente: t.clientes?.razon_social ?? '',
+    rut: t.clientes?.rut ?? '',
+    titulo: t.titulo,
+    estado: t.estado,
+    prioridad: t.prioridad,
+    creado: t.created_at,
+    cerrado: t.fecha_cierre ?? '',
+  }))
+  descargarCSV('tickets_servicio_tecnico', filas)
+}
 
 const onCambiarEstado = async (id: string, estado: EstadoTicket) => {
   const actualizado = await cambiarEstado(id, estado)
@@ -72,13 +86,21 @@ async function onSubmit(payload: Record<string, unknown>, archivo: File | null, 
   <div class="p-6">
     <SharedPageHeader titulo="Tickets de servicio técnico">
       <template #accion>
-        <button
-          v-if="can('tickets', 'create')"
-          class="bg-[#1075B5] hover:bg-[#0C5D91] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-          @click="modalAbierto = true"
-        >
-          + Nuevo ticket
-        </button>
+        <div class="flex items-center gap-2">
+          <button
+            class="border border-gray-200 text-gray-600 hover:bg-gray-50 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+            @click="onExportar"
+          >
+            Exportar CSV
+          </button>
+          <button
+            v-if="can('tickets', 'create')"
+            class="bg-[#1075B5] hover:bg-[#0C5D91] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+            @click="modalAbierto = true"
+          >
+            + Nuevo ticket
+          </button>
+        </div>
       </template>
     </SharedPageHeader>
 
