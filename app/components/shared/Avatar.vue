@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const props = defineProps<{ nombre: string; size?: 'sm' | 'md' | 'lg'; imagenUrl?: string | null }>()
+const props = defineProps<{ nombre: string; size?: 'sm' | 'md' | 'lg'; imagenUrl?: string | null; cuadrado?: boolean }>()
 
 const errorImagen = ref(false)
 
@@ -32,9 +32,11 @@ const colorClase = computed(() => {
 
 const tamano = computed(() => {
   if (props.size === 'sm') return 'w-7 h-7 text-xs'
-  if (props.size === 'lg') return 'w-24 h-24 text-2xl'
+  if (props.size === 'lg') return 'w-52 h-52 text-5xl'
   return 'w-9 h-9 text-sm'
 })
+
+const redondeo = computed(() => (props.cuadrado ? 'rounded-2xl' : 'rounded-full'))
 </script>
 
 <template>
@@ -42,14 +44,14 @@ const tamano = computed(() => {
     v-if="imagenUrl && !errorImagen"
     :src="imagenUrl"
     :alt="nombre"
-    class="inline-block rounded-full object-cover shrink-0"
-    :class="tamano"
+    class="inline-block object-cover shrink-0"
+    :class="[tamano, redondeo]"
     @error="errorImagen = true"
   />
   <span
     v-else
-    class="inline-flex items-center justify-center rounded-full font-medium shrink-0"
-    :class="[colorClase, tamano]"
+    class="inline-flex items-center justify-center font-medium shrink-0"
+    :class="[colorClase, tamano, redondeo]"
   >
     {{ iniciales }}
   </span>

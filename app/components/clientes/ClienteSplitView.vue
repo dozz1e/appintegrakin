@@ -239,6 +239,7 @@ async function onInteraccionRegistrada() {
             :nombre="seleccionado.razon_social"
             :imagen-url="seleccionado.imagen_url"
             size="lg"
+            cuadrado
             class="mx-auto sm:mx-0 shrink-0"
           />
 
