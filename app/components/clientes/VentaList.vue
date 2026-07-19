@@ -223,11 +223,13 @@ async function onConfirmarEliminar() {
               v-model="fechaEditada"
               type="date"
               class="flex-1 min-w-0 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30"
+              @click="abrirPicker"
             />
             <input
               v-model="horaEditada"
               type="time"
               class="flex-1 min-w-0 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30"
+              @click="abrirPicker"
             />
             <input
               v-model.number="valorEditado"
@@ -344,11 +346,13 @@ async function onConfirmarEliminar() {
             v-model="fecha"
             type="date"
             class="flex-1 min-w-0 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30"
+            @click="abrirPicker"
           />
           <input
             v-model="hora"
             type="time"
             class="flex-1 min-w-0 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30"
+            @click="abrirPicker"
           />
         </div>
         <p v-if="errores.fecha" class="text-xs text-red-600">{{ errores.fecha }}</p>
