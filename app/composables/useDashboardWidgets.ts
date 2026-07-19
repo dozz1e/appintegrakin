@@ -1,6 +1,7 @@
 // composables/useDashboardWidgets.ts
 
 export interface MiWidget {
+  widgetId: string
   key: string
   label: string
   component: string
@@ -8,6 +9,7 @@ export interface MiWidget {
   tipo: 'kpi' | 'chart'
   orden: number
   config: Record<string, unknown>
+  visible: boolean
 }
 
 export interface WidgetCatalogo {
@@ -35,6 +37,32 @@ export const useDashboardWidgets = () => {
     }
     misWidgets.value = (data ?? []) as MiWidget[]
     cargado.value = true
+  }
+
+  // Self-service: reordenar/ocultar los propios widgets no requiere el
+  // permiso dashboard_widgets.assign - la policy RLS ya lo restringe a
+  // la fila propia (user_id = auth.uid()).
+  const reordenarMisWidgets = async (items: { widgetId: string; orden: number }[]) => {
+    const user = useSupabaseUser()
+    const uid = user.value?.sub
+    if (!uid) return
+    await Promise.all(
+      items.map(({ widgetId, orden }) =>
+        supabase.from('user_dashboard_widgets').update({ orden }).eq('widget_id', widgetId).eq('user_id', uid)
+      )
+    )
+  }
+
+  const setVisibilidadMiWidget = async (widgetId: string, visible: boolean) => {
+    const user = useSupabaseUser()
+    const uid = user.value?.sub
+    if (!uid) return
+    const { error } = await supabase
+      .from('user_dashboard_widgets')
+      .update({ visible })
+      .eq('widget_id', widgetId)
+      .eq('user_id', uid)
+    if (error) throw error
   }
 
   // A partir de acá, solo funciona si quien llama tiene el permiso
@@ -74,6 +102,8 @@ export const useDashboardWidgets = () => {
     misWidgets,
     cargado,
     cargarMisWidgets,
+    reordenarMisWidgets,
+    setVisibilidadMiWidget,
     fetchCatalogo,
     fetchWidgetsDeUsuario,
     asignarWidget,
