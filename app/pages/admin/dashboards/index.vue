@@ -77,7 +77,7 @@ const toggleWidget = async (widgetId: string) => {
             <li
               v-for="w in catalogo.filter((c) => c.tipo === tipo)"
               :key="w.id"
-              class="flex items-center justify-between text-sm border rounded px-3 py-2"
+              class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-sm border rounded px-3 py-2"
             >
               <div>
                 <span class="font-medium">{{ w.label }}</span>
