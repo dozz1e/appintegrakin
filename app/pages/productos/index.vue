@@ -182,7 +182,7 @@ async function onArchivoSeleccionado(e: Event) {
         v-model="busqueda"
         type="text"
         placeholder="Buscar por nombre o SKU..."
-        class="border border-gray-200 rounded-lg px-3 py-2 text-sm w-64 focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30 focus:border-[#1075B5]"
+        class="border border-gray-200 rounded-lg px-3 py-2 text-sm w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30 focus:border-[#1075B5]"
       />
       <select v-model="filtroCategoria" class="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30">
         <option value="">Todas las categorías</option>
@@ -200,31 +200,48 @@ async function onArchivoSeleccionado(e: Event) {
       <div v-if="productosFiltrados.length === 0" class="p-10 text-center text-gray-400">
         {{ busqueda || filtroCategoria || filtroEstado ? 'Sin resultados para estos filtros' : 'Sin productos todavía' }}
       </div>
-      <table v-else class="w-full text-sm">
-        <thead>
-          <tr class="border-b border-gray-100 text-left text-xs text-gray-400 uppercase tracking-wide">
-            <th class="px-4 py-3 font-medium">Nombre</th>
-            <th class="px-4 py-3 font-medium">SKU</th>
-            <th class="px-4 py-3 font-medium">Categoría</th>
-            <th class="px-4 py-3 font-medium">Estado</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-50">
-          <tr
-            v-for="p in productosFiltrados"
-            :key="p.id"
-            class="cursor-pointer hover:bg-gray-50"
-            @click="abrirEditar(p)"
-          >
-            <td class="px-4 py-3 text-gray-700 font-medium">{{ p.nombre }}</td>
-            <td class="px-4 py-3 text-gray-500">{{ p.sku }}</td>
-            <td class="px-4 py-3 text-gray-500">{{ p.categoria || '—' }}</td>
-            <td class="px-4 py-3">
-              <SharedBadge :label="p.estado === 'activo' ? 'Activo' : 'Inactivo'" :clases="colorEstado[p.estado]" />
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <div v-else class="hidden lg:block overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-gray-100 text-left text-xs text-gray-400 uppercase tracking-wide">
+              <th class="px-4 py-3 font-medium">Nombre</th>
+              <th class="px-4 py-3 font-medium">SKU</th>
+              <th class="px-4 py-3 font-medium">Categoría</th>
+              <th class="px-4 py-3 font-medium">Estado</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-50">
+            <tr
+              v-for="p in productosFiltrados"
+              :key="p.id"
+              class="cursor-pointer hover:bg-gray-50"
+              @click="abrirEditar(p)"
+            >
+              <td class="px-4 py-3 text-gray-700 font-medium">{{ p.nombre }}</td>
+              <td class="px-4 py-3 text-gray-500">{{ p.sku }}</td>
+              <td class="px-4 py-3 text-gray-500">{{ p.categoria || '—' }}</td>
+              <td class="px-4 py-3">
+                <SharedBadge :label="p.estado === 'activo' ? 'Activo' : 'Inactivo'" :clases="colorEstado[p.estado]" />
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div v-if="productosFiltrados.length" class="lg:hidden divide-y divide-gray-50">
+        <div
+          v-for="p in productosFiltrados"
+          :key="p.id"
+          class="p-4 cursor-pointer hover:bg-gray-50 active:bg-gray-100"
+          @click="abrirEditar(p)"
+        >
+          <div class="flex items-center justify-between gap-2">
+            <span class="font-medium text-gray-700 truncate">{{ p.nombre }}</span>
+            <SharedBadge :label="p.estado === 'activo' ? 'Activo' : 'Inactivo'" :clases="colorEstado[p.estado]" />
+          </div>
+          <p class="text-xs text-gray-500 mt-1">{{ p.sku }} · {{ p.categoria || '—' }}</p>
+        </div>
+      </div>
     </div>
 
     <SharedModal
