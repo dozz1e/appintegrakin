@@ -1394,6 +1394,7 @@ export type Database = {
           id: string
           orden: number | null
           user_id: string | null
+          visible: boolean
           widget_id: string | null
         }
         Insert: {
@@ -1403,6 +1404,7 @@ export type Database = {
           id?: string
           orden?: number | null
           user_id?: string | null
+          visible?: boolean
           widget_id?: string | null
         }
         Update: {
@@ -1412,6 +1414,7 @@ export type Database = {
           id?: string
           orden?: number | null
           user_id?: string | null
+          visible?: boolean
           widget_id?: string | null
         }
         Relationships: [
@@ -1734,6 +1737,8 @@ export type Database = {
           orden: number
           resource: string
           tipo: string
+          visible: boolean
+          widget_id: string
         }[]
       }
       mover_lead_estado: {
