@@ -22,6 +22,7 @@ const etiquetaTipo: Record<Notificacion['tipo'], string> = {
   capacitacion_asignada: '🎓',
   capacitacion_vencida: '⏰',
   ticket_post_venta_vencido: '🛠️',
+  lead_inactivo: '⚠️',
 }
 
 const rutaEntidad: Record<Notificacion['entidad_tipo'], string> = {

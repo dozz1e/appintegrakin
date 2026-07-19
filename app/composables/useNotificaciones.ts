@@ -4,6 +4,7 @@ export interface Notificacion {
   user_id: string
   tipo: 'lead_asignado' | 'ticket_asignado' | 'tarea_asignada' | 'tarea_vencida'
       | 'capacitacion_asignada' | 'capacitacion_vencida' | 'ticket_post_venta_vencido'
+      | 'lead_inactivo'
   titulo: string
   mensaje: string | null
   entidad_tipo: 'lead' | 'cliente' | 'ticket' | 'tarea' | 'ticket_post_venta'
