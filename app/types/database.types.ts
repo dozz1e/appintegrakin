@@ -1601,6 +1601,7 @@ export type Database = {
       }
       ventas: {
         Row: {
+          cantidad: number
           cliente_id: string
           created_at: string
           created_by: string | null
@@ -1613,6 +1614,7 @@ export type Database = {
           version: number
         }
         Insert: {
+          cantidad?: number
           cliente_id: string
           created_at?: string
           created_by?: string | null
@@ -1625,6 +1627,7 @@ export type Database = {
           version?: number
         }
         Update: {
+          cantidad?: number
           cliente_id?: string
           created_at?: string
           created_by?: string | null
