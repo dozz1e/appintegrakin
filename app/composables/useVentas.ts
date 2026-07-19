@@ -2,6 +2,7 @@ export interface Venta {
   id: string
   cliente_id: string
   producto_id: string
+  cantidad: number
   valor: number
   fecha: string
   owner_id: string | null
@@ -26,24 +27,25 @@ export function useVentas() {
     return data ?? []
   }
 
-  async function crearVenta(
+  async function crearVentas(
     clienteId: string,
-    productoId: string,
-    valor: number,
+    lineas: { productoId: string; cantidad: number }[],
     fecha: string
-  ): Promise<Venta> {
+  ): Promise<Venta[]> {
     const { data, error } = await supabase
       .from('ventas')
-      .insert({
-        cliente_id: clienteId,
-        producto_id: productoId,
-        valor,
-        fecha,
-        owner_id: user.value?.sub,
-        created_by: user.value?.sub,
-      })
+      .insert(
+        lineas.map((l) => ({
+          cliente_id: clienteId,
+          producto_id: l.productoId,
+          cantidad: l.cantidad,
+          valor: 0,
+          fecha,
+          owner_id: user.value?.sub,
+          created_by: user.value?.sub,
+        }))
+      )
       .select()
-      .single()
 
     if (error) throw error
     return data
@@ -51,7 +53,7 @@ export function useVentas() {
 
   async function actualizarVenta(
     id: string,
-    payload: Partial<Pick<Venta, 'producto_id' | 'valor' | 'fecha'>>,
+    payload: Partial<Pick<Venta, 'producto_id' | 'valor' | 'fecha' | 'cantidad'>>,
     expectedVersion?: number
   ): Promise<Venta> {
     let query = supabase
@@ -76,5 +78,5 @@ export function useVentas() {
     if (!data?.length) throw new Error('No se pudo eliminar la venta')
   }
 
-  return { fetchVentasPorCliente, crearVenta, actualizarVenta, eliminarVenta }
+  return { fetchVentasPorCliente, crearVentas, actualizarVenta, eliminarVenta }
 }
