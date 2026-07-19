@@ -187,13 +187,13 @@ function formatearFecha(fecha: string) {
           <li
             v-for="c in citasFiltradas"
             :key="c.id"
-            class="border border-gray-100 rounded-xl p-4 flex items-center justify-between gap-3 bg-white"
+            class="border border-gray-100 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white"
           >
             <div class="min-w-0">
               <p class="text-sm font-medium text-gray-800">{{ c.cliente_nombre }} — {{ c.producto_nombre }}</p>
               <p class="text-xs text-gray-400">{{ formatearFecha(c.fecha_hora) }} · {{ c.titulo }}</p>
             </div>
-            <div class="flex items-center gap-2 shrink-0">
+            <div class="flex items-center gap-2 flex-wrap">
               <SharedBadge :label="colorCitaCapacitacion(c.estado).label" :clases="colorCitaCapacitacion(c.estado).clases" />
               <button class="text-xs text-[#1075B5] hover:underline" @click="abrirEditar(c)">Editar</button>
               <button
