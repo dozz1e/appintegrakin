@@ -85,17 +85,17 @@ const navCrm = [
         <div>
           <p v-if="!sidebarMostrandoColapsado" class="px-3 text-[11px] font-semibold text-ink-muted uppercase tracking-wide mb-1">CRM</p>
           <div class="space-y-0.5">
-            <SharedNavLink
-              v-for="item in navCrm"
-              v-show="can(item.resource, item.permiso[0]) || can(item.resource, item.permiso[1])"
-              :key="item.path"
-              :to="item.path"
-              :icono="item.icono"
-              :activo="esActivo(item.path)"
-              :colapsado="sidebarMostrandoColapsado"
-            >
-              {{ item.label }}
-            </SharedNavLink>
+            <template v-for="item in navCrm" :key="item.path">
+              <SharedNavLink
+                v-if="can(item.resource, item.permiso[0]) || can(item.resource, item.permiso[1])"
+                :to="item.path"
+                :icono="item.icono"
+                :activo="esActivo(item.path)"
+                :colapsado="sidebarMostrandoColapsado"
+              >
+                {{ item.label }}
+              </SharedNavLink>
+            </template>
           </div>
         </div>
 
