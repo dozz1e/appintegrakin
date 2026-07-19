@@ -1760,14 +1760,6 @@ export type Database = {
           widget_id: string
         }[]
       }
-      mover_lead_estado: {
-        Args: { p_lead_id: string; p_nuevo_estado: string }
-        Returns: undefined
-      }
-      mover_ticket_estado: {
-        Args: { p_nuevo_estado: string; p_ticket_id: string }
-        Returns: undefined
-      }
       permisos_efectivos_usuario: {
         Args: { p_user: string }
         Returns: {
