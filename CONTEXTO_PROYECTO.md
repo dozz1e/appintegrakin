@@ -680,9 +680,6 @@ el cliente. Solo se puebla vía SQL Editor de Supabase.
   formularios/modales y vistas de detalle multi-columna
   (`ClienteSplitView`, leads 3 columnas, tickets 2 columnas) colapsando
   a 1 columna (fase 4).
-- Fix Supabase Auth: el link de invitación de usuario nuevo manda a
-  `localhost` en vez del dominio real — revisar "Site URL"/"Redirect URLs"
-  en la configuración de Auth del proyecto Supabase.
 
 ### Cosas que el usuario debe pedir/recopilar (no son código, son recordatorios)
 - Definir email marketing (evaluación pendiente — falta elegir ESP por
