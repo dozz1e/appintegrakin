@@ -101,13 +101,13 @@ const aplicarEstado = async (permissionId: string, estado: 'heredado' | 'grant' 
             <li
               v-for="p in catalogo.filter((c) => c.resource === recurso)"
               :key="p.id"
-              class="flex items-center justify-between text-sm border rounded px-3 py-2"
+              class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-sm border rounded px-3 py-2"
             >
               <div>
                 <span class="font-medium">{{ p.action }}</span>
                 <span class="text-gray-400 ml-2">(rol: {{ heredados.has(p.id) ? 'sí' : 'no' }})</span>
               </div>
-              <div class="flex gap-1">
+              <div class="flex gap-1 flex-wrap">
                 <button
                   class="text-xs px-2 py-1 rounded"
                   :class="estadoDe(p.id) === 'heredado' ? 'bg-gray-200 text-gray-700' : 'bg-gray-100 text-gray-400'"
