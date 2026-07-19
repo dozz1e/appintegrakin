@@ -169,8 +169,8 @@ const chartsVisibles = charts
         :disabled="!modoEdicion"
         item-key="widgetId"
         tag="div"
-        class="grid gap-4 mb-6"
-        :style="{ gridTemplateColumns: `repeat(${Math.min(kpisVisibles.length, 8)}, minmax(0, 1fr))` }"
+        class="grid grid-cols-2 sm:grid-cols-3 lg:[grid-template-columns:var(--kpi-cols)] gap-4 mb-6"
+        :style="{ '--kpi-cols': `repeat(${Math.min(kpisVisibles.length, 8)}, minmax(0, 1fr))` }"
         @end="guardarOrden(kpis)"
       >
         <template #item="{ element: w }">
