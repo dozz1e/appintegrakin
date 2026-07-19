@@ -58,7 +58,7 @@ const onConvertir = async () => {
   try {
     const clienteId = await convertirACliente(lead.value.id, rutConversion.value, razonSocialConversion.value)
     success('Lead convertido a cliente')
-    await router.push(`/clientes/${clienteId}`)
+    await router.push(`/clientes?cliente_id=${clienteId}`)
   } catch (e: any) {
     errorConversion.value = e.message ?? 'Error al convertir el lead'
     error(errorConversion.value)
@@ -106,7 +106,7 @@ function formatearFecha(fecha: string) {
           <SharedCard v-if="lead.cliente_id">
             <p class="text-sm text-gray-600">
               Este lead ya fue convertido en cliente.
-              <NuxtLink :to="`/clientes/${lead.cliente_id}`" class="text-[#1075B5] hover:underline font-medium">
+              <NuxtLink :to="`/clientes?cliente_id=${lead.cliente_id}`" class="text-[#1075B5] hover:underline font-medium">
                 Ver cliente
               </NuxtLink>
             </p>
