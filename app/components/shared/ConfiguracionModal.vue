@@ -7,6 +7,8 @@ const emit = defineEmits<{ cerrar: [] }>()
 
 const { perfil, actualizarConfiguracion } = useMiPerfil()
 const { fetchConfiguracion, actualizarDias } = useConfiguracionArchivado()
+const { fetchDiasInactividadLeads, actualizarDiasInactividadLeads } = useConfiguracionAlertas()
+const { can } = usePermissions()
 const { success, error } = useToast()
 
 const umbrales = ref<UmbralAlerta[]>([{ ...UMBRAL_ALERTA_DEFAULT }])
@@ -16,6 +18,9 @@ const mostrarArchivado = computed(() => perfil.value?.roles.includes('post_venta
 const diasLeads = ref(30)
 const diasTickets = ref(30)
 const diasPostVenta = ref(30)
+
+const mostrarInactividadLeads = computed(() => can('configuracion_alertas', 'edit'))
+const diasInactividadLeads = ref(4)
 
 watch(
   () => props.open,
@@ -32,6 +37,10 @@ watch(
       diasTickets.value = config.find((c) => c.modulo === 'tickets')?.dias ?? 30
       diasPostVenta.value = config.find((c) => c.modulo === 'tickets_post_venta')?.dias ?? 30
     }
+
+    if (mostrarInactividadLeads.value) {
+      diasInactividadLeads.value = await fetchDiasInactividadLeads()
+    }
   }
 )
 
@@ -45,6 +54,7 @@ function quitarUmbral(i: number) {
 async function onGuardar() {
   if (umbrales.value.some((u) => u.valor < 1)) return
   if (mostrarArchivado.value && (diasLeads.value < 1 || diasTickets.value < 1 || diasPostVenta.value < 1)) return
+  if (mostrarInactividadLeads.value && diasInactividadLeads.value < 1) return
 
   guardando.value = true
   try {
@@ -55,6 +65,9 @@ async function onGuardar() {
         actualizarDias('tickets', diasTickets.value),
         actualizarDias('tickets_post_venta', diasPostVenta.value),
       ])
+    }
+    if (mostrarInactividadLeads.value) {
+      await actualizarDiasInactividadLeads(diasInactividadLeads.value)
     }
     success('Configuración guardada')
     emit('cerrar')
@@ -130,6 +143,18 @@ async function onGuardar() {
           class="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring"
         />
       </div>
+    </div>
+
+    <div v-if="mostrarInactividadLeads" class="mt-4 pt-4 border-t border-border">
+      <label class="block text-xs font-medium text-ink-muted mb-1">
+        Avisar leads sin actividad después de (días)
+      </label>
+      <input
+        v-model.number="diasInactividadLeads"
+        type="number"
+        min="1"
+        class="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring"
+      />
     </div>
 
     <div class="flex justify-end mt-6">
