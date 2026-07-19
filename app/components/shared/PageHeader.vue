@@ -3,7 +3,7 @@ defineProps<{ titulo: string; volverA?: string }>()
 </script>
 
 <template>
-  <div class="flex items-center justify-between mb-6">
+  <div class="flex flex-wrap items-center justify-between gap-2 mb-6">
     <div>
       <NuxtLink
         v-if="volverA"
