@@ -38,6 +38,7 @@ const productoIdEditado = ref('')
 const fechaEditada = ref('')
 const horaEditada = ref('')
 const valorEditado = ref<number | null>(null)
+const cantidadEditada = ref(1)
 const guardandoEdicion = ref(false)
 
 const aEliminar = ref<Venta | null>(null)
@@ -133,6 +134,7 @@ function onEditar(venta: Venta) {
   fechaEditada.value = aFechaInput(venta.fecha)
   horaEditada.value = aHoraInput(venta.fecha)
   valorEditado.value = venta.valor
+  cantidadEditada.value = venta.cantidad
 }
 
 function onCancelarEdicion() {
@@ -140,7 +142,16 @@ function onCancelarEdicion() {
 }
 
 async function onGuardarEdicion(venta: Venta) {
-  if (!productoIdEditado.value || !fechaEditada.value || !horaEditada.value || !valorEditado.value || valorEditado.value <= 0) return
+  if (
+    !productoIdEditado.value ||
+    !fechaEditada.value ||
+    !horaEditada.value ||
+    !valorEditado.value ||
+    valorEditado.value <= 0 ||
+    !cantidadEditada.value ||
+    cantidadEditada.value < 1
+  )
+    return
   guardandoEdicion.value = true
   try {
     const actualizada = await actualizarVenta(
@@ -149,6 +160,7 @@ async function onGuardarEdicion(venta: Venta) {
         producto_id: productoIdEditado.value,
         fecha: construirFecha(fechaEditada.value, horaEditada.value),
         valor: valorEditado.value,
+        cantidad: cantidadEditada.value,
       },
       venta.version
     )
@@ -224,6 +236,14 @@ async function onConfirmarEliminar() {
               step="1"
               class="flex-1 min-w-0 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30"
             />
+            <input
+              v-model.number="cantidadEditada"
+              type="number"
+              min="1"
+              step="1"
+              title="Cantidad"
+              class="w-20 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30"
+            />
           </div>
           <div class="flex gap-2">
             <button
@@ -245,7 +265,9 @@ async function onConfirmarEliminar() {
         </div>
         <div v-else class="flex items-center justify-between gap-3">
           <div class="min-w-0">
-            <p class="font-medium text-gray-700 truncate">{{ nombreProducto(v.producto_id) }}</p>
+            <p class="font-medium text-gray-700 truncate">
+              {{ nombreProducto(v.producto_id) }}<span v-if="v.cantidad > 1"> ×{{ v.cantidad }}</span>
+            </p>
             <p class="text-xs text-gray-400">{{ formatearFecha(v.fecha) }} · {{ formatearValor(v.valor) }}</p>
           </div>
           <div class="flex gap-3 shrink-0">
