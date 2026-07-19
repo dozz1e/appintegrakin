@@ -751,15 +751,18 @@ el cliente. Solo se puebla vía SQL Editor de Supabase.
   se hizo en la auditoría RLS/RPC del 2026-07-19 (punto 41 del roadmap),
   falta convertirla en tests repetibles.
 - Manual de uso por rol para la dueña y su equipo, no técnico (punto 10).
-- **Responsive, fase 4** (fase 1 shell, fase 3 Kanban y fase 2
-  listados/tablas ya completas, ver punto 39 del roadmap y specs
-  `2026-07-16-responsive-shell-design.md`,
-  `2026-07-16-responsive-kanban-design.md`) — falta: formularios/modales
-  y vistas de detalle multi-columna (leads 3 columnas, tickets 2
-  columnas) colapsando a 1 columna. `ClienteSplitView` ya tiene su propio
-  colapso mobile desde el 16-07 (spec
-  `2026-07-16-responsive-clientes-splitview-design.md`), no es parte de
-  lo que falta acá.
+- ~~Responsive, fase 4~~ — **revisado 2026-07-19, ya está resuelto, sin
+  código pendiente.** Las 3 vistas de detalle (`leads/[id].vue`,
+  `tickets/[id].vue`, `post-venta/[id].vue`) ya colapsan su grid a 1
+  columna en `<lg`, y sus componentes hijos (`LeadForm`, `TicketForm`,
+  `LeadTimeline`, `SeguimientoTimeline`, `SharedTareaList`) ya usan de
+  forma consistente `flex-1 min-w-0` para el contenido + `shrink-0` solo
+  en iconos chicos de acción, `flex-wrap` en filas de edición/chips y
+  formularios de una sola columna dentro de cards — los mismos patrones
+  que evitaron el desborde en fase 2. No hizo falta ningún cambio.
+  `ClienteSplitView` ya tenía su propio colapso mobile desde el 16-07
+  (spec `2026-07-16-responsive-clientes-splitview-design.md`). Con esto,
+  **las 4 fases del responsive quedan completas.**
 
 ### Cosas que el usuario debe pedir/recopilar (no son código, son recordatorios)
 - Definir email marketing (evaluación pendiente — falta elegir ESP por
