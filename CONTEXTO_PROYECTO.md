@@ -5,8 +5,9 @@
 > cuenta nueva de Claude (pegarlo como primer mensaje) o para cualquier
 > desarrollador que se sume.
 >
-> Última actualización: 16 de julio de 2026 (editar/eliminar ventas +
-> productos comprados en tickets).
+> Última actualización: 19 de julio de 2026 (hardening RLS/RPC completo,
+> ventas multi-equipo, dashboard personal editable, alerta de inactividad
+> de leads, responsive fase 2 completa).
 
 ## Stack y dependencias reales
 
@@ -283,19 +284,25 @@ el cliente. Solo se puebla vía SQL Editor de Supabase.
   `/admin/permisos`. 561 productos reales importados desde el Excel del
   usuario (vía CSV, mismo proceso ya usado para los 1893 clientes).
 - **`ventas`** (ver `20260713000300_ventas.sql`, nuevo módulo): `cliente_id,
-  producto_id, valor, fecha, owner_id, created_by, version`. Primera
-  conexión de `productos` con otra entidad. `fecha` es `timestamptz`
-  (fecha y hora), combinada en `ClientesVentaList.vue` igual que
-  `fecha_vencimiento` de tareas pero **sin** default de hora — hora vacía
-  es error de validación, no se omite. **Con `owner_id`** (a diferencia de
-  `productos`) — RLS igual que `tickets` (propio vs `view_all`). UI: pestaña
-  "Ventas" en `ClienteSplitView.vue`, formulario de alta con edición y
-  borrado inline (mismo patrón que `TareaList.vue`), gateado por
-  `can('ventas','edit'/'delete')`. Sin precio de lista en `productos` — el
-  valor se tipea a mano en cada venta. Permisos propios (`ventas.view/
-  view_all/create/edit/delete`); seed inicial: `dueña` (todo), rol `ventas`
-  y `post_venta` (view+create+edit, sin delete), `finanzas`/`operaciones`
-  (view_all), `logistica` (view).
+  producto_id, cantidad (agregada 2026-07-19, default 1, check > 0), valor,
+  fecha, owner_id, created_by, version`. Primera conexión de `productos`
+  con otra entidad. `fecha` es `timestamptz` (fecha y hora), combinada en
+  `VentaList.vue` igual que `fecha_vencimiento` de tareas pero **sin**
+  default de hora — hora vacía es error de validación, no se omite.
+  **Con `owner_id`** (a diferencia de `productos`) — RLS igual que
+  `tickets` (propio vs `view_all`). UI: pestaña "Ventas" en
+  `ClienteSplitView.vue` (`VentaList.vue`), modal de alta con **N líneas
+  `{producto, cantidad}`** (arranca en 1, botón "+ Agregar equipo"), envío
+  vía `crearVentas()` con un solo `insert` batch (una fila por línea,
+  atómico sin necesitar RPC ni transacción explícita — Postgres trata un
+  INSERT multi-fila como una sola sentencia). Edición y borrado inline
+  (mismo patrón que `TareaList.vue`), gateado por `can('ventas','edit'/
+  'delete')`. Sin precio de lista en `productos` — el valor se tipea a
+  mano en cada venta (ver spec
+  `2026-07-19-venta-multiples-equipos-design.md`). Permisos propios
+  (`ventas.view/view_all/create/edit/delete`); seed inicial: `dueña`
+  (todo), rol `ventas` y `post_venta` (view+create+edit, sin delete),
+  `finanzas`/`operaciones` (view_all), `logistica` (view).
 - **`ticket_productos`** (ver `20260716060000_ticket_productos.sql`):
   relación muchos a muchos entre `tickets` (servicio técnico, no
   `tickets_post_venta`) y `productos` — un ticket puede tener varios
@@ -508,6 +515,25 @@ el cliente. Solo se puebla vía SQL Editor de Supabase.
     Si se agrega un prop boolean opcional que debe ser `true` por
     defecto, usar siempre `withDefaults`, nunca un chequeo `!== false`
     contra el valor crudo del prop.
+20. Revocar `EXECUTE` de una función custom con `revoke execute on
+    function ... from public` **no alcanza** en Supabase — el setup
+    default del proyecto usa `ALTER DEFAULT PRIVILEGES` que otorga
+    `EXECUTE` directo a `anon`/`authenticated` (no vía `PUBLIC`) en cada
+    función nueva. Confirmado en vivo durante el hardening RPC del
+    2026-07-19: tras el primer revoke, `anon_exec` seguía `true` en casi
+    todas las funciones (`has_function_privilege('anon', ...)`). Hace
+    falta revocar explícito de `anon`/`authenticated` además de `public`,
+    y correr `alter default privileges for role postgres in schema public
+    revoke execute on functions from anon, authenticated;` para que
+    funciones futuras no reabran el mismo hueco.
+21. `storage.objects` tiene un trigger (`storage.protect_delete()`) que
+    bloquea cualquier `DELETE` directo por SQL, sin importar el rol —
+    incluso como `postgres`/`service_role` da `ERROR: Direct deletion
+    from storage tables is not allowed. Use the Storage API instead`. Si
+    hay que verificar una policy de `DELETE` sobre `storage.objects` (PoC
+    de impersonación tipo `set local role` + `rollback`), no se puede
+    probar el delete en sí — solo confirmar la definición de la policy
+    vía `pg_policies`.
 
 ## Roadmap — estado actual
 
@@ -665,21 +691,75 @@ el cliente. Solo se puebla vía SQL Editor de Supabase.
     Selector editable "Vendedor asignado" en la tab Información de
     `ClienteSplitView.vue`, reusa la misma lista de vendedores (rol
     `ventas`) que ya trae el filtro de solo lectura existente.
+37. ✅ **Dashboard personal editable** — cualquier usuario puede reordenar
+    (drag, `vuedraggable`) y ocultar/reactivar sus propias cards del
+    dashboard, sin necesitar `dashboard_widgets.assign` (eso sigue siendo
+    solo para que la dueña asigne qué widgets existen por usuario, desde
+    `/admin/dashboards`). Columna `visible` en `user_dashboard_widgets`,
+    policy `UPDATE` propia, `mis_widgets()` expone `widget_id`.
+38. ✅ **Alerta de inactividad de leads** — columnas de tracking +
+    triggers + cron notifica al dueño del lead cuando pasa X días sin
+    actividad (umbral configurable, mismo mecanismo que
+    `configuracion_archivado`).
+39. ✅ **Responsive fase 2 completa** (fase 1 shell, fase 3 Kanban y
+    fase 2 listados/tablas ya completas — falta fase 4, ver Pendientes).
+    Dos patrones aplicados según el caso: tabla→card (`hidden lg:block
+    overflow-x-auto` en la tabla + `lg:hidden divide-y` con cards) en
+    listados tabulares (`/productos`, las 6 páginas de
+    historial-movimientos/cerrados de leads/tickets/post-venta); filas
+    flex que pasan a `flex-col sm:flex-row` cuando tienen texto largo +
+    varios botones de acción que no entran en una línea en mobile
+    (`/admin/auditoria`, `/capacitaciones`, `/admin/permisos`,
+    `/admin/dashboards`). `/clientes` (`ClienteSplitView.vue`) y
+    `/admin/usuarios` ya estaban bien, sin cambios. Specs:
+    `2026-07-19-responsive-productos-listado-design.md` y los demás
+    `2026-07-19-responsive-*-design.md`.
+40. ✅ **Ventas: múltiples equipos y cantidad** — el modal "Registrar
+    venta" pasa de un solo producto a N líneas `{producto, cantidad}`
+    (arranca en 1, "+ Agregar equipo"), guardadas con un solo `insert`
+    batch atómico (`crearVentas()`, sin RPC nuevo). Columna `cantidad`
+    nueva en `ventas` (default 1). De paso se corrigió que los inputs de
+    fecha/hora de `VentaList.vue` nunca tuvieron el handler
+    `abrirPicker` que el resto de la app usa para abrir el
+    calendario/reloj nativo al hacer click (spec
+    `2026-07-19-venta-multiples-equipos-design.md`).
+41. ✅ **Hardening RLS/RPC** — auditoría completa (8 hallazgos: 3
+    críticos, 3 altos, 2 informacionales), 6 cerrados: permission-
+    enumeration en `permisos_efectivos_usuario` (ignoraba el parámetro,
+    forzaba `auth.uid()`), exposición de `usuarios_por_rol`, `EXECUTE`
+    default de Postgres nunca revocado en ~30 funciones custom (ver
+    gotcha #20 sobre `ALTER DEFAULT PRIVILEGES`), funciones muertas
+    `mover_lead_estado`/`mover_ticket_estado` borradas, buckets
+    `clientes-imagenes`/`entidad-imagenes`/`perfiles-imagenes` permitían
+    listar todos los archivos vía policy `SELECT` amplia (innecesaria,
+    son buckets públicos), delete cross-user en `entidad-imagenes`
+    storage sin chequeo de dueño, y `search_path` fijo (`SET search_path
+    = public`) en las 28 funciones `SECURITY DEFINER`/trigger. Quedan 2
+    hallazgos informacionales de bajo impacto y sin código pendiente:
+    `auth_leaked_password_protection` (toggle en Supabase Auth
+    dashboard) y `rls_enabled_no_policy` en `kame_tokens` (tabla nunca
+    accedida desde el cliente). Specs:
+    `2026-07-19-hardening-rpc-permisos-design.md` y
+    `2026-07-19-hardening-storage-buckets-design.md`.
 
 ## Pendientes sueltos
 
 - Probar optimistic locking (dos pestañas, mismo registro) con usuarios reales.
-- Testing de seguridad de RLS (escalar permisos, acceso cross-vendedor) y
-  testing automatizado de `has_permission()`/permisos efectivos (puntos 8-9
-  del Roadmap).
+- Testing automatizado de `has_permission()`/permisos efectivos (punto 9
+  del Roadmap) — la parte manual (escalar permisos, acceso cross-vendedor,
+  vía impersonación `set local role`/`set local request.jwt.claims`) ya
+  se hizo en la auditoría RLS/RPC del 2026-07-19 (punto 41 del roadmap),
+  falta convertirla en tests repetibles.
 - Manual de uso por rol para la dueña y su equipo, no técnico (punto 10).
-- **Responsive, fase 2 y 4** (fase 1 shell y fase 3 Kanban ya completas,
-  ver specs `2026-07-16-responsive-shell-design.md` y
-  `2026-07-16-responsive-kanban-design.md`) — falta: tablas/listados
-  (clientes, productos, admin, etc.) en pantalla angosta (fase 2);
-  formularios/modales y vistas de detalle multi-columna
-  (`ClienteSplitView`, leads 3 columnas, tickets 2 columnas) colapsando
-  a 1 columna (fase 4).
+- **Responsive, fase 4** (fase 1 shell, fase 3 Kanban y fase 2
+  listados/tablas ya completas, ver punto 39 del roadmap y specs
+  `2026-07-16-responsive-shell-design.md`,
+  `2026-07-16-responsive-kanban-design.md`) — falta: formularios/modales
+  y vistas de detalle multi-columna (leads 3 columnas, tickets 2
+  columnas) colapsando a 1 columna. `ClienteSplitView` ya tiene su propio
+  colapso mobile desde el 16-07 (spec
+  `2026-07-16-responsive-clientes-splitview-design.md`), no es parte de
+  lo que falta acá.
 
 ### Cosas que el usuario debe pedir/recopilar (no son código, son recordatorios)
 - Definir email marketing (evaluación pendiente — falta elegir ESP por
