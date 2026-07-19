@@ -198,7 +198,10 @@ function identificadorRegistro(r: AuditoriaEntry): string | null {
       </div>
       <ul v-else class="divide-y divide-gray-50">
         <li v-for="r in registros" :key="r.id" class="p-4">
-          <div class="flex items-center justify-between cursor-pointer" @click="toggle(r.id)">
+          <div
+            class="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 sm:flex-nowrap cursor-pointer"
+            @click="toggle(r.id)"
+          >
             <div class="flex items-center gap-3">
               <SharedBadge :label="labelAccion[r.accion]" :clases="colorAccion[r.accion]" />
               <span class="text-sm text-gray-700">
@@ -219,9 +222,9 @@ function identificadorRegistro(r: AuditoriaEntry): string | null {
                 <li
                   v-for="d in diff"
                   :key="d.campo"
-                  class="py-1.5 flex items-center gap-2"
+                  class="py-1.5 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2"
                 >
-                  <span class="font-medium text-gray-600 w-40 flex-shrink-0">{{ d.etiqueta }}</span>
+                  <span class="font-medium text-gray-600 sm:w-40 sm:flex-shrink-0">{{ d.etiqueta }}</span>
                   <template v-if="r.accion === 'update'">
                     <span class="text-gray-400">{{ d.anterior }}</span>
                     <Icon name="mdi:arrow-right" class="w-3.5 h-3.5 text-gray-300 flex-shrink-0" />
