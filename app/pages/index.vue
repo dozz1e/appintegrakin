@@ -66,26 +66,94 @@ const componentMap: Record<string, any> = {
   WidgetsChartTicketsPostVentaTendencia: ChartTicketsPostVentaTendencia,
 }
 
-const { misWidgets, cargarMisWidgets } = useDashboardWidgets()
+import draggable from 'vuedraggable'
+import type { MiWidget } from '~/composables/useDashboardWidgets'
+
+const { misWidgets, cargarMisWidgets, reordenarMisWidgets, setVisibilidadMiWidget } = useDashboardWidgets()
+const { error: toastError } = useToast()
 const cargando = ref(true)
+const modoEdicion = ref(false)
 
 onMounted(async () => {
   await cargarMisWidgets()
   cargando.value = false
 })
 
-const widgetsVisibles = computed(() => misWidgets.value)
-const kpisVisibles = computed(() => widgetsVisibles.value.filter((w) => w.tipo === 'kpi'))
-const chartsVisibles = computed(() => widgetsVisibles.value.filter((w) => w.tipo === 'chart'))
+// draggable necesita mutar arrays directamente (mismo motivo que
+// LeadKanban.vue) - se sincronizan con misWidgets vía watch.
+const kpis = ref<MiWidget[]>([])
+const charts = ref<MiWidget[]>([])
+const kpisOcultos = ref<MiWidget[]>([])
+const chartsOcultos = ref<MiWidget[]>([])
+
+function reconstruir() {
+  kpis.value = misWidgets.value.filter((w) => w.tipo === 'kpi' && w.visible)
+  charts.value = misWidgets.value.filter((w) => w.tipo === 'chart' && w.visible)
+  kpisOcultos.value = misWidgets.value.filter((w) => w.tipo === 'kpi' && !w.visible)
+  chartsOcultos.value = misWidgets.value.filter((w) => w.tipo === 'chart' && !w.visible)
+}
+
+watch(misWidgets, reconstruir, { deep: true })
+
+async function guardarOrden(lista: MiWidget[]) {
+  const previo = misWidgets.value.map((w) => ({ ...w }))
+  try {
+    await reordenarMisWidgets(lista.map((w, i) => ({ widgetId: w.widgetId, orden: i })))
+  } catch {
+    misWidgets.value = previo
+    toastError('No se pudo guardar el nuevo orden')
+  }
+}
+
+async function ocultar(widget: MiWidget) {
+  const previo = misWidgets.value.map((w) => ({ ...w }))
+  try {
+    await setVisibilidadMiWidget(widget.widgetId, false)
+    const w = misWidgets.value.find((x) => x.widgetId === widget.widgetId)
+    if (w) w.visible = false
+  } catch {
+    misWidgets.value = previo
+    toastError('No se pudo ocultar el widget')
+  }
+}
+
+async function reactivar(widget: MiWidget) {
+  const previo = misWidgets.value.map((w) => ({ ...w }))
+  try {
+    await setVisibilidadMiWidget(widget.widgetId, true)
+    const w = misWidgets.value.find((x) => x.widgetId === widget.widgetId)
+    if (w) w.visible = true
+  } catch {
+    misWidgets.value = previo
+    toastError('No se pudo reactivar el widget')
+  }
+}
+
+const widgetsVisibles = computed(() => [...kpis.value, ...charts.value])
+const kpisVisibles = kpis
+const chartsVisibles = charts
 </script>
 
 <template>
   <div class="p-6">
-    <h1 class="text-xl font-semibold mb-6">Tu dashboard</h1>
+    <div class="flex items-center justify-between mb-6">
+      <h1 class="text-xl font-semibold">Tu dashboard</h1>
+      <button
+        v-if="!cargando && widgetsVisibles.length + kpisOcultos.length + chartsOcultos.length > 0"
+        type="button"
+        class="text-sm font-medium border rounded-lg px-3 py-1.5 transition-colors"
+        :class="modoEdicion
+          ? 'bg-primary text-ink-onprimary border-primary'
+          : 'border-gray-200 text-gray-600 hover:border-primary hover:text-primary'"
+        @click="modoEdicion = !modoEdicion"
+      >
+        {{ modoEdicion ? 'Listo' : 'Editar dashboard' }}
+      </button>
+    </div>
 
     <p v-if="cargando" class="text-gray-400">Cargando...</p>
 
-    <p v-else-if="widgetsVisibles.length === 0" class="text-gray-400 text-sm">
+    <p v-else-if="widgetsVisibles.length === 0 && kpisOcultos.length === 0 && chartsOcultos.length === 0" class="text-gray-400 text-sm">
       Todavía no tienes ningún widget asignado. Pídele a tu administrador que te active
       alguno desde el panel de dashboards.
     </p>
@@ -95,26 +163,74 @@ const chartsVisibles = computed(() => widgetsVisibles.value.filter((w) => w.tipo
     </p>
 
     <template v-else>
-      <div
+      <draggable
         v-if="kpisVisibles.length"
+        v-model="kpis"
+        :disabled="!modoEdicion"
+        item-key="widgetId"
+        tag="div"
         class="grid gap-4 mb-6"
         :style="{ gridTemplateColumns: `repeat(${Math.min(kpisVisibles.length, 8)}, minmax(0, 1fr))` }"
+        @end="guardarOrden(kpis)"
       >
-        <component
-          :is="componentMap[w.component]"
-          v-for="w in kpisVisibles"
-          :key="w.key"
-          v-bind="w.config"
-        />
-      </div>
+        <template #item="{ element: w }">
+          <div class="relative" :class="modoEdicion ? 'cursor-grab active:cursor-grabbing' : ''">
+            <button
+              v-if="modoEdicion"
+              type="button"
+              title="Ocultar"
+              class="absolute -top-2 -right-2 z-10 w-6 h-6 rounded-full bg-gray-700 text-white flex items-center justify-center hover:bg-danger transition-colors"
+              @click="ocultar(w)"
+            >
+              <Icon name="mdi:close" class="w-3.5 h-3.5" />
+            </button>
+            <component :is="componentMap[w.component]" v-bind="w.config" />
+          </div>
+        </template>
+      </draggable>
 
-      <div v-if="chartsVisibles.length" class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <component
-          :is="componentMap[w.component]"
-          v-for="w in chartsVisibles"
-          :key="w.key"
-          v-bind="w.config"
-        />
+      <draggable
+        v-if="chartsVisibles.length"
+        v-model="charts"
+        :disabled="!modoEdicion"
+        item-key="widgetId"
+        tag="div"
+        class="grid grid-cols-1 lg:grid-cols-2 gap-4"
+        @end="guardarOrden(charts)"
+      >
+        <template #item="{ element: w }">
+          <div class="relative" :class="modoEdicion ? 'cursor-grab active:cursor-grabbing' : ''">
+            <button
+              v-if="modoEdicion"
+              type="button"
+              title="Ocultar"
+              class="absolute -top-2 -right-2 z-10 w-6 h-6 rounded-full bg-gray-700 text-white flex items-center justify-center hover:bg-danger transition-colors"
+              @click="ocultar(w)"
+            >
+              <Icon name="mdi:close" class="w-3.5 h-3.5" />
+            </button>
+            <component :is="componentMap[w.component]" v-bind="w.config" />
+          </div>
+        </template>
+      </draggable>
+
+      <div
+        v-if="modoEdicion && (kpisOcultos.length || chartsOcultos.length)"
+        class="mt-8 pt-4 border-t border-gray-100"
+      >
+        <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Widgets ocultos</p>
+        <div class="flex flex-wrap gap-2">
+          <button
+            v-for="w in [...kpisOcultos, ...chartsOcultos]"
+            :key="w.widgetId"
+            type="button"
+            class="flex items-center gap-1.5 text-sm text-gray-500 border border-dashed border-gray-300 rounded-lg px-3 py-1.5 opacity-60 hover:opacity-100 hover:border-primary hover:text-primary transition-all"
+            @click="reactivar(w)"
+          >
+            <Icon name="mdi:plus" class="w-3.5 h-3.5" />
+            {{ w.label }}
+          </button>
+        </div>
       </div>
     </template>
   </div>
