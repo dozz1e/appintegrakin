@@ -328,6 +328,21 @@ export type Database = {
           },
         ]
       }
+      configuracion_alertas: {
+        Row: {
+          clave: string
+          valor: number
+        }
+        Insert: {
+          clave: string
+          valor: number
+        }
+        Update: {
+          clave?: string
+          valor?: number
+        }
+        Relationships: []
+      }
       configuracion_archivado: {
         Row: {
           dias: number
@@ -610,6 +625,7 @@ export type Database = {
           fecha_cierre: string | null
           id: string
           nombre: string
+          notificado_inactividad: boolean
           origen: string | null
           owner_id: string | null
           telefono: string | null
@@ -626,6 +642,7 @@ export type Database = {
           fecha_cierre?: string | null
           id?: string
           nombre: string
+          notificado_inactividad?: boolean
           origen?: string | null
           owner_id?: string | null
           telefono?: string | null
@@ -642,6 +659,7 @@ export type Database = {
           fecha_cierre?: string | null
           id?: string
           nombre?: string
+          notificado_inactividad?: boolean
           origen?: string | null
           owner_id?: string | null
           telefono?: string | null
@@ -1712,6 +1730,7 @@ export type Database = {
         }[]
       }
       fn_notificar_citas_vencidas: { Args: never; Returns: undefined }
+      fn_notificar_leads_inactivos: { Args: never; Returns: undefined }
       fn_notificar_tareas_vencidas: { Args: never; Returns: undefined }
       fn_notificar_tickets_post_venta_vencidos: {
         Args: never
