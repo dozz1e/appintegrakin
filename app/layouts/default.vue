@@ -67,11 +67,11 @@ const navCrm = [
         <SharedAppLogo v-if="!sidebarMostrandoColapsado" />
         <button
           type="button"
-          class="hidden lg:flex w-7 h-7 items-center justify-center rounded-lg text-ink-muted hover:bg-surface-2 hover:text-ink transition-colors duration-150 shrink-0"
+          class="hidden lg:flex w-9 h-9 items-center justify-center rounded-full border-2 border-primary bg-primary-subtle text-primary shadow-sm hover:bg-primary hover:text-ink-onprimary transition-colors duration-150 shrink-0"
           :title="sidebarColapsado ? 'Expandir menú' : 'Colapsar menú'"
           @click="alternarSidebar"
         >
-          <Icon :name="sidebarColapsado ? 'mdi:chevron-double-right' : 'mdi:chevron-double-left'" class="w-4 h-4" />
+          <Icon :name="sidebarColapsado ? 'mdi:chevron-double-right' : 'mdi:chevron-double-left'" class="w-5 h-5" />
         </button>
       </div>
 
