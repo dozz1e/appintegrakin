@@ -45,14 +45,13 @@ function formatearFecha(fecha: string) {
 
 <template>
   <div>
-    <div class="flex flex-wrap gap-2 mb-4">
+    <div class="flex flex-wrap items-start gap-2 mb-4">
       <input v-model="fecha" type="date" class="border border-gray-200 rounded-lg px-3 py-2 text-sm" @click="abrirPicker" />
-      <input
+      <textarea
         v-model="comentario"
-        type="text"
+        rows="1"
         placeholder="¿Qué se hizo/observó?"
-        class="flex-1 min-w-0 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring"
-        @keyup.enter="onSubmit"
+        class="flex-1 min-w-0 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring resize-none"
       />
       <button
         :disabled="guardando || !comentario.trim()"

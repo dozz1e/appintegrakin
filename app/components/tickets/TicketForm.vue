@@ -150,32 +150,33 @@ const inputClase =
       </select>
     </div>
 
-    <div v-if="!modelValue">
-      <label class="block text-sm font-medium mb-1 text-gray-700">Imagen (opcional)</label>
+    <div v-if="!modelValue && archivoAdjunto" class="flex items-center gap-1 text-xs text-gray-500">
+      <Icon name="mdi:image-outline" class="w-4 h-4 shrink-0" />
+      <span class="truncate">{{ archivoAdjunto.name }}</span>
+      <button type="button" class="text-gray-400 hover:text-danger" @click="quitarAdjunto">
+        <Icon name="mdi:close" class="w-3.5 h-3.5" />
+      </button>
+    </div>
+
+    <div class="flex items-center gap-2">
       <button
+        v-if="!modelValue"
         type="button"
-        class="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-500 hover:text-[#1075B5] hover:border-[#1075B5] transition-colors flex items-center gap-2"
+        title="Adjuntar imagen"
+        class="flex items-center gap-1.5 border-2 border-[#1075B5] bg-[#1075B5]/10 text-[#1075B5] rounded-lg px-3 py-2 text-sm font-medium hover:bg-[#1075B5] hover:text-white transition-colors shrink-0"
         @click="inputArchivo?.click()"
       >
         <Icon name="mdi:paperclip" class="w-4 h-4" />
-        Adjuntar imagen
+        Adjuntar
       </button>
       <input ref="inputArchivo" type="file" accept="image/*" class="hidden" @change="onArchivoSeleccionado" />
-      <div v-if="archivoAdjunto" class="flex items-center gap-1 text-xs text-gray-500 mt-1">
-        <Icon name="mdi:image-outline" class="w-4 h-4 shrink-0" />
-        <span class="truncate">{{ archivoAdjunto.name }}</span>
-        <button type="button" class="text-gray-400 hover:text-danger" @click="quitarAdjunto">
-          <Icon name="mdi:close" class="w-3.5 h-3.5" />
-        </button>
-      </div>
+      <button
+        type="submit"
+        :disabled="cargando"
+        class="flex-1 bg-[#1075B5] hover:bg-[#0C5D91] text-white px-4 py-2.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+      >
+        {{ cargando ? 'Guardando...' : 'Guardar ticket' }}
+      </button>
     </div>
-
-    <button
-      type="submit"
-      :disabled="cargando"
-      class="bg-[#1075B5] hover:bg-[#0C5D91] text-white px-4 py-2.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
-    >
-      {{ cargando ? 'Guardando...' : 'Guardar ticket' }}
-    </button>
   </form>
 </template>

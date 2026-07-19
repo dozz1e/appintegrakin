@@ -234,38 +234,38 @@ async function onConfirmarEliminar() {
           <option value="web">Web</option>
           <option value="correo">Correo</option>
         </select>
-        <input
+        <textarea
           v-model="nota"
-          type="text"
+          rows="3"
           placeholder="¿Qué respondió el cliente?"
-          class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30"
-          @keyup.enter="onSubmit"
+          class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30 resize-none"
         />
+        <span v-if="archivoAdjunto" class="flex items-center gap-1 text-xs text-gray-500">
+          <Icon name="mdi:image-outline" class="w-4 h-4 shrink-0" />
+          <span class="truncate">{{ archivoAdjunto.name }}</span>
+          <button type="button" class="text-gray-400 hover:text-danger shrink-0" @click="quitarAdjunto">
+            <Icon name="mdi:close" class="w-3.5 h-3.5" />
+          </button>
+        </span>
         <div class="flex items-center gap-2">
           <button
             type="button"
             title="Adjuntar imagen"
-            class="border border-gray-200 rounded-lg px-3 py-2 text-gray-500 hover:text-[#1075B5] hover:border-[#1075B5] transition-colors shrink-0"
+            class="flex items-center gap-1.5 border-2 border-[#1075B5] bg-[#1075B5]/10 text-[#1075B5] rounded-lg px-3 py-2 text-sm font-medium hover:bg-[#1075B5] hover:text-white transition-colors shrink-0"
             @click="inputArchivo?.click()"
           >
             <Icon name="mdi:paperclip" class="w-4 h-4" />
+            Adjuntar
           </button>
           <input ref="inputArchivo" type="file" accept="image/*" class="hidden" @change="onArchivoSeleccionado" />
-          <span v-if="archivoAdjunto" class="flex-1 min-w-0 flex items-center gap-1 text-xs text-gray-500">
-            <Icon name="mdi:image-outline" class="w-4 h-4 shrink-0" />
-            <span class="truncate">{{ archivoAdjunto.name }}</span>
-            <button type="button" class="text-gray-400 hover:text-danger shrink-0" @click="quitarAdjunto">
-              <Icon name="mdi:close" class="w-3.5 h-3.5" />
-            </button>
-          </span>
+          <button
+            :disabled="guardando || !nota.trim()"
+            class="flex-1 bg-[#1075B5] hover:bg-[#0C5D91] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+            @click="onSubmit"
+          >
+            {{ guardando ? 'Guardando...' : 'Agregar' }}
+          </button>
         </div>
-        <button
-          :disabled="guardando || !nota.trim()"
-          class="w-full bg-[#1075B5] hover:bg-[#0C5D91] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
-          @click="onSubmit"
-        >
-          {{ guardando ? 'Guardando...' : 'Agregar' }}
-        </button>
       </div>
     </SharedModal>
   </SharedCard>

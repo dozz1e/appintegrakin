@@ -236,38 +236,38 @@ async function onConfirmarEliminar() {
           <option value="web">Web</option>
           <option value="correo">Correo</option>
         </select>
-        <input
+        <textarea
           v-model="nota"
-          type="text"
+          rows="3"
           placeholder="¿Qué se conversó?"
-          class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring"
-          @keyup.enter="onSubmit"
+          class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-ring resize-none"
         />
+        <span v-if="archivoAdjunto" class="flex items-center gap-1 text-xs text-gray-500">
+          <Icon name="mdi:image-outline" class="w-4 h-4 shrink-0" />
+          <span class="truncate">{{ archivoAdjunto.name }}</span>
+          <button type="button" class="text-gray-400 hover:text-danger shrink-0" @click="quitarAdjunto">
+            <Icon name="mdi:close" class="w-3.5 h-3.5" />
+          </button>
+        </span>
         <div class="flex items-center gap-2">
           <button
             type="button"
             title="Adjuntar imagen"
-            class="border border-gray-200 rounded-lg px-3 py-2 text-gray-500 hover:text-primary hover:border-primary transition-colors shrink-0"
+            class="flex items-center gap-1.5 border-2 border-primary bg-primary-subtle text-primary rounded-lg px-3 py-2 text-sm font-medium hover:bg-primary hover:text-ink-onprimary transition-colors shrink-0"
             @click="inputArchivo?.click()"
           >
             <Icon name="mdi:paperclip" class="w-4 h-4" />
+            Adjuntar
           </button>
           <input ref="inputArchivo" type="file" accept="image/*" class="hidden" @change="onArchivoSeleccionado" />
-          <span v-if="archivoAdjunto" class="flex-1 min-w-0 flex items-center gap-1 text-xs text-gray-500">
-            <Icon name="mdi:image-outline" class="w-4 h-4 shrink-0" />
-            <span class="truncate">{{ archivoAdjunto.name }}</span>
-            <button type="button" class="text-gray-400 hover:text-danger shrink-0" @click="quitarAdjunto">
-              <Icon name="mdi:close" class="w-3.5 h-3.5" />
-            </button>
-          </span>
+          <button
+            :disabled="guardando || !nota.trim()"
+            class="flex-1 bg-primary hover:bg-primary-hover text-ink-onprimary px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+            @click="onSubmit"
+          >
+            {{ guardando ? 'Guardando...' : 'Agregar' }}
+          </button>
         </div>
-        <button
-          :disabled="guardando || !nota.trim()"
-          class="w-full bg-primary hover:bg-primary-hover text-ink-onprimary px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
-          @click="onSubmit"
-        >
-          {{ guardando ? 'Guardando...' : 'Agregar' }}
-        </button>
       </div>
     </SharedModal>
   </div>
