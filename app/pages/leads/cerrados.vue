@@ -30,24 +30,43 @@ function formatearFecha(fecha: string | null) {
     <p v-if="cargando" class="text-gray-400">Cargando...</p>
     <div v-else class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
       <div v-if="!leads.length" class="p-10 text-center text-gray-400">Sin leads cerrados todavía.</div>
-      <table v-else class="w-full text-sm">
-        <thead>
-          <tr class="border-b border-gray-100 text-left text-xs text-gray-400 uppercase tracking-wide">
-            <th class="px-4 py-3 font-medium">Nombre</th>
-            <th class="px-4 py-3 font-medium">Estado final</th>
-            <th class="px-4 py-3 font-medium">Fecha de cierre</th>
-            <th class="px-4 py-3 font-medium">Archivado</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-50">
-          <tr v-for="l in leads" :key="l.id" class="cursor-pointer hover:bg-gray-50" @click="navigateTo(`/leads/${l.id}`)">
-            <td class="px-4 py-3 text-gray-700 font-medium">{{ l.nombre }}</td>
-            <td class="px-4 py-3"><SharedBadge :label="colorLead(l.estado).label" :clases="colorLead(l.estado).clases" /></td>
-            <td class="px-4 py-3 text-gray-500">{{ formatearFecha(l.fecha_cierre) }}</td>
-            <td class="px-4 py-3 text-gray-500">{{ l.archivado ? 'Sí' : 'No (aún visible en el listado activo)' }}</td>
-          </tr>
-        </tbody>
-      </table>
+      <div v-else class="hidden lg:block overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-gray-100 text-left text-xs text-gray-400 uppercase tracking-wide">
+              <th class="px-4 py-3 font-medium">Nombre</th>
+              <th class="px-4 py-3 font-medium">Estado final</th>
+              <th class="px-4 py-3 font-medium">Fecha de cierre</th>
+              <th class="px-4 py-3 font-medium">Archivado</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-50">
+            <tr v-for="l in leads" :key="l.id" class="cursor-pointer hover:bg-gray-50" @click="navigateTo(`/leads/${l.id}`)">
+              <td class="px-4 py-3 text-gray-700 font-medium">{{ l.nombre }}</td>
+              <td class="px-4 py-3"><SharedBadge :label="colorLead(l.estado).label" :clases="colorLead(l.estado).clases" /></td>
+              <td class="px-4 py-3 text-gray-500">{{ formatearFecha(l.fecha_cierre) }}</td>
+              <td class="px-4 py-3 text-gray-500">{{ l.archivado ? 'Sí' : 'No (aún visible en el listado activo)' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div v-if="leads.length" class="lg:hidden divide-y divide-gray-50">
+        <div
+          v-for="l in leads"
+          :key="l.id"
+          class="p-4 cursor-pointer hover:bg-gray-50 active:bg-gray-100"
+          @click="navigateTo(`/leads/${l.id}`)"
+        >
+          <div class="flex items-center justify-between gap-2">
+            <span class="font-medium text-gray-700 truncate">{{ l.nombre }}</span>
+            <SharedBadge :label="colorLead(l.estado).label" :clases="colorLead(l.estado).clases" />
+          </div>
+          <p class="text-xs text-gray-500 mt-1">
+            {{ formatearFecha(l.fecha_cierre) }} · Archivado: {{ l.archivado ? 'Sí' : 'No (aún visible en el listado activo)' }}
+          </p>
+        </div>
+      </div>
     </div>
   </div>
 </template>

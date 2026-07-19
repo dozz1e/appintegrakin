@@ -30,28 +30,45 @@ function formatearFecha(fecha: string | null) {
     <p v-if="cargando" class="text-gray-400">Cargando...</p>
     <div v-else class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
       <div v-if="!tickets.length" class="p-10 text-center text-gray-400">Sin tickets despachados todavía.</div>
-      <table v-else class="w-full text-sm">
-        <thead>
-          <tr class="border-b border-gray-100 text-left text-xs text-gray-400 uppercase tracking-wide">
-            <th class="px-4 py-3 font-medium">Guía</th>
-            <th class="px-4 py-3 font-medium">Cliente</th>
-            <th class="px-4 py-3 font-medium">Equipo</th>
-            <th class="px-4 py-3 font-medium">Fecha despacho</th>
-            <th class="px-4 py-3 font-medium">Fecha de cierre</th>
-            <th class="px-4 py-3 font-medium">Archivado</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-50">
-          <tr v-for="t in tickets" :key="t.id" class="cursor-pointer hover:bg-gray-50" @click="navigateTo(`/post-venta/${t.id}`)">
-            <td class="px-4 py-3 text-gray-700 font-medium">{{ t.n_guia }}</td>
-            <td class="px-4 py-3 text-gray-500">{{ t.cliente_nombre }}</td>
-            <td class="px-4 py-3 text-gray-500">{{ t.producto_nombre }}</td>
-            <td class="px-4 py-3 text-gray-500">{{ formatearFecha(t.fecha_despacho) }}</td>
-            <td class="px-4 py-3 text-gray-500">{{ formatearFecha(t.fecha_cierre) }}</td>
-            <td class="px-4 py-3 text-gray-500">{{ t.archivado ? 'Sí' : 'No (aún visible en el listado activo)' }}</td>
-          </tr>
-        </tbody>
-      </table>
+      <div v-else class="hidden lg:block overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-gray-100 text-left text-xs text-gray-400 uppercase tracking-wide">
+              <th class="px-4 py-3 font-medium">Guía</th>
+              <th class="px-4 py-3 font-medium">Cliente</th>
+              <th class="px-4 py-3 font-medium">Equipo</th>
+              <th class="px-4 py-3 font-medium">Fecha despacho</th>
+              <th class="px-4 py-3 font-medium">Fecha de cierre</th>
+              <th class="px-4 py-3 font-medium">Archivado</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-50">
+            <tr v-for="t in tickets" :key="t.id" class="cursor-pointer hover:bg-gray-50" @click="navigateTo(`/post-venta/${t.id}`)">
+              <td class="px-4 py-3 text-gray-700 font-medium">{{ t.n_guia }}</td>
+              <td class="px-4 py-3 text-gray-500">{{ t.cliente_nombre }}</td>
+              <td class="px-4 py-3 text-gray-500">{{ t.producto_nombre }}</td>
+              <td class="px-4 py-3 text-gray-500">{{ formatearFecha(t.fecha_despacho) }}</td>
+              <td class="px-4 py-3 text-gray-500">{{ formatearFecha(t.fecha_cierre) }}</td>
+              <td class="px-4 py-3 text-gray-500">{{ t.archivado ? 'Sí' : 'No (aún visible en el listado activo)' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div v-if="tickets.length" class="lg:hidden divide-y divide-gray-50">
+        <div
+          v-for="t in tickets"
+          :key="t.id"
+          class="p-4 cursor-pointer hover:bg-gray-50 active:bg-gray-100"
+          @click="navigateTo(`/post-venta/${t.id}`)"
+        >
+          <p class="font-medium text-gray-700 truncate">{{ t.n_guia }}</p>
+          <p class="text-xs text-gray-500 mt-1">{{ t.cliente_nombre }} · {{ t.producto_nombre }}</p>
+          <p class="text-xs text-gray-500 mt-0.5">
+            Despacho {{ formatearFecha(t.fecha_despacho) }} · Cierre {{ formatearFecha(t.fecha_cierre) }} · Archivado: {{ t.archivado ? 'Sí' : 'No (aún visible en el listado activo)' }}
+          </p>
+        </div>
+      </div>
     </div>
   </div>
 </template>
