@@ -4,7 +4,7 @@ import type { Producto } from '~/composables/useProductos'
 
 const props = defineProps<{ clienteId: string }>()
 
-const { fetchVentasPorCliente, crearVenta, actualizarVenta, eliminarVenta } = useVentas()
+const { fetchVentasPorCliente, crearVentas, actualizarVenta, eliminarVenta } = useVentas()
 const { fetchProductos } = useProductos()
 const { success, error } = useToast()
 const { can } = usePermissions()
@@ -14,9 +14,24 @@ const productos = ref<Producto[]>([])
 const cargando = ref(true)
 const guardando = ref(false)
 
-const productoId = ref('')
+interface LineaVentaForm {
+  productoId: string
+  cantidad: number
+}
+
+const lineas = ref<LineaVentaForm[]>([{ productoId: '', cantidad: 1 }])
+const erroresLineas = ref<string[]>([])
 const fecha = ref('')
 const hora = ref('')
+
+function agregarLinea() {
+  lineas.value.push({ productoId: '', cantidad: 1 })
+}
+
+function quitarLinea(index: number) {
+  if (lineas.value.length <= 1) return
+  lineas.value.splice(index, 1)
+}
 
 const idEditando = ref<string | null>(null)
 const productoIdEditado = ref('')
@@ -79,18 +94,27 @@ function aHoraInput(fechaIso: string): string {
 }
 
 function validar(): boolean {
-  errores.productoId = productoId.value ? '' : 'Selecciona un producto'
+  erroresLineas.value = lineas.value.map((l) => {
+    if (!l.productoId) return 'Selecciona un producto'
+    if (!l.cantidad || l.cantidad < 1) return 'Cantidad inválida'
+    return ''
+  })
   errores.fecha = fecha.value ? '' : 'Ingresa la fecha'
   errores.hora = hora.value ? '' : 'Ingresa la hora'
-  return !Object.values(errores).some(Boolean)
+  return !erroresLineas.value.some(Boolean) && !errores.fecha && !errores.hora
 }
 
 async function onSubmit() {
   if (!validar()) return
   guardando.value = true
   try {
-    await crearVenta(props.clienteId, productoId.value, 0, construirFecha(fecha.value, hora.value))
-    productoId.value = ''
+    await crearVentas(
+      props.clienteId,
+      lineas.value.map((l) => ({ productoId: l.productoId, cantidad: l.cantidad })),
+      construirFecha(fecha.value, hora.value)
+    )
+    lineas.value = [{ productoId: '', cantidad: 1 }]
+    erroresLineas.value = []
     fecha.value = ''
     hora.value = ''
     modalNuevaAbierta.value = false
@@ -258,9 +282,40 @@ async function onConfirmarEliminar() {
     />
 
     <SharedModal :open="modalNuevaAbierta" titulo="Registrar venta" @cerrar="modalNuevaAbierta = false">
-      <div class="space-y-1">
-        <ProductosProductoBuscador v-model="productoId" />
-        <p v-if="errores.productoId" class="text-xs text-red-600">{{ errores.productoId }}</p>
+      <div class="space-y-3">
+        <div v-for="(linea, i) in lineas" :key="i" class="space-y-1">
+          <div class="flex items-start gap-2">
+            <div class="flex-1 min-w-0">
+              <ProductosProductoBuscador v-model="linea.productoId" />
+            </div>
+            <input
+              v-model.number="linea.cantidad"
+              type="number"
+              min="1"
+              step="1"
+              title="Cantidad"
+              class="w-20 border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1075B5]/30 focus:border-[#1075B5]"
+            />
+            <button
+              v-if="lineas.length > 1"
+              type="button"
+              class="text-gray-300 hover:text-red-600 transition-colors p-2"
+              title="Quitar equipo"
+              @click="quitarLinea(i)"
+            >
+              <Icon name="mdi:close" class="w-5 h-5" />
+            </button>
+          </div>
+          <p v-if="erroresLineas[i]" class="text-xs text-red-600">{{ erroresLineas[i] }}</p>
+        </div>
+
+        <button
+          type="button"
+          class="text-sm font-medium text-[#1075B5] hover:text-[#0C5D91] transition-colors"
+          @click="agregarLinea"
+        >
+          + Agregar equipo
+        </button>
 
         <div class="flex flex-wrap gap-2 pt-1">
           <input
