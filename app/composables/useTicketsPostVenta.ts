@@ -13,7 +13,7 @@ export interface TicketPostVenta {
   producto_id: string
   descripcion_falla: string | null
   estado: EstadoTicketPostVenta
-  fecha_ingreso: string
+  fecha_ingreso: string | null
   fecha_tope: string | null
   fecha_despacho: string | null
   observaciones: string | null
@@ -103,7 +103,7 @@ export function useTicketsPostVenta() {
     cliente_ciudad_libre?: string | null
     producto_id: string
     descripcion_falla: string | null
-    fecha_ingreso: string
+    fecha_ingreso: string | null
     fecha_tope: string | null
     observaciones: string | null
   }): Promise<TicketPostVenta> {
@@ -119,7 +119,7 @@ export function useTicketsPostVenta() {
 
   async function actualizarTicket(
     id: string,
-    payload: Partial<Pick<TicketPostVenta, 'estado' | 'fecha_despacho' | 'fecha_tope' | 'descripcion_falla' | 'observaciones'>>
+    payload: Partial<Pick<TicketPostVenta, 'estado' | 'fecha_ingreso' | 'fecha_despacho' | 'fecha_tope' | 'descripcion_falla' | 'observaciones'>>
   ): Promise<TicketPostVenta> {
     const { data, error } = await supabase
       .from('tickets_post_venta')

@@ -34,10 +34,27 @@ async function onCambiarEstado(estado: EstadoTicketPostVenta) {
   if (!ticket.value) return
   guardando.value = true
   try {
-    ticket.value = { ...ticket.value, ...(await actualizarTicket(ticket.value.id, { estado })) }
+    const payload: Partial<{ estado: EstadoTicketPostVenta; fecha_ingreso: string }> = { estado }
+    if (estado === 'ingreso_equipo' && !ticket.value.fecha_ingreso) {
+      payload.fecha_ingreso = new Date().toISOString().slice(0, 10)
+    }
+    ticket.value = { ...ticket.value, ...(await actualizarTicket(ticket.value.id, payload)) }
     success('Estado actualizado')
   } catch (e) {
     error('No se pudo actualizar el estado')
+  } finally {
+    guardando.value = false
+  }
+}
+
+async function onCambiarFechaIngreso(fecha: string) {
+  if (!ticket.value) return
+  guardando.value = true
+  try {
+    ticket.value = { ...ticket.value, ...(await actualizarTicket(ticket.value.id, { fecha_ingreso: fecha || null })) }
+    success('Fecha de ingreso actualizada')
+  } catch (e) {
+    error('No se pudo actualizar la fecha de ingreso')
   } finally {
     guardando.value = false
   }
@@ -70,7 +87,8 @@ async function onConfirmarEliminar() {
   }
 }
 
-function formatearFecha(fecha: string) {
+function formatearFecha(fecha: string | null) {
+  if (!fecha) return ''
   return new Date(fecha).toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 </script>
@@ -80,7 +98,9 @@ function formatearFecha(fecha: string) {
     <p v-if="cargando" class="text-gray-400">Cargando...</p>
     <template v-else-if="ticket">
       <SharedPageHeader :titulo="`Guía ${ticket.n_guia}`" volver-a="/post-venta">
-        <template #subtitulo>Ingresado el {{ formatearFecha(ticket.fecha_ingreso) }}</template>
+        <template #subtitulo>
+          {{ ticket.fecha_ingreso ? `Ingresado el ${formatearFecha(ticket.fecha_ingreso)}` : 'Equipo aún no ingresado' }}
+        </template>
         <template #accion>
           <SharedBadge :label="colorTicketPostVenta(ticket.estado).label" :clases="colorTicketPostVenta(ticket.estado).clases" tamano="lg" />
         </template>
@@ -110,16 +130,29 @@ function formatearFecha(fecha: string) {
                   <option v-for="e in estados" :key="e" :value="e">{{ colorTicketPostVenta(e).label }}</option>
                 </select>
               </div>
-              <div>
-                <label class="block text-xs font-medium mb-1 text-gray-700">Fecha de despacho</label>
-                <input
-                  :value="ticket.fecha_despacho ?? ''"
-                  type="date"
-                  :disabled="guardando"
-                  class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
-                  @click="abrirPicker"
-                  @change="onCambiarFechaDespacho(($event.target as HTMLInputElement).value)"
-                />
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-medium mb-1 text-gray-700">Fecha de ingreso</label>
+                  <input
+                    :value="ticket.fecha_ingreso ?? ''"
+                    type="date"
+                    :disabled="guardando"
+                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
+                    @click="abrirPicker"
+                    @change="onCambiarFechaIngreso(($event.target as HTMLInputElement).value)"
+                  />
+                </div>
+                <div>
+                  <label class="block text-xs font-medium mb-1 text-gray-700">Fecha de despacho</label>
+                  <input
+                    :value="ticket.fecha_despacho ?? ''"
+                    type="date"
+                    :disabled="guardando"
+                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
+                    @click="abrirPicker"
+                    @change="onCambiarFechaDespacho(($event.target as HTMLInputElement).value)"
+                  />
+                </div>
               </div>
             </div>
           </div>

@@ -66,7 +66,7 @@ function onExportar() {
     n_guia: t.n_guia,
     producto: t.producto_nombre,
     estado: t.estado,
-    ingreso: t.fecha_ingreso,
+    ingreso: t.fecha_ingreso ?? '',
     tope: t.fecha_tope ?? '',
     despacho: t.fecha_despacho ?? '',
   }))
@@ -75,7 +75,14 @@ function onExportar() {
 
 async function onCambiarEstado(id: string, estado: EstadoTicketPostVenta) {
   try {
-    await actualizarTicket(id, { estado })
+    const payload: Partial<{ estado: EstadoTicketPostVenta; fecha_ingreso: string }> = { estado }
+    if (estado === 'ingreso_equipo') {
+      const ticket = tickets.value.find((t) => t.id === id)
+      if (ticket && !ticket.fecha_ingreso) {
+        payload.fecha_ingreso = new Date().toISOString().slice(0, 10)
+      }
+    }
+    await actualizarTicket(id, payload)
     await cargar()
   } catch (e) {
     error('No se pudo actualizar el estado')

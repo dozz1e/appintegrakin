@@ -28,8 +28,10 @@ onMounted(async () => {
   }
   const porDia = new Map(dias.map((d) => [d.key, d]))
   for (const t of todos) {
-    const ingreso = porDia.get(aDiaKey(t.fecha_ingreso))
-    if (ingreso) ingreso.ingresados++
+    if (t.fecha_ingreso) {
+      const ingreso = porDia.get(aDiaKey(t.fecha_ingreso))
+      if (ingreso) ingreso.ingresados++
+    }
     if (t.fecha_despacho) {
       const despacho = porDia.get(aDiaKey(t.fecha_despacho))
       if (despacho) despacho.despachados++

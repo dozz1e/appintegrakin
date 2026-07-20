@@ -20,7 +20,7 @@ const form = reactive({
   cliente_ciudad_libre: '',
   producto_id: '',
   descripcion_falla: '',
-  fecha_ingreso: new Date().toISOString().slice(0, 10),
+  fecha_ingreso: '',
   fecha_tope: '',
   observaciones: '',
 })
@@ -69,11 +69,6 @@ function validar(): boolean {
     ? form.cliente_nombre_libre.trim() ? '' : 'Ingresa al menos el nombre del cliente'
     : form.cliente_id ? '' : 'Debes seleccionar un cliente'
   errores.producto_id = form.producto_id ? '' : 'Debes seleccionar un equipo'
-  errores.fecha_ingreso = form.fecha_ingreso ? '' : 'La fecha de ingreso es obligatoria'
-  errores.fecha_tope =
-    form.fecha_tope && form.fecha_ingreso && form.fecha_tope <= form.fecha_ingreso
-      ? 'La fecha tope debe ser posterior a la fecha de ingreso'
-      : ''
   return !Object.values(errores).some(Boolean)
 }
 
@@ -91,7 +86,7 @@ function onSubmit() {
       cliente_ciudad_libre: clienteDesconocido.value ? form.cliente_ciudad_libre.trim() || null : null,
       producto_id: form.producto_id,
       descripcion_falla: form.descripcion_falla.trim() || null,
-      fecha_ingreso: form.fecha_ingreso,
+      fecha_ingreso: form.fecha_ingreso || null,
       fecha_tope: form.fecha_tope || null,
       observaciones: form.observaciones.trim() || null,
     },
@@ -172,14 +167,12 @@ const inputClase =
 
     <div class="grid grid-cols-2 gap-3">
       <div>
-        <label class="block text-sm font-medium mb-1 text-gray-700">Fecha de ingreso *</label>
+        <label class="block text-sm font-medium mb-1 text-gray-700">Fecha de ingreso</label>
         <input v-model="form.fecha_ingreso" type="date" :class="inputClase" @click="abrirPicker" />
-        <p v-if="errores.fecha_ingreso" class="text-sm text-red-600 mt-1">{{ errores.fecha_ingreso }}</p>
       </div>
       <div>
         <label class="block text-sm font-medium mb-1 text-gray-700">Fecha tope</label>
         <input v-model="form.fecha_tope" type="date" :class="inputClase" @click="abrirPicker" />
-        <p v-if="errores.fecha_tope" class="text-sm text-red-600 mt-1">{{ errores.fecha_tope }}</p>
       </div>
     </div>
 

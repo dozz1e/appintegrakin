@@ -1271,7 +1271,7 @@ export type Database = {
           estado: string
           fecha_cierre: string | null
           fecha_despacho: string | null
-          fecha_ingreso: string
+          fecha_ingreso: string | null
           fecha_tope: string | null
           id: string
           n_guia: string
@@ -1293,7 +1293,7 @@ export type Database = {
           estado?: string
           fecha_cierre?: string | null
           fecha_despacho?: string | null
-          fecha_ingreso?: string
+          fecha_ingreso?: string | null
           fecha_tope?: string | null
           id?: string
           n_guia: string
@@ -1315,7 +1315,7 @@ export type Database = {
           estado?: string
           fecha_cierre?: string | null
           fecha_despacho?: string | null
-          fecha_ingreso?: string
+          fecha_ingreso?: string | null
           fecha_tope?: string | null
           id?: string
           n_guia?: string
