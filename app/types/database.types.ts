@@ -313,6 +313,7 @@ export type Database = {
         Row: {
           component: string
           created_at: string | null
+          dashboard: string
           descripcion: string | null
           id: string
           key: string
@@ -323,6 +324,7 @@ export type Database = {
         Insert: {
           component: string
           created_at?: string | null
+          dashboard: string
           descripcion?: string | null
           id?: string
           key: string
@@ -333,6 +335,7 @@ export type Database = {
         Update: {
           component?: string
           created_at?: string | null
+          dashboard?: string
           descripcion?: string | null
           id?: string
           key?: string
@@ -1657,7 +1660,7 @@ export type CompositeTypes<
 }
   ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    ? DefaultSchema["CompositeTypes"][CompositeTypeName]
     : never
 
 export const Constants = {

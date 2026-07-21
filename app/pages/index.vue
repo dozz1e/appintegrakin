@@ -18,10 +18,23 @@
 // es un paso manual extra, pero es explícito y no depende de configuración
 // oculta de Nuxt que ya nos mordió una vez.
 
-// Catálogo de widgets vacío a propósito (2026-07-21): se está rehaciendo
-// desde cero el set de cards/gráficas del dashboard. Widgets nuevos se
-// agregan acá con import + entrada en componentMap.
-const componentMap: Record<string, any> = {}
+import KpiClientesTotales from '~/components/widgets/KpiClientesTotales.vue'
+import KpiTotalLeads from '~/components/widgets/KpiTotalLeads.vue'
+import KpiTasaConversion from '~/components/widgets/KpiTasaConversion.vue'
+import KpiLeadsGanados from '~/components/widgets/KpiLeadsGanados.vue'
+import ChartLeadsTendencia from '~/components/widgets/ChartLeadsTendencia.vue'
+import ChartLeadsPorEstado from '~/components/widgets/ChartLeadsPorEstado.vue'
+import TablaLeadManagement from '~/components/widgets/TablaLeadManagement.vue'
+
+const componentMap: Record<string, any> = {
+  WidgetsKpiClientesTotales: KpiClientesTotales,
+  WidgetsKpiTotalLeads: KpiTotalLeads,
+  WidgetsKpiTasaConversion: KpiTasaConversion,
+  WidgetsKpiLeadsGanados: KpiLeadsGanados,
+  WidgetsChartLeadsTendencia: ChartLeadsTendencia,
+  WidgetsChartLeadsPorEstado: ChartLeadsPorEstado,
+  WidgetsTablaLeadManagement: TablaLeadManagement,
+}
 
 import draggable from 'vuedraggable'
 import type { MiWidget } from '~/composables/useDashboardWidgets'
@@ -40,14 +53,18 @@ onMounted(async () => {
 // LeadKanban.vue) - se sincronizan con misWidgets vía watch.
 const kpis = ref<MiWidget[]>([])
 const charts = ref<MiWidget[]>([])
+const tablas = ref<MiWidget[]>([])
 const kpisOcultos = ref<MiWidget[]>([])
 const chartsOcultos = ref<MiWidget[]>([])
+const tablasOcultos = ref<MiWidget[]>([])
 
 function reconstruir() {
   kpis.value = misWidgets.value.filter((w) => w.tipo === 'kpi' && w.visible)
   charts.value = misWidgets.value.filter((w) => w.tipo === 'chart' && w.visible)
+  tablas.value = misWidgets.value.filter((w) => w.tipo === 'tabla' && w.visible)
   kpisOcultos.value = misWidgets.value.filter((w) => w.tipo === 'kpi' && !w.visible)
   chartsOcultos.value = misWidgets.value.filter((w) => w.tipo === 'chart' && !w.visible)
+  tablasOcultos.value = misWidgets.value.filter((w) => w.tipo === 'tabla' && !w.visible)
 }
 
 watch(misWidgets, reconstruir, { deep: true })
@@ -86,9 +103,10 @@ async function reactivar(widget: MiWidget) {
   }
 }
 
-const widgetsVisibles = computed(() => [...kpis.value, ...charts.value])
+const widgetsVisibles = computed(() => [...kpis.value, ...charts.value, ...tablas.value])
 const kpisVisibles = kpis
 const chartsVisibles = charts
+const tablasVisibles = tablas
 </script>
 
 <template>
@@ -96,7 +114,7 @@ const chartsVisibles = charts
     <div class="flex items-center justify-between mb-6">
       <h1 class="text-xl font-semibold">Tu dashboard</h1>
       <button
-        v-if="!cargando && widgetsVisibles.length + kpisOcultos.length + chartsOcultos.length > 0"
+        v-if="!cargando && widgetsVisibles.length + kpisOcultos.length + chartsOcultos.length + tablasOcultos.length > 0"
         type="button"
         class="text-sm font-medium border rounded-lg px-3 py-1.5 transition-colors"
         :class="modoEdicion
@@ -110,7 +128,10 @@ const chartsVisibles = charts
 
     <p v-if="cargando" class="text-gray-400">Cargando...</p>
 
-    <p v-else-if="widgetsVisibles.length === 0 && kpisOcultos.length === 0 && chartsOcultos.length === 0" class="text-gray-400 text-sm">
+    <p
+      v-else-if="widgetsVisibles.length === 0 && kpisOcultos.length === 0 && chartsOcultos.length === 0 && tablasOcultos.length === 0"
+      class="text-gray-400 text-sm"
+    >
       Todavía no tienes ningún widget asignado. Pídele a tu administrador que te active
       alguno desde el panel de dashboards.
     </p>
@@ -156,6 +177,37 @@ const chartsVisibles = charts
         @end="guardarOrden(charts)"
       >
         <template #item="{ element: w }">
+          <div
+            class="relative"
+            :class="[
+              modoEdicion ? 'cursor-grab active:cursor-grabbing' : '',
+              w.component === 'WidgetsChartLeadsTendencia' ? 'lg:col-span-2' : '',
+            ]"
+          >
+            <button
+              v-if="modoEdicion"
+              type="button"
+              title="Ocultar"
+              class="absolute -top-2 -right-2 z-10 w-6 h-6 rounded-full bg-gray-700 text-white flex items-center justify-center hover:bg-danger transition-colors"
+              @click="ocultar(w)"
+            >
+              <Icon name="mdi:close" class="w-3.5 h-3.5" />
+            </button>
+            <component :is="componentMap[w.component]" v-bind="w.config" />
+          </div>
+        </template>
+      </draggable>
+
+      <draggable
+        v-if="tablasVisibles.length"
+        v-model="tablas"
+        :disabled="!modoEdicion"
+        item-key="widgetId"
+        tag="div"
+        class="grid grid-cols-1 gap-4 mt-4"
+        @end="guardarOrden(tablas)"
+      >
+        <template #item="{ element: w }">
           <div class="relative" :class="modoEdicion ? 'cursor-grab active:cursor-grabbing' : ''">
             <button
               v-if="modoEdicion"
@@ -172,13 +224,13 @@ const chartsVisibles = charts
       </draggable>
 
       <div
-        v-if="modoEdicion && (kpisOcultos.length || chartsOcultos.length)"
+        v-if="modoEdicion && (kpisOcultos.length || chartsOcultos.length || tablasOcultos.length)"
         class="mt-8 pt-4 border-t border-gray-100"
       >
         <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-2">Widgets ocultos</p>
         <div class="flex flex-wrap gap-2">
           <button
-            v-for="w in [...kpisOcultos, ...chartsOcultos]"
+            v-for="w in [...kpisOcultos, ...chartsOcultos, ...tablasOcultos]"
             :key="w.widgetId"
             type="button"
             class="flex items-center gap-1.5 text-sm text-gray-500 border border-dashed border-gray-300 rounded-lg px-3 py-1.5 opacity-60 hover:opacity-100 hover:border-primary hover:text-primary transition-all"

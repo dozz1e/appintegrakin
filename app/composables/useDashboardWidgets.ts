@@ -6,7 +6,7 @@ export interface MiWidget {
   label: string
   component: string
   resource: string
-  tipo: 'kpi' | 'chart'
+  tipo: 'kpi' | 'chart' | 'tabla'
   orden: number
   config: Record<string, unknown>
   visible: boolean
@@ -18,8 +18,9 @@ export interface WidgetCatalogo {
   label: string
   component: string
   resource: string
-  tipo: 'kpi' | 'chart'
+  tipo: 'kpi' | 'chart' | 'tabla'
   descripcion: string | null
+  dashboard: string
 }
 
 export const useDashboardWidgets = () => {
@@ -68,7 +69,7 @@ export const useDashboardWidgets = () => {
   // A partir de acá, solo funciona si quien llama tiene el permiso
   // dashboard_widgets.assign (dueña o superadmin) - lo exige la RLS.
   const fetchCatalogo = async () => {
-    const { data, error } = await supabase.from('dashboard_widgets').select('*').order('tipo, label')
+    const { data, error } = await supabase.from('dashboard_widgets').select('*').order('dashboard, tipo, label')
     if (error) throw error
     return data as WidgetCatalogo[]
   }

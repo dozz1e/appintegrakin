@@ -29,6 +29,21 @@ export function colorLead(estado: string): EstiloEstado {
   return mapa[estado] ?? { label: estado, clases: GRIS_BG }
 }
 
+// Mismos estados de colorLead, en hex - para libs de gráficos (SVG) que no
+// pueden consumir clases Tailwind. Tonos elegidos para calzar con los
+// bg-*-text de arriba.
+export function colorLeadHex(estado: string): string {
+  const mapa: Record<string, string> = {
+    nuevo: '#78716c',
+    contactado: '#1075b5',
+    cotizado: '#7c3aed',
+    negociacion: '#d97706',
+    ganado: '#16a34a',
+    perdido: '#dc2626',
+  }
+  return mapa[estado] ?? '#78716c'
+}
+
 export function colorTicket(estado: string): EstiloEstado {
   const mapa: Record<string, EstiloEstado> = {
     abierto: { label: 'Abierto', clases: ROJO_BG },

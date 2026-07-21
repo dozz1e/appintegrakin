@@ -17,6 +17,16 @@ const usuarioSeleccionado = ref('')
 const widgetsAsignados = ref<Set<string>>(new Set()) // widget_id
 const cargando = ref(true)
 
+const TIPO_LABEL: Record<string, string> = { kpi: 'KPIs', chart: 'Gráficos', tabla: 'Tablas' }
+
+const dashboards = computed(() => {
+  const nombres = [...new Set(catalogo.value.map((w) => w.dashboard))].sort()
+  return nombres.map((nombre) => ({
+    nombre,
+    widgets: catalogo.value.filter((w) => w.dashboard === nombre),
+  }))
+})
+
 onMounted(async () => {
   catalogo.value = await fetchCatalogo()
   usuarios.value = await fetchUsuarios()
@@ -68,30 +78,35 @@ const toggleWidget = async (widgetId: string) => {
         <option v-for="u in usuarios" :key="u.id" :value="u.id">{{ u.full_name || u.email }}</option>
       </select>
 
-      <div v-if="usuarioSeleccionado" class="space-y-4">
-        <div v-for="tipo in ['kpi', 'chart']" :key="tipo">
-          <h2 class="text-xs font-semibold text-gray-400 uppercase mb-2">
-            {{ tipo === 'kpi' ? 'KPIs' : 'Gráficos' }}
+      <div v-if="usuarioSeleccionado" class="space-y-6">
+        <div v-for="d in dashboards" :key="d.nombre">
+          <h2 class="text-sm font-semibold text-ink capitalize mb-3 pb-1 border-b border-border-strong">
+            {{ d.nombre }}
           </h2>
-          <ul class="space-y-1">
-            <li
-              v-for="w in catalogo.filter((c) => c.tipo === tipo)"
-              :key="w.id"
-              class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-sm border rounded px-3 py-2"
-            >
-              <div>
-                <span class="font-medium">{{ w.label }}</span>
-                <span v-if="w.descripcion" class="text-gray-400 ml-2">{{ w.descripcion }}</span>
-              </div>
-              <button
-                class="text-xs px-2 py-1 rounded"
-                :class="widgetsAsignados.has(w.id) ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'"
-                @click="toggleWidget(w.id)"
-              >
-                {{ widgetsAsignados.has(w.id) ? 'Activo' : 'Inactivo' }}
-              </button>
-            </li>
-          </ul>
+          <div v-for="tipo in ['kpi', 'chart', 'tabla']" :key="tipo" class="mb-4 last:mb-0">
+            <template v-if="d.widgets.some((w) => w.tipo === tipo)">
+              <h3 class="text-xs font-semibold text-ink-muted uppercase mb-2">{{ TIPO_LABEL[tipo] }}</h3>
+              <ul class="space-y-1">
+                <li
+                  v-for="w in d.widgets.filter((c) => c.tipo === tipo)"
+                  :key="w.id"
+                  class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-sm border border-border rounded px-3 py-2"
+                >
+                  <div>
+                    <span class="font-medium text-ink">{{ w.label }}</span>
+                    <span v-if="w.descripcion" class="text-ink-muted ml-2">{{ w.descripcion }}</span>
+                  </div>
+                  <button
+                    class="text-xs px-2 py-1 rounded"
+                    :class="widgetsAsignados.has(w.id) ? 'bg-success-bg text-success-text' : 'bg-neutral-bg text-neutral-text'"
+                    @click="toggleWidget(w.id)"
+                  >
+                    {{ widgetsAsignados.has(w.id) ? 'Activo' : 'Inactivo' }}
+                  </button>
+                </li>
+              </ul>
+            </template>
+          </div>
         </div>
       </div>
     </template>
