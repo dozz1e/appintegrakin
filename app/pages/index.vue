@@ -26,6 +26,7 @@ import ChartLeadsTendencia from '~/components/widgets/ChartLeadsTendencia.vue'
 import ChartLeadsPorEstado from '~/components/widgets/ChartLeadsPorEstado.vue'
 import TablaLeadManagement from '~/components/widgets/TablaLeadManagement.vue'
 import ChartPerformanceVendedores from '~/components/widgets/ChartPerformanceVendedores.vue'
+import ChartClientesTendencia from '~/components/widgets/ChartClientesTendencia.vue'
 import KpiTicketsPostVentaTotal from '~/components/widgets/KpiTicketsPostVentaTotal.vue'
 import KpiTicketsPostVentaDespachados from '~/components/widgets/KpiTicketsPostVentaDespachados.vue'
 import KpiTicketsPostVentaVencidos from '~/components/widgets/KpiTicketsPostVentaVencidos.vue'
@@ -43,6 +44,7 @@ const componentMap: Record<string, any> = {
   WidgetsChartLeadsPorEstado: ChartLeadsPorEstado,
   WidgetsTablaLeadManagement: TablaLeadManagement,
   WidgetsChartPerformanceVendedores: ChartPerformanceVendedores,
+  WidgetsChartClientesTendencia: ChartClientesTendencia,
   WidgetsKpiTicketsPostVentaTotal: KpiTicketsPostVentaTotal,
   WidgetsKpiTicketsPostVentaDespachados: KpiTicketsPostVentaDespachados,
   WidgetsKpiTicketsPostVentaVencidos: KpiTicketsPostVentaVencidos,
@@ -197,7 +199,7 @@ const tablasVisibles = tablas
             class="relative"
             :class="[
               modoEdicion ? 'cursor-grab active:cursor-grabbing' : '',
-              ['WidgetsChartLeadsTendencia', 'WidgetsChartTicketsPostVentaTendencia'].includes(w.component) ? 'lg:col-span-3' : '',
+              ['WidgetsChartLeadsTendencia', 'WidgetsChartTicketsPostVentaTendencia', 'WidgetsChartClientesTendencia'].includes(w.component) ? 'lg:col-span-3' : '',
             ]"
           >
             <button
