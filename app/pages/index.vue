@@ -18,53 +18,10 @@
 // es un paso manual extra, pero es explícito y no depende de configuración
 // oculta de Nuxt que ya nos mordió una vez.
 
-import KpiClientesTotales from '~/components/widgets/KpiClientesTotales.vue'
-import KpiLeadsActivos from '~/components/widgets/KpiLeadsActivos.vue'
-import KpiTicketsAbiertos from '~/components/widgets/KpiTicketsAbiertos.vue'
-import KpiTicketsAbiertosPostVenta from '~/components/widgets/KpiTicketsAbiertosPostVenta.vue'
-import KpiTasaConversion from '~/components/widgets/KpiTasaConversion.vue'
-import KpiTotalLeads from '~/components/widgets/KpiTotalLeads.vue'
-import KpiLeadsGanados from '~/components/widgets/KpiLeadsGanados.vue'
-import KpiLeadsPerdidos from '~/components/widgets/KpiLeadsPerdidos.vue'
-import ChartFunnelLeads from '~/components/widgets/ChartFunnelLeads.vue'
-import ChartPerformanceVendedores from '~/components/widgets/ChartPerformanceVendedores.vue'
-import KpiTicketsTotal from '~/components/widgets/KpiTicketsTotal.vue'
-import KpiTicketsResueltos from '~/components/widgets/KpiTicketsResueltos.vue'
-import KpiTicketsCerrados from '~/components/widgets/KpiTicketsCerrados.vue'
-import ChartTicketsPorEstado from '~/components/widgets/ChartTicketsPorEstado.vue'
-import ChartTicketsPorPrioridad from '~/components/widgets/ChartTicketsPorPrioridad.vue'
-import ChartTicketsTendencia from '~/components/widgets/ChartTicketsTendencia.vue'
-import KpiTicketsPostVentaTotal from '~/components/widgets/KpiTicketsPostVentaTotal.vue'
-import KpiTicketsPostVentaDespachados from '~/components/widgets/KpiTicketsPostVentaDespachados.vue'
-import KpiTicketsPostVentaVencidos from '~/components/widgets/KpiTicketsPostVentaVencidos.vue'
-import ChartTicketsPostVentaPorEstado from '~/components/widgets/ChartTicketsPostVentaPorEstado.vue'
-import ChartTicketsPostVentaVencidos from '~/components/widgets/ChartTicketsPostVentaVencidos.vue'
-import ChartTicketsPostVentaTendencia from '~/components/widgets/ChartTicketsPostVentaTendencia.vue'
-
-const componentMap: Record<string, any> = {
-  WidgetsKpiClientesTotales: KpiClientesTotales,
-  WidgetsKpiLeadsActivos: KpiLeadsActivos,
-  WidgetsKpiTicketsAbiertos: KpiTicketsAbiertos,
-  WidgetsKpiTicketsAbiertosPostVenta: KpiTicketsAbiertosPostVenta,
-  WidgetsKpiTasaConversion: KpiTasaConversion,
-  WidgetsKpiTotalLeads: KpiTotalLeads,
-  WidgetsKpiLeadsGanados: KpiLeadsGanados,
-  WidgetsKpiLeadsPerdidos: KpiLeadsPerdidos,
-  WidgetsChartFunnelLeads: ChartFunnelLeads,
-  WidgetsChartPerformanceVendedores: ChartPerformanceVendedores,
-  WidgetsKpiTicketsTotal: KpiTicketsTotal,
-  WidgetsKpiTicketsResueltos: KpiTicketsResueltos,
-  WidgetsKpiTicketsCerrados: KpiTicketsCerrados,
-  WidgetsChartTicketsPorEstado: ChartTicketsPorEstado,
-  WidgetsChartTicketsPorPrioridad: ChartTicketsPorPrioridad,
-  WidgetsChartTicketsTendencia: ChartTicketsTendencia,
-  WidgetsKpiTicketsPostVentaTotal: KpiTicketsPostVentaTotal,
-  WidgetsKpiTicketsPostVentaDespachados: KpiTicketsPostVentaDespachados,
-  WidgetsKpiTicketsPostVentaVencidos: KpiTicketsPostVentaVencidos,
-  WidgetsChartTicketsPostVentaPorEstado: ChartTicketsPostVentaPorEstado,
-  WidgetsChartTicketsPostVentaVencidos: ChartTicketsPostVentaVencidos,
-  WidgetsChartTicketsPostVentaTendencia: ChartTicketsPostVentaTendencia,
-}
+// Catálogo de widgets vacío a propósito (2026-07-21): se está rehaciendo
+// desde cero el set de cards/gráficas del dashboard. Widgets nuevos se
+// agregan acá con import + entrada en componentMap.
+const componentMap: Record<string, any> = {}
 
 import draggable from 'vuedraggable'
 import type { MiWidget } from '~/composables/useDashboardWidgets'
