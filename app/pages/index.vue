@@ -25,6 +25,14 @@ import KpiLeadsGanados from '~/components/widgets/KpiLeadsGanados.vue'
 import ChartLeadsTendencia from '~/components/widgets/ChartLeadsTendencia.vue'
 import ChartLeadsPorEstado from '~/components/widgets/ChartLeadsPorEstado.vue'
 import TablaLeadManagement from '~/components/widgets/TablaLeadManagement.vue'
+import ChartPerformanceVendedores from '~/components/widgets/ChartPerformanceVendedores.vue'
+import KpiTicketsPostVentaTotal from '~/components/widgets/KpiTicketsPostVentaTotal.vue'
+import KpiTicketsPostVentaDespachados from '~/components/widgets/KpiTicketsPostVentaDespachados.vue'
+import KpiTicketsPostVentaVencidos from '~/components/widgets/KpiTicketsPostVentaVencidos.vue'
+import KpiTicketsPostVentaEnProceso from '~/components/widgets/KpiTicketsPostVentaEnProceso.vue'
+import ChartTicketsPostVentaTendencia from '~/components/widgets/ChartTicketsPostVentaTendencia.vue'
+import ChartTicketsPostVentaPorEstado from '~/components/widgets/ChartTicketsPostVentaPorEstado.vue'
+import TablaPostVentaManagement from '~/components/widgets/TablaPostVentaManagement.vue'
 
 const componentMap: Record<string, any> = {
   WidgetsKpiClientesTotales: KpiClientesTotales,
@@ -34,6 +42,14 @@ const componentMap: Record<string, any> = {
   WidgetsChartLeadsTendencia: ChartLeadsTendencia,
   WidgetsChartLeadsPorEstado: ChartLeadsPorEstado,
   WidgetsTablaLeadManagement: TablaLeadManagement,
+  WidgetsChartPerformanceVendedores: ChartPerformanceVendedores,
+  WidgetsKpiTicketsPostVentaTotal: KpiTicketsPostVentaTotal,
+  WidgetsKpiTicketsPostVentaDespachados: KpiTicketsPostVentaDespachados,
+  WidgetsKpiTicketsPostVentaVencidos: KpiTicketsPostVentaVencidos,
+  WidgetsKpiTicketsPostVentaEnProceso: KpiTicketsPostVentaEnProceso,
+  WidgetsChartTicketsPostVentaTendencia: ChartTicketsPostVentaTendencia,
+  WidgetsChartTicketsPostVentaPorEstado: ChartTicketsPostVentaPorEstado,
+  WidgetsTablaPostVentaManagement: TablaPostVentaManagement,
 }
 
 import draggable from 'vuedraggable'
@@ -181,7 +197,7 @@ const tablasVisibles = tablas
             class="relative"
             :class="[
               modoEdicion ? 'cursor-grab active:cursor-grabbing' : '',
-              w.component === 'WidgetsChartLeadsTendencia' ? 'lg:col-span-3' : '',
+              ['WidgetsChartLeadsTendencia', 'WidgetsChartTicketsPostVentaTendencia'].includes(w.component) ? 'lg:col-span-3' : '',
             ]"
           >
             <button

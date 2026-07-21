@@ -98,3 +98,17 @@ export function colorTicketPostVenta(estado: string): EstiloEstado {
   }
   return mapa[estado] ?? { label: estado, clases: GRIS_BG }
 }
+
+// Mismos estados de colorTicketPostVenta, en hex - para libs de gráficos.
+export function colorTicketPostVentaHex(estado: string): string {
+  const mapa: Record<string, string> = {
+    pendiente_ingreso: '#78716c',
+    ingreso_equipo: '#1075b5',
+    probando: '#7c3aed',
+    espera_repuesto: '#d97706',
+    listo_despacho: '#16a34a',
+    despachado: '#57534e',
+    desconocido: '#dc2626',
+  }
+  return mapa[estado] ?? '#78716c'
+}
