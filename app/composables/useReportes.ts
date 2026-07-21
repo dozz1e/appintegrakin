@@ -27,13 +27,10 @@ export function useReportes() {
   }
 
   async function fetchPerformance(): Promise<PerformanceVendedor[]> {
-    const { data, error } = await supabase
-      .from('vista_performance_vendedores')
-      .select('*')
-      .order('leads_ganados', { ascending: false })
+    const { data, error } = await supabase.rpc('fn_performance_vendedores')
 
     if (error) throw error
-    return data ?? []
+    return (data ?? []).sort((a, b) => b.leads_ganados - a.leads_ganados)
   }
 
   return { fetchFunnel, fetchPerformance }

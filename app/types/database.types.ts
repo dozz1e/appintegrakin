@@ -53,13 +53,6 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "audit_log_usuario_id_fkey"
-            columns: ["usuario_id"]
-            isOneToOne: false
-            referencedRelation: "vista_performance_vendedores"
-            referencedColumns: ["vendedor_id"]
-          },
         ]
       }
       citas_capacitacion: {
@@ -121,25 +114,11 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "citas_capacitacion_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "vista_performance_vendedores"
-            referencedColumns: ["vendedor_id"]
-          },
-          {
             foreignKeyName: "citas_capacitacion_owner_id_fkey"
             columns: ["owner_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "citas_capacitacion_owner_id_fkey"
-            columns: ["owner_id"]
-            isOneToOne: false
-            referencedRelation: "vista_performance_vendedores"
-            referencedColumns: ["vendedor_id"]
           },
           {
             foreignKeyName: "citas_capacitacion_producto_id_fkey"
@@ -184,13 +163,6 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "citas_descartadas_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "vista_performance_vendedores"
-            referencedColumns: ["vendedor_id"]
-          },
         ]
       }
       cliente_interacciones: {
@@ -232,13 +204,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cliente_interacciones_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "vista_performance_vendedores"
-            referencedColumns: ["vendedor_id"]
           },
         ]
       }
@@ -306,25 +271,11 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "clientes_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "vista_performance_vendedores"
-            referencedColumns: ["vendedor_id"]
-          },
-          {
             foreignKeyName: "clientes_owner_id_fkey"
             columns: ["owner_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "clientes_owner_id_fkey"
-            columns: ["owner_id"]
-            isOneToOne: false
-            referencedRelation: "vista_performance_vendedores"
-            referencedColumns: ["vendedor_id"]
           },
         ]
       }
@@ -424,13 +375,6 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "entidad_imagenes_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "vista_performance_vendedores"
-            referencedColumns: ["vendedor_id"]
-          },
         ]
       }
       error_log: {
@@ -465,13 +409,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "error_log_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "vista_performance_vendedores"
-            referencedColumns: ["vendedor_id"]
           },
         ]
       }
@@ -535,13 +472,6 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "historial_estados_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "vista_performance_vendedores"
-            referencedColumns: ["vendedor_id"]
-          },
         ]
       }
       kame_tokens: {
@@ -597,13 +527,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "lead_interacciones_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "vista_performance_vendedores"
-            referencedColumns: ["vendedor_id"]
           },
           {
             foreignKeyName: "lead_interacciones_lead_id_fkey"
@@ -682,25 +605,11 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "leads_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "vista_performance_vendedores"
-            referencedColumns: ["vendedor_id"]
-          },
-          {
             foreignKeyName: "leads_owner_id_fkey"
             columns: ["owner_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "leads_owner_id_fkey"
-            columns: ["owner_id"]
-            isOneToOne: false
-            referencedRelation: "vista_performance_vendedores"
-            referencedColumns: ["vendedor_id"]
           },
         ]
       }
@@ -745,13 +654,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "notificaciones_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "vista_performance_vendedores"
-            referencedColumns: ["vendedor_id"]
           },
         ]
       }
@@ -818,13 +720,6 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "productos_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "vista_performance_vendedores"
-            referencedColumns: ["vendedor_id"]
-          },
         ]
       }
       profile_roles: {
@@ -850,13 +745,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "profile_roles_profile_id_fkey"
-            columns: ["profile_id"]
-            isOneToOne: false
-            referencedRelation: "vista_performance_vendedores"
-            referencedColumns: ["vendedor_id"]
           },
           {
             foreignKeyName: "profile_roles_role_id_fkey"
@@ -966,13 +854,6 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "superadmins_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "vista_performance_vendedores"
-            referencedColumns: ["vendedor_id"]
-          },
         ]
       }
       tareas: {
@@ -1024,25 +905,11 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "tareas_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "vista_performance_vendedores"
-            referencedColumns: ["vendedor_id"]
-          },
-          {
             foreignKeyName: "tareas_owner_id_fkey"
             columns: ["owner_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tareas_owner_id_fkey"
-            columns: ["owner_id"]
-            isOneToOne: false
-            referencedRelation: "vista_performance_vendedores"
-            referencedColumns: ["vendedor_id"]
           },
         ]
       }
@@ -1079,13 +946,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tareas_descartadas_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "vista_performance_vendedores"
-            referencedColumns: ["vendedor_id"]
           },
         ]
       }
@@ -1139,13 +999,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ticket_productos_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "vista_performance_vendedores"
-            referencedColumns: ["vendedor_id"]
           },
           {
             foreignKeyName: "ticket_productos_producto_id_fkey"
@@ -1228,25 +1081,11 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "tickets_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "vista_performance_vendedores"
-            referencedColumns: ["vendedor_id"]
-          },
-          {
             foreignKeyName: "tickets_owner_id_fkey"
             columns: ["owner_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tickets_owner_id_fkey"
-            columns: ["owner_id"]
-            isOneToOne: false
-            referencedRelation: "vista_performance_vendedores"
-            referencedColumns: ["vendedor_id"]
           },
           {
             foreignKeyName: "tickets_tecnico_id_fkey"
@@ -1340,13 +1179,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "tickets_post_venta_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "vista_performance_vendedores"
-            referencedColumns: ["vendedor_id"]
-          },
-          {
             foreignKeyName: "tickets_post_venta_producto_id_fkey"
             columns: ["producto_id"]
             isOneToOne: false
@@ -1387,13 +1219,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tickets_post_venta_seguimientos_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "vista_performance_vendedores"
-            referencedColumns: ["vendedor_id"]
           },
           {
             foreignKeyName: "tickets_post_venta_seguimientos_ticket_id_fkey"
@@ -1444,25 +1269,11 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "user_dashboard_widgets_granted_by_fkey"
-            columns: ["granted_by"]
-            isOneToOne: false
-            referencedRelation: "vista_performance_vendedores"
-            referencedColumns: ["vendedor_id"]
-          },
-          {
             foreignKeyName: "user_dashboard_widgets_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_dashboard_widgets_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "vista_performance_vendedores"
-            referencedColumns: ["vendedor_id"]
           },
           {
             foreignKeyName: "user_dashboard_widgets_widget_id_fkey"
@@ -1514,25 +1325,11 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "user_features_granted_by_fkey"
-            columns: ["granted_by"]
-            isOneToOne: false
-            referencedRelation: "vista_performance_vendedores"
-            referencedColumns: ["vendedor_id"]
-          },
-          {
             foreignKeyName: "user_features_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_features_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "vista_performance_vendedores"
-            referencedColumns: ["vendedor_id"]
           },
         ]
       }
@@ -1570,13 +1367,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "user_permission_overrides_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "vista_performance_vendedores"
-            referencedColumns: ["vendedor_id"]
-          },
-          {
             foreignKeyName: "user_permission_overrides_permission_id_fkey"
             columns: ["permission_id"]
             isOneToOne: false
@@ -1589,13 +1379,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_permission_overrides_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "vista_performance_vendedores"
-            referencedColumns: ["vendedor_id"]
           },
         ]
       }
@@ -1655,25 +1438,11 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "ventas_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "vista_performance_vendedores"
-            referencedColumns: ["vendedor_id"]
-          },
-          {
             foreignKeyName: "ventas_owner_id_fkey"
             columns: ["owner_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ventas_owner_id_fkey"
-            columns: ["owner_id"]
-            isOneToOne: false
-            referencedRelation: "vista_performance_vendedores"
-            referencedColumns: ["vendedor_id"]
           },
           {
             foreignKeyName: "ventas_producto_id_fkey"
@@ -1690,30 +1459,6 @@ export type Database = {
         Row: {
           estado: string | null
           total: number | null
-        }
-        Relationships: []
-      }
-      vista_performance_vendedores: {
-        Row: {
-          full_name: string | null
-          leads_ganados: number | null
-          leads_perdidos: number | null
-          leads_total: number | null
-          vendedor_id: string | null
-        }
-        Insert: {
-          full_name?: string | null
-          leads_ganados?: never
-          leads_perdidos?: never
-          leads_total?: never
-          vendedor_id?: string | null
-        }
-        Update: {
-          full_name?: string | null
-          leads_ganados?: never
-          leads_perdidos?: never
-          leads_total?: never
-          vendedor_id?: string | null
         }
         Relationships: []
       }
@@ -1738,6 +1483,16 @@ export type Database = {
       fn_notificar_tickets_post_venta_vencidos: {
         Args: never
         Returns: undefined
+      }
+      fn_performance_vendedores: {
+        Args: never
+        Returns: {
+          full_name: string
+          leads_ganados: number
+          leads_perdidos: number
+          leads_total: number
+          vendedor_id: string
+        }[]
       }
       has_permission: {
         Args: { p_action: string; p_resource: string; p_user: string }
