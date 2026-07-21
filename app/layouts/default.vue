@@ -42,6 +42,11 @@ const esActivoListado = (path: string) =>
     !route.path.startsWith(`${path}/historial-movimientos`) &&
     !route.path.startsWith(`${path}/cerrados`))
 
+// Oculto a pedido (2026-07-21) mientras se decide si Servicio Técnico se
+// vuelve a mostrar o se borra del todo - no se tocó nada del módulo en sí,
+// solo se saca del menú.
+const OCULTAR_SERVICIO_TECNICO = true
+
 const navCrm = [
   { path: '/clientes', label: 'Clientes', permiso: ['view', 'view_all'] as const, resource: 'clientes', icono: 'mdi:account-group-outline' },
   { path: '/productos', label: 'Productos', permiso: ['view', 'view_all'] as const, resource: 'productos', icono: 'mdi:package-variant-closed' },
@@ -110,7 +115,7 @@ const navCrm = [
           </div>
         </div>
 
-        <div v-if="can('tickets', 'view') || can('tickets', 'view_all')">
+        <div v-if="!OCULTAR_SERVICIO_TECNICO && (can('tickets', 'view') || can('tickets', 'view_all'))">
           <p v-if="!sidebarMostrandoColapsado" class="px-3 text-[11px] font-semibold text-ink-muted uppercase tracking-wide mb-1">Servicio Técnico</p>
           <div class="space-y-0.5">
             <SharedNavLink to="/tickets" icono="mdi:wrench-outline" :activo="esActivoListado('/tickets')" :colapsado="sidebarMostrandoColapsado">Servicio Técnico</SharedNavLink>
