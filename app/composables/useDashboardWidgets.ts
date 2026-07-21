@@ -1,7 +1,7 @@
 // composables/useDashboardWidgets.ts
 
 export interface MiWidget {
-  widgetId: string
+  widget_id: string
   key: string
   label: string
   component: string

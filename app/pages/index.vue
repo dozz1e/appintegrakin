@@ -90,7 +90,7 @@ watch(misWidgets, reconstruir, { deep: true })
 async function guardarOrden(lista: MiWidget[]) {
   const previo = misWidgets.value.map((w) => ({ ...w }))
   try {
-    await reordenarMisWidgets(lista.map((w, i) => ({ widgetId: w.widgetId, orden: i })))
+    await reordenarMisWidgets(lista.map((w, i) => ({ widgetId: w.widget_id, orden: i })))
   } catch {
     misWidgets.value = previo
     toastError('No se pudo guardar el nuevo orden')
@@ -100,8 +100,8 @@ async function guardarOrden(lista: MiWidget[]) {
 async function ocultar(widget: MiWidget) {
   const previo = misWidgets.value.map((w) => ({ ...w }))
   try {
-    await setVisibilidadMiWidget(widget.widgetId, false)
-    const w = misWidgets.value.find((x) => x.widgetId === widget.widgetId)
+    await setVisibilidadMiWidget(widget.widget_id, false)
+    const w = misWidgets.value.find((x) => x.widget_id === widget.widget_id)
     if (w) w.visible = false
   } catch {
     misWidgets.value = previo
@@ -112,8 +112,8 @@ async function ocultar(widget: MiWidget) {
 async function reactivar(widget: MiWidget) {
   const previo = misWidgets.value.map((w) => ({ ...w }))
   try {
-    await setVisibilidadMiWidget(widget.widgetId, true)
-    const w = misWidgets.value.find((x) => x.widgetId === widget.widgetId)
+    await setVisibilidadMiWidget(widget.widget_id, true)
+    const w = misWidgets.value.find((x) => x.widget_id === widget.widget_id)
     if (w) w.visible = true
   } catch {
     misWidgets.value = previo
@@ -163,7 +163,7 @@ const tablasVisibles = tablas
         v-if="kpisVisibles.length"
         v-model="kpis"
         :disabled="!modoEdicion"
-        item-key="widgetId"
+        item-key="widget_id"
         tag="div"
         class="grid grid-cols-2 sm:grid-cols-3 lg:[grid-template-columns:var(--kpi-cols)] gap-4 mb-6"
         :style="{ '--kpi-cols': `repeat(${Math.min(kpisVisibles.length, 8)}, minmax(0, 1fr))` }"
@@ -189,7 +189,7 @@ const tablasVisibles = tablas
         v-if="chartsVisibles.length"
         v-model="charts"
         :disabled="!modoEdicion"
-        item-key="widgetId"
+        item-key="widget_id"
         tag="div"
         class="grid grid-cols-1 lg:grid-cols-4 gap-4"
         @end="guardarOrden(charts)"
@@ -220,7 +220,7 @@ const tablasVisibles = tablas
         v-if="tablasVisibles.length"
         v-model="tablas"
         :disabled="!modoEdicion"
-        item-key="widgetId"
+        item-key="widget_id"
         tag="div"
         class="grid grid-cols-1 gap-4 mt-4"
         @end="guardarOrden(tablas)"
@@ -249,7 +249,7 @@ const tablasVisibles = tablas
         <div class="flex flex-wrap gap-2">
           <button
             v-for="w in [...kpisOcultos, ...chartsOcultos, ...tablasOcultos]"
-            :key="w.widgetId"
+            :key="w.widget_id"
             type="button"
             class="flex items-center gap-1.5 text-sm text-gray-500 border border-dashed border-gray-300 rounded-lg px-3 py-1.5 opacity-60 hover:opacity-100 hover:border-primary hover:text-primary transition-all"
             @click="reactivar(w)"
