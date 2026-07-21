@@ -75,7 +75,7 @@ const navCrm = [
         </button>
       </div>
 
-      <nav class="flex-1 overflow-y-auto py-4 space-y-6" :class="sidebarMostrandoColapsado ? 'px-2' : 'px-3'">
+      <nav class="flex-1 overflow-y-auto py-4 space-y-2" :class="sidebarMostrandoColapsado ? 'px-2' : 'px-3'">
         <div>
           <SharedNavLink to="/" icono="mdi:view-dashboard-outline" :activo="esActivo('/') && route.path === '/'" :colapsado="sidebarMostrandoColapsado">
             Dashboard
