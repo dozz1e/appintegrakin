@@ -173,7 +173,7 @@ const tablasVisibles = tablas
         :disabled="!modoEdicion"
         item-key="widgetId"
         tag="div"
-        class="grid grid-cols-1 lg:grid-cols-2 gap-4"
+        class="grid grid-cols-1 lg:grid-cols-4 gap-4"
         @end="guardarOrden(charts)"
       >
         <template #item="{ element: w }">
@@ -181,7 +181,7 @@ const tablasVisibles = tablas
             class="relative"
             :class="[
               modoEdicion ? 'cursor-grab active:cursor-grabbing' : '',
-              w.component === 'WidgetsChartLeadsTendencia' ? 'lg:col-span-2' : '',
+              w.component === 'WidgetsChartLeadsTendencia' ? 'lg:col-span-3' : '',
             ]"
           >
             <button
