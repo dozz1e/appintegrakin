@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const { fetchLeads, fetchCerrados } = useLeads()
+const { fetchHistorial } = useHistorialEstados()
 const cargando = ref(true)
 
 const ORDEN_ESTADOS = ['nuevo', 'contactado', 'cotizado', 'negociacion', 'ganado', 'perdido'] as const
@@ -16,24 +17,42 @@ type Bucket = { key: string; label: string } & Record<(typeof ORDEN_ESTADOS)[num
 const opcionesDias = [7, 30, 90]
 const diasSeleccionados = ref(30)
 const todos = ref<Lead[]>([])
+// Cambios de estado por lead (propios, ascendente) - se arma una sola vez en
+// onMounted, no depende de diasSeleccionados.
+const cambiosPorLead = ref<Map<string, HistorialEstadoRow[]>>(new Map())
 
-// Aproximación necesaria por el schema: no se guarda historial de estado, solo
-// el actual. Cada lead se cuenta en el día que se creó, clasificado por su
-// estado de HOY (no el que tenía ese día) - por eso "ganado"/"perdido" pueden
-// verse en fechas donde en realidad el lead todavía estaba "nuevo".
+// Reconstruye en qué estado estaba cada lead, día por día (no solo el día
+// que se creó): arranca en 'nuevo' (default de la tabla) y va aplicando los
+// cambios de historial_estados que ya ocurrieron a esa fecha. Si un lead
+// se mantiene igual al día siguiente, se cuenta de nuevo en ese estado -
+// por eso cada lead aporta una cuenta en TODOS los días en que ya existía,
+// no solo en el de su creación.
 const data = computed<Bucket[]>(() => {
   const dias: Bucket[] = []
   const hoy = new Date()
   for (let i = diasSeleccionados.value - 1; i >= 0; i--) {
-    const d = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() - i)
+    const d = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() - i, 23, 59, 59, 999)
     const key = aDiaKey(d.toISOString())
     const base = { key, label: d.toLocaleDateString('es-CL', { day: '2-digit', month: '2-digit' }) }
     dias.push(Object.assign(base, Object.fromEntries(ORDEN_ESTADOS.map((e) => [e, 0]))) as Bucket)
   }
-  const porDia = new Map(dias.map((d) => [d.key, d]))
-  for (const l of todos.value) {
-    const bucket = porDia.get(aDiaKey(l.created_at))
-    if (bucket) bucket[l.estado]++
+
+  for (const lead of todos.value) {
+    const cambios = cambiosPorLead.value.get(lead.id) ?? []
+    const creado = new Date(lead.created_at).getTime()
+    let estadoActual: string = 'nuevo'
+    let idxCambio = 0
+
+    for (const dia of dias) {
+      const finDelDia = new Date(dia.key + 'T23:59:59.999').getTime()
+      if (creado > finDelDia) continue // el lead todavía no existía ese día
+
+      while (idxCambio < cambios.length && new Date(cambios[idxCambio].created_at).getTime() <= finDelDia) {
+        estadoActual = cambios[idxCambio].estado_nuevo
+        idxCambio++
+      }
+      if (estadoActual in dia) (dia as any)[estadoActual]++
+    }
   }
   return dias
 })
@@ -52,10 +71,25 @@ const yMax = computed(() => {
 const yDomain = computed<[number, number]>(() => [0, yMax.value])
 
 onMounted(async () => {
-  const [activos, cerrados] = await Promise.all([fetchLeads(), fetchCerrados()])
+  const [activos, cerrados, historial] = await Promise.all([fetchLeads(), fetchCerrados(), fetchHistorial('lead')])
   const porId = new Map(activos.map((l) => [l.id, l]))
   for (const l of cerrados) porId.set(l.id, l)
   todos.value = [...porId.values()]
+
+  // historial_estados no filtra por dueño (RLS solo exige permiso leads.view),
+  // así que se acota acá a los leads propios y se ordena ascendente para
+  // poder aplicar los cambios en orden cronológico.
+  const idsPropios = new Set(todos.value.map((l) => l.id))
+  const mapa = new Map<string, HistorialEstadoRow[]>()
+  for (const cambio of historial) {
+    if (!idsPropios.has(cambio.entidad_id)) continue
+    const lista = mapa.get(cambio.entidad_id) ?? []
+    lista.push(cambio)
+    mapa.set(cambio.entidad_id, lista)
+  }
+  for (const lista of mapa.values()) lista.sort((a, b) => a.created_at.localeCompare(b.created_at))
+  cambiosPorLead.value = mapa
+
   cargando.value = false
 })
 </script>

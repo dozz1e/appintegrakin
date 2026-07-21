@@ -42,16 +42,16 @@ onMounted(async () => {
 
 <template>
   <div class="bg-surface border border-border rounded-2xl shadow-sm p-3">
-    <p class="text-xs font-semibold text-ink mb-2">Leads y sus estados</p>
-    <p v-if="cargando" class="text-ink-muted text-xs">Cargando...</p>
-    <p v-else-if="!total" class="text-xs text-ink-muted">Sin leads todavía.</p>
+    <p class="text-sm font-semibold text-ink mb-2">Leads y sus estados</p>
+    <p v-if="cargando" class="text-ink-muted text-sm">Cargando...</p>
+    <p v-else-if="!total" class="text-sm text-ink-muted">Sin leads todavía.</p>
 
     <div v-else class="space-y-1.5">
       <div v-for="e in ranking" :key="e.estado" class="flex items-center gap-2">
-        <div class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] shrink-0" :class="e.clases">
+        <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs shrink-0" :class="e.clases">
           {{ ICONOS[e.estado] }}
         </div>
-        <div class="flex-1 flex items-center justify-between rounded-lg px-2 py-1 text-xs font-medium" :class="e.clases">
+        <div class="flex-1 flex items-center justify-between rounded-lg px-2 py-1 text-sm font-medium" :class="e.clases">
           <span>{{ e.label }}</span>
           <span>{{ e.total }}</span>
         </div>
