@@ -18,18 +18,20 @@ defineProps<{
       </div>
     </div>
 
-    <p class="text-2xl font-semibold text-ink">
-      <span v-if="cargando" class="text-ink-muted text-base">...</span>
-      <span v-else>{{ valor }}</span>
-    </p>
+    <div class="flex items-center justify-between gap-2">
+      <p class="text-2xl font-semibold text-ink">
+        <span v-if="cargando" class="text-ink-muted text-base">...</span>
+        <span v-else>{{ valor }}</span>
+      </p>
 
-    <p
-      v-if="!cargando && delta !== null && delta !== undefined"
-      class="inline-flex w-fit items-center gap-1 text-xs font-medium rounded-full px-2 py-0.5"
-      :class="delta >= 0 ? 'bg-success-bg text-success-text' : 'bg-danger-bg text-danger-text'"
-    >
-      <Icon :name="delta >= 0 ? 'mdi:trending-up' : 'mdi:trending-down'" class="w-3.5 h-3.5" />
-      {{ delta >= 0 ? '+' : '' }}{{ delta }}{{ deltaSufijo ?? '%' }}
-    </p>
+      <p
+        v-if="!cargando && delta !== null && delta !== undefined"
+        class="inline-flex w-fit shrink-0 items-center gap-1 text-xs font-medium rounded-full px-2 py-0.5"
+        :class="delta >= 0 ? 'bg-success-bg text-success-text' : 'bg-danger-bg text-danger-text'"
+      >
+        <Icon :name="delta >= 0 ? 'mdi:trending-up' : 'mdi:trending-down'" class="w-3.5 h-3.5" />
+        {{ delta >= 0 ? '+' : '' }}{{ delta }}{{ deltaSufijo ?? '%' }}
+      </p>
+    </div>
   </div>
 </template>

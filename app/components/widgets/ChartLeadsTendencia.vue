@@ -39,6 +39,18 @@ const data = computed<Bucket[]>(() => {
 })
 const xFormatter = (i: number) => data.value[i]?.label ?? ''
 
+// Dominio Y fijo en vez del auto-ajuste del chart: con pocos leads/día el
+// máximo real puede ser 1, y el auto-domain grafica un eje "0 a 1" que se ve
+// roto. Se redondea hacia arriba al siguiente múltiplo de 5, con piso de 5.
+const yMax = computed(() => {
+  let max = 0
+  for (const dia of data.value) {
+    for (const estado of ORDEN_ESTADOS) max = Math.max(max, dia[estado])
+  }
+  return Math.max(5, Math.ceil(max / 5) * 5)
+})
+const yDomain = computed<[number, number]>(() => [0, yMax.value])
+
 onMounted(async () => {
   const [activos, cerrados] = await Promise.all([fetchLeads(), fetchCerrados()])
   const porId = new Map(activos.map((l) => [l.id, l]))
@@ -66,6 +78,8 @@ onMounted(async () => {
       :categories="categorias"
       :height="400"
       :x-formatter="xFormatter"
+      :y-domain="yDomain"
+      :y-num-ticks="5"
       x-label="Día"
       y-label="Leads"
     />
