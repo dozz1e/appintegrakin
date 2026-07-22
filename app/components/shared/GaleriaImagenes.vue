@@ -27,15 +27,54 @@ async function cargar() {
 
 watch(() => props.entidadId, cargar, { immediate: true })
 
+const EXTENSIONES_IMAGEN = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'avif']
+
+function esImagen(url: string) {
+  const ext = url.split('.').pop()?.split('?')[0]?.toLowerCase()
+  return !!ext && EXTENSIONES_IMAGEN.includes(ext)
+}
+
+function extension(url: string) {
+  return url.split('.').pop()?.split('?')[0]?.toUpperCase() ?? ''
+}
+
+function abrirArchivo(idx: number) {
+  const img = imagenes.value[idx]
+  if (esImagen(img.url)) previewIndex.value = idx
+  else window.open(img.url, '_blank')
+}
+
+function nombreArchivo(url: string) {
+  const segmento = decodeURIComponent(url.split('/').pop()?.split('?')[0] ?? 'archivo')
+  return segmento.replace(/^\d+-/, '')
+}
+
+async function descargar(img: EntidadImagen) {
+  try {
+    const res = await fetch(img.url)
+    const blob = await res.blob()
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = nombreArchivo(img.url)
+    a.click()
+    URL.revokeObjectURL(url)
+  } catch (e) {
+    error('No se pudo descargar el archivo')
+  }
+}
+
 async function onArchivoSeleccionado(e: Event) {
-  const archivo = (e.target as HTMLInputElement).files?.[0]
-  if (!archivo) return
+  const archivos = Array.from((e.target as HTMLInputElement).files ?? [])
+  if (!archivos.length) return
   subiendo.value = true
   try {
-    const img = await subirImagen(props.entidadTipo, props.entidadId, archivo)
-    imagenes.value.push(img)
+    for (const archivo of archivos) {
+      const img = await subirImagen(props.entidadTipo, props.entidadId, archivo)
+      imagenes.value.push(img)
+    }
   } catch (e) {
-    error('No se pudo subir la imagen')
+    error('No se pudo subir el archivo')
   } finally {
     subiendo.value = false
     if (inputArchivo.value) inputArchivo.value.value = ''
@@ -68,7 +107,7 @@ async function onConfirmarEliminar() {
     imagenes.value = imagenes.value.filter((i) => i.id !== aEliminar.value?.id)
     aEliminar.value = null
   } catch (e) {
-    error('No se pudo eliminar la imagen')
+    error('No se pudo eliminar el archivo')
   } finally {
     eliminando.value = false
   }
@@ -77,17 +116,32 @@ async function onConfirmarEliminar() {
 
 <template>
   <div>
-    <p v-if="cargando" class="text-xs text-gray-400">Cargando imágenes...</p>
+    <p v-if="cargando" class="text-xs text-gray-400">Cargando archivos...</p>
     <div v-else class="flex flex-wrap gap-2">
       <div v-for="(img, idx) in imagenes" :key="img.id" class="relative group">
-        <button type="button" @click="previewIndex = idx">
-          <img :src="img.url" class="w-16 h-16 object-cover rounded-lg border border-gray-200" />
+        <button type="button" @click="abrirArchivo(idx)">
+          <img v-if="esImagen(img.url)" :src="img.url" class="w-16 h-16 object-cover rounded-lg border border-gray-200" />
+          <div
+            v-else
+            class="w-16 h-16 rounded-lg border border-gray-200 bg-gray-50 flex flex-col items-center justify-center gap-0.5 text-gray-500"
+          >
+            <Icon name="mdi:file-outline" class="w-6 h-6" />
+            <span class="text-[10px] font-medium">{{ extension(img.url) }}</span>
+          </div>
+        </button>
+        <button
+          type="button"
+          class="absolute -bottom-1.5 -right-1.5 bg-white rounded-full border border-gray-200 text-gray-400 hover:text-primary w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+          title="Descargar archivo"
+          @click="descargar(img)"
+        >
+          <Icon name="mdi:download" class="w-3 h-3" />
         </button>
         <button
           v-if="img.created_by === user?.sub"
           type="button"
           class="absolute -top-1.5 -right-1.5 bg-white rounded-full border border-gray-200 text-gray-400 hover:text-danger w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-          title="Eliminar imagen"
+          title="Eliminar archivo"
           @click="aEliminar = img"
         >
           <Icon name="mdi:close" class="w-3 h-3" />
@@ -98,13 +152,13 @@ async function onConfirmarEliminar() {
         v-if="permitirAgregar"
         type="button"
         :disabled="subiendo"
-        title="Agregar imagen"
+        title="Agregar archivo"
         class="w-16 h-16 rounded-lg border border-dashed border-gray-300 text-gray-400 hover:text-primary hover:border-primary flex items-center justify-center transition-colors disabled:opacity-50"
         @click="inputArchivo?.click()"
       >
-        <Icon :name="subiendo ? 'mdi:loading' : 'mdi:image-plus'" :class="subiendo ? 'animate-spin' : ''" class="w-5 h-5" />
+        <Icon :name="subiendo ? 'mdi:loading' : 'mdi:paperclip'" :class="subiendo ? 'animate-spin' : ''" class="w-5 h-5" />
       </button>
-      <input v-if="permitirAgregar" ref="inputArchivo" type="file" accept="image/*" class="hidden" @change="onArchivoSeleccionado" />
+      <input v-if="permitirAgregar" ref="inputArchivo" type="file" multiple class="hidden" @change="onArchivoSeleccionado" />
     </div>
 
     <Teleport to="body">
@@ -134,6 +188,14 @@ async function onConfirmarEliminar() {
         </button>
         <button
           type="button"
+          class="absolute top-4 right-14 text-white/70 hover:text-white w-10 h-10 flex items-center justify-center"
+          title="Descargar"
+          @click.stop="descargar(preview)"
+        >
+          <Icon name="mdi:download" class="w-6 h-6" />
+        </button>
+        <button
+          type="button"
           class="absolute top-4 right-4 text-white/70 hover:text-white w-10 h-10 flex items-center justify-center"
           title="Cerrar"
           @click.stop="previewIndex = null"
@@ -148,8 +210,8 @@ async function onConfirmarEliminar() {
 
     <SharedConfirmDialog
       :open="!!aEliminar"
-      titulo="Eliminar imagen"
-      mensaje="¿Eliminar esta imagen? Esta acción no se puede deshacer."
+      titulo="Eliminar archivo"
+      mensaje="¿Eliminar este archivo? Esta acción no se puede deshacer."
       :cargando="eliminando"
       @confirmar="onConfirmarEliminar"
       @cancelar="aEliminar = null"

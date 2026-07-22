@@ -38,15 +38,15 @@ const ticketsFiltrados = computed(() => {
 
 onMounted(cargar)
 
-async function onSubmit(payload: Record<string, unknown>, archivo: File | null) {
+async function onSubmit(payload: Record<string, unknown>, archivos: File[]) {
   guardando.value = true
   try {
     const ticket = await crearTicket(payload as any)
-    if (archivo) {
+    if (archivos.length) {
       try {
-        await subirImagen('ticket_post_venta', ticket.id, archivo)
+        for (const archivo of archivos) await subirImagen('ticket_post_venta', ticket.id, archivo)
       } catch (e) {
-        error('Ticket creado, pero no se pudo subir la imagen')
+        error('Ticket creado, pero no se pudieron subir todos los archivos')
       }
     }
     success('Ticket creado')

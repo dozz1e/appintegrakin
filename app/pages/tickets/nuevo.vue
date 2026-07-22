@@ -23,15 +23,15 @@ onMounted(async () => {
   }
 })
 
-const onSubmit = async (payload: Record<string, unknown>, archivo: File | null, productosIds: string[]) => {
+const onSubmit = async (payload: Record<string, unknown>, archivos: File[], productosIds: string[]) => {
   cargando.value = true
   try {
     const ticket = await createTicket(payload)
-    if (archivo) {
+    if (archivos.length) {
       try {
-        await subirImagen('ticket', ticket.id, archivo)
+        for (const archivo of archivos) await subirImagen('ticket', ticket.id, archivo)
       } catch (e) {
-        error('Ticket creado, pero no se pudo subir la imagen')
+        error('Ticket creado, pero no se pudieron subir todos los archivos')
       }
     }
     if (productosIds.length) {

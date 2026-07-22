@@ -57,6 +57,12 @@ function formatearFecha(fecha: string) {
               <NuxtLink :to="`/leads/${l.id}`" class="text-ink font-medium hover:underline hover:text-primary">
                 {{ l.nombre }}
               </NuxtLink>
+              <span
+                v-if="l.cliente_id"
+                class="ml-2 text-xs font-medium rounded-full px-2 py-0.5 bg-emerald-50 text-emerald-700"
+              >
+                Cliente
+              </span>
             </td>
             <td class="py-2 pr-3">
               <span class="text-xs font-medium rounded-full px-2 py-0.5" :class="colorCanal(l.origen ?? 'web').clases">

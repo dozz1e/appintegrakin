@@ -53,15 +53,15 @@ const onCambiarEstado = async (id: string, estado: EstadoTicket) => {
   if (idx !== -1) tickets.value[idx] = actualizado
 }
 
-async function onSubmit(payload: Record<string, unknown>, archivo: File | null, productosIds: string[]) {
+async function onSubmit(payload: Record<string, unknown>, archivos: File[], productosIds: string[]) {
   guardando.value = true
   try {
     const ticket = await createTicket(payload)
-    if (archivo) {
+    if (archivos.length) {
       try {
-        await subirImagen('ticket', ticket.id, archivo)
+        for (const archivo of archivos) await subirImagen('ticket', ticket.id, archivo)
       } catch (e) {
-        error('Ticket creado, pero no se pudo subir la imagen')
+        error('Ticket creado, pero no se pudieron subir todos los archivos')
       }
     }
     if (productosIds.length) {

@@ -11,7 +11,7 @@ const props = defineProps<{
   productosAsociados?: string[]
 }>()
 const emit = defineEmits<{
-  submit: [payload: Partial<Ticket>, archivo: File | null, productosIds: string[]]
+  submit: [payload: Partial<Ticket>, archivos: File[], productosIds: string[]]
 }>()
 
 const { fetchTecnicos } = useTecnicos()
@@ -61,16 +61,16 @@ function toggleProducto(id: string) {
 
 const errores = reactive<Record<string, string>>({})
 
-const archivoAdjunto = ref<File | null>(null)
+const archivosAdjuntos = ref<File[]>([])
 const inputArchivo = ref<HTMLInputElement | null>(null)
 
 function onArchivoSeleccionado(e: Event) {
-  archivoAdjunto.value = (e.target as HTMLInputElement).files?.[0] ?? null
+  archivosAdjuntos.value.push(...((e.target as HTMLInputElement).files ?? []))
+  if (inputArchivo.value) inputArchivo.value.value = ''
 }
 
-function quitarAdjunto() {
-  archivoAdjunto.value = null
-  if (inputArchivo.value) inputArchivo.value.value = ''
+function quitarAdjunto(idx: number) {
+  archivosAdjuntos.value.splice(idx, 1)
 }
 
 const validar = () => {
@@ -81,7 +81,7 @@ const validar = () => {
 
 const onSubmit = () => {
   if (!validar()) return
-  emit('submit', { ...form, tecnico_id: form.tecnico_id || null }, archivoAdjunto.value, productosSeleccionados.value)
+  emit('submit', { ...form, tecnico_id: form.tecnico_id || null }, archivosAdjuntos.value, productosSeleccionados.value)
 }
 
 const inputClase =
@@ -150,26 +150,28 @@ const inputClase =
       </select>
     </div>
 
-    <div v-if="!modelValue && archivoAdjunto" class="flex items-center gap-1 text-xs text-gray-500">
-      <Icon name="mdi:image-outline" class="w-4 h-4 shrink-0" />
-      <span class="truncate">{{ archivoAdjunto.name }}</span>
-      <button type="button" class="text-gray-400 hover:text-danger" @click="quitarAdjunto">
-        <Icon name="mdi:close" class="w-3.5 h-3.5" />
-      </button>
+    <div v-if="!modelValue && archivosAdjuntos.length" class="space-y-1">
+      <div v-for="(archivo, idx) in archivosAdjuntos" :key="idx" class="flex items-center gap-1 text-xs text-gray-500">
+        <Icon name="mdi:paperclip" class="w-4 h-4 shrink-0" />
+        <span class="truncate">{{ archivo.name }}</span>
+        <button type="button" class="text-gray-400 hover:text-danger" @click="quitarAdjunto(idx)">
+          <Icon name="mdi:close" class="w-3.5 h-3.5" />
+        </button>
+      </div>
     </div>
 
     <div class="flex items-center gap-2">
       <button
         v-if="!modelValue"
         type="button"
-        title="Adjuntar imagen"
+        title="Adjuntar archivo"
         class="flex items-center gap-1.5 border-2 border-[#1075B5] bg-[#1075B5]/10 text-[#1075B5] rounded-lg px-3 py-2 text-sm font-medium hover:bg-[#1075B5] hover:text-white transition-colors shrink-0"
         @click="inputArchivo?.click()"
       >
         <Icon name="mdi:paperclip" class="w-4 h-4" />
         Adjuntar
       </button>
-      <input ref="inputArchivo" type="file" accept="image/*" class="hidden" @change="onArchivoSeleccionado" />
+      <input ref="inputArchivo" type="file" multiple class="hidden" @change="onArchivoSeleccionado" />
       <button
         type="submit"
         :disabled="cargando"
