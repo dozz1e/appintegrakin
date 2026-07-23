@@ -106,6 +106,7 @@ const filtroFechaDesde = ref('')
 const filtroFechaHasta = ref('')
 const filtroAntiguedad = ref('')
 const seleccionadoId = ref<string | null>(props.clienteIdInicial ?? null)
+const listaClientes = ref<HTMLElement | null>(null)
 const ticketsSeleccionado = ref<Ticket[]>([])
 const conteoTickets = ref({ total: 0, abiertos: 0, resueltos: 0 })
 const tabActiva = ref<'interacciones' | 'tickets' | 'ventas'>('interacciones')
@@ -131,8 +132,20 @@ onMounted(async () => {
 watch(
   () => props.clienteIdInicial,
   (id) => {
-    if (id) seleccionadoId.value = id
-  }
+    if (!id) return
+    seleccionadoId.value = id
+    // llega desde el buscador general - limpiar filtros del listado para
+    // asegurar que el cliente esté en clientesFiltrados y sea visible
+    busqueda.value = ''
+    filtroVendedor.value = ''
+    filtroAntiguedad.value = ''
+    filtroFechaDesde.value = ''
+    filtroFechaHasta.value = ''
+    nextTick(() => {
+      listaClientes.value?.querySelector(`[data-cliente-id="${id}"]`)?.scrollIntoView({ block: 'center' })
+    })
+  },
+  { immediate: true }
 )
 
 const clientesFiltrados = computed(() => {
@@ -252,10 +265,11 @@ async function onInteraccionRegistrada() {
           @click="abrirPicker"
         />
       </div>
-      <ul class="space-y-1">
+      <ul ref="listaClientes" class="space-y-1">
         <li
           v-for="c in clientesFiltrados"
           :key="c.id"
+          :data-cliente-id="c.id"
           class="flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors"
           :class="c.id === seleccionadoId ? 'bg-[#EAF4FA]' : 'hover:bg-gray-50'"
           @click="seleccionar(c)"
