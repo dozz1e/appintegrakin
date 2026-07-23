@@ -210,10 +210,10 @@ async function onInteraccionRegistrada() {
        detalle) - el panel de tareas se separa así solo entra como tercera
        columna desde ese ancho; por debajo queda debajo, apilado. -->
   <div class="flex flex-col min-[1700px]:flex-row gap-4 items-start">
-  <div class="flex flex-col lg:flex-row gap-4 items-start flex-1 min-w-0 w-full">
+  <div class="flex flex-col min-[1200px]:flex-row gap-4 items-start flex-1 min-w-0 w-full">
     <div
-      class="w-full lg:w-72 shrink-0 bg-white border border-gray-100 rounded-2xl shadow-sm p-3 max-h-[70vh] overflow-y-auto"
-      :class="seleccionadoId ? 'hidden lg:block' : ''"
+      class="w-full min-[1200px]:w-72 shrink-0 bg-white border border-gray-100 rounded-2xl shadow-sm p-3 max-h-[70vh] overflow-y-auto"
+      :class="seleccionadoId ? 'hidden min-[1200px]:block' : ''"
     >
       <input
         v-model="busqueda"
@@ -273,7 +273,7 @@ async function onInteraccionRegistrada() {
 
     <div
       v-if="!seleccionado"
-      class="hidden lg:block flex-1 min-w-0 bg-white border border-gray-100 rounded-2xl shadow-sm p-8 text-center text-sm text-gray-400"
+      class="hidden min-[1200px]:block flex-1 min-w-0 bg-white border border-gray-100 rounded-2xl shadow-sm p-8 text-center text-sm text-gray-400"
     >
       Selecciona un cliente de la lista para ver su detalle.
     </div>
@@ -281,7 +281,7 @@ async function onInteraccionRegistrada() {
     <div v-else class="flex-1 min-w-0 w-full">
       <button
         type="button"
-        class="lg:hidden flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-3"
+        class="min-[1200px]:hidden flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-3"
         @click="seleccionadoId = null"
       >
         <Icon name="mdi:arrow-left" class="w-4 h-4" />
