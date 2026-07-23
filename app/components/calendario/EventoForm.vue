@@ -2,7 +2,7 @@
 import type { EventoCalendario } from '~/composables/useEventosCalendario'
 
 const props = defineProps<{ modelValue?: Partial<EventoCalendario>; cargando?: boolean }>()
-const emit = defineEmits<{ submit: [payload: Record<string, unknown>] }>()
+const emit = defineEmits<{ submit: [payload: Record<string, unknown>]; eliminar: [] }>()
 
 function aFechaInput(fechaIso?: string): string {
   if (!fechaIso) return ''
@@ -76,12 +76,23 @@ const inputClase =
       <textarea v-model="form.descripcion" rows="3" :class="inputClase"></textarea>
     </div>
 
-    <button
-      type="submit"
-      :disabled="cargando"
-      class="bg-primary hover:bg-primary/90 text-ink-onprimary px-4 py-2.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
-    >
-      {{ cargando ? 'Guardando...' : 'Guardar evento' }}
-    </button>
+    <div class="flex items-center gap-2">
+      <button
+        type="submit"
+        :disabled="cargando"
+        class="bg-primary hover:bg-primary/90 text-ink-onprimary px-4 py-2.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+      >
+        {{ cargando ? 'Guardando...' : 'Guardar evento' }}
+      </button>
+      <button
+        v-if="modelValue?.id"
+        type="button"
+        :disabled="cargando"
+        class="text-danger-text hover:bg-danger-bg px-4 py-2.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+        @click="emit('eliminar')"
+      >
+        Eliminar
+      </button>
+    </div>
   </form>
 </template>
