@@ -26,8 +26,8 @@ export function useReportes() {
     return (data ?? []).sort((a, b) => orden.indexOf(a.estado) - orden.indexOf(b.estado))
   }
 
-  async function fetchPerformance(): Promise<PerformanceVendedor[]> {
-    const { data, error } = await supabase.rpc('fn_performance_vendedores')
+  async function fetchPerformance(dias = 30): Promise<PerformanceVendedor[]> {
+    const { data, error } = await supabase.rpc('fn_performance_vendedores', { dias })
 
     if (error) throw error
     return (data ?? []).sort((a, b) => b.leads_ganados - a.leads_ganados)

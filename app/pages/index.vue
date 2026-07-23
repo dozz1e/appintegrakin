@@ -34,6 +34,14 @@ import KpiTicketsPostVentaEnProceso from '~/components/widgets/KpiTicketsPostVen
 import ChartTicketsPostVentaTendencia from '~/components/widgets/ChartTicketsPostVentaTendencia.vue'
 import ChartTicketsPostVentaPorEstado from '~/components/widgets/ChartTicketsPostVentaPorEstado.vue'
 import TablaPostVentaManagement from '~/components/widgets/TablaPostVentaManagement.vue'
+import ChartLeadsCaptadosPorDia from '~/components/widgets/ChartLeadsCaptadosPorDia.vue'
+import ChartEmbudoLeads from '~/components/widgets/ChartEmbudoLeads.vue'
+import WidgetLeadsAtencion from '~/components/widgets/WidgetLeadsAtencion.vue'
+import ChartClientesPorVendedor from '~/components/widgets/ChartClientesPorVendedor.vue'
+import WidgetVendedoresEstancados from '~/components/widgets/WidgetVendedoresEstancados.vue'
+import ChartEmbudoPostVenta from '~/components/widgets/ChartEmbudoPostVenta.vue'
+import ChartPostVentaIngresosDespachos from '~/components/widgets/ChartPostVentaIngresosDespachos.vue'
+import WidgetTicketsVencidos from '~/components/widgets/WidgetTicketsVencidos.vue'
 
 const componentMap: Record<string, any> = {
   WidgetsKpiClientesTotales: KpiClientesTotales,
@@ -52,6 +60,14 @@ const componentMap: Record<string, any> = {
   WidgetsChartTicketsPostVentaTendencia: ChartTicketsPostVentaTendencia,
   WidgetsChartTicketsPostVentaPorEstado: ChartTicketsPostVentaPorEstado,
   WidgetsTablaPostVentaManagement: TablaPostVentaManagement,
+  WidgetsChartLeadsCaptadosPorDia: ChartLeadsCaptadosPorDia,
+  WidgetsChartEmbudoLeads: ChartEmbudoLeads,
+  WidgetsLeadsAtencion: WidgetLeadsAtencion,
+  WidgetsChartClientesPorVendedor: ChartClientesPorVendedor,
+  WidgetsVendedoresEstancados: WidgetVendedoresEstancados,
+  WidgetsChartEmbudoPostVenta: ChartEmbudoPostVenta,
+  WidgetsChartPostVentaIngresosDespachos: ChartPostVentaIngresosDespachos,
+  WidgetsTicketsVencidos: WidgetTicketsVencidos,
 }
 
 import draggable from 'vuedraggable'
@@ -199,7 +215,7 @@ const tablasVisibles = tablas
             class="relative"
             :class="[
               modoEdicion ? 'cursor-grab active:cursor-grabbing' : '',
-              ['WidgetsChartLeadsTendencia', 'WidgetsChartTicketsPostVentaTendencia', 'WidgetsChartClientesTendencia'].includes(w.component) ? 'lg:col-span-3' : '',
+              ['WidgetsChartLeadsTendencia', 'WidgetsChartTicketsPostVentaTendencia', 'WidgetsChartClientesTendencia', 'WidgetsChartLeadsCaptadosPorDia', 'WidgetsChartPostVentaIngresosDespachos'].includes(w.component) ? 'lg:col-span-3' : '',
             ]"
           >
             <button

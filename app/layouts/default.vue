@@ -101,6 +101,11 @@ const navCrm = [
                 {{ item.label }}
               </SharedNavLink>
             </template>
+            <!-- Calendario de oficina: sin permiso.resource, lo ve cualquier
+                 usuario logueado (pedido explícito, "todos pueden verlo"). -->
+            <SharedNavLink to="/calendario" icono="mdi:calendar-month-outline" :activo="esActivo('/calendario')" :colapsado="sidebarMostrandoColapsado">
+              Calendario
+            </SharedNavLink>
           </div>
         </div>
 

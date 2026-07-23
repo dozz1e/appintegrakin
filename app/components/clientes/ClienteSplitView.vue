@@ -197,7 +197,13 @@ async function onInteraccionRegistrada() {
 </script>
 
 <template>
-  <div class="flex flex-col lg:flex-row gap-4 items-start">
+  <!-- La barra lateral del menú + lista (18rem) + panel de tareas (28rem) no
+       dejan espacio para el detalle hasta pantallas bien anchas (medido:
+       recién a partir de ~1700px cabían las 3 columnas sin aplastar el
+       detalle) - el panel de tareas se separa así solo entra como tercera
+       columna desde ese ancho; por debajo queda debajo, apilado. -->
+  <div class="flex flex-col min-[1700px]:flex-row gap-4 items-start">
+  <div class="flex flex-col lg:flex-row gap-4 items-start flex-1 min-w-0 w-full">
     <div
       class="w-full lg:w-72 shrink-0 bg-white border border-gray-100 rounded-2xl shadow-sm p-3 max-h-[70vh] overflow-y-auto"
       :class="seleccionadoId ? 'hidden lg:block' : ''"
@@ -275,7 +281,7 @@ async function onInteraccionRegistrada() {
         Volver a la lista
       </button>
 
-      <div class="bg-white border border-gray-100 rounded-2xl shadow-sm p-5">
+      <div class="@container bg-white border border-gray-100 rounded-2xl shadow-sm p-5">
         <div class="flex flex-col sm:flex-row gap-5 mb-5">
           <SharedAvatar
             :nombre="seleccionado.razon_social"
@@ -330,25 +336,25 @@ async function onInteraccionRegistrada() {
             </div>
 
             <div class="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
-              <div>
+              <div class="min-w-0">
                 <p class="text-xs text-gray-400">RUT</p>
-                <p class="text-gray-700">{{ seleccionado.rut || '—' }}</p>
+                <p class="text-gray-700 break-words">{{ seleccionado.rut || '—' }}</p>
               </div>
-              <div>
+              <div class="min-w-0">
                 <p class="text-xs text-gray-400">Teléfono</p>
-                <p class="text-gray-700">{{ seleccionado.telefono || '—' }}</p>
+                <p class="text-gray-700 break-words">{{ seleccionado.telefono || '—' }}</p>
               </div>
-              <div>
+              <div class="min-w-0">
                 <p class="text-xs text-gray-400">Email</p>
-                <p class="text-gray-700">{{ seleccionado.email || '—' }}</p>
+                <p class="text-gray-700 break-words">{{ seleccionado.email || '—' }}</p>
               </div>
-              <div>
+              <div class="min-w-0">
                 <p class="text-xs text-gray-400">Comuna</p>
-                <p class="text-gray-700">{{ seleccionado.comuna || '—' }}</p>
+                <p class="text-gray-700 break-words">{{ seleccionado.comuna || '—' }}</p>
               </div>
-              <div class="col-span-2">
+              <div class="col-span-2 min-w-0">
                 <p class="text-xs text-gray-400">Dirección</p>
-                <p class="text-gray-700">{{ seleccionado.direccion || '—' }}, {{ seleccionado.ciudad || '—' }}</p>
+                <p class="text-gray-700 break-words">{{ seleccionado.direccion || '—' }}, {{ seleccionado.ciudad || '—' }}</p>
               </div>
               <div class="col-span-2">
                 <p class="text-xs text-gray-400 mb-1">Vendedor asignado</p>
@@ -451,10 +457,11 @@ async function onInteraccionRegistrada() {
         </div>
       </div>
     </div>
+  </div>
 
-    <div v-if="seleccionado" class="w-full lg:w-[28rem] shrink-0">
-      <SharedTareaList entidad-tipo="cliente" :entidad-id="seleccionado.id" />
-    </div>
+  <div v-if="seleccionado" class="w-full min-[1700px]:w-[28rem] shrink-0">
+    <SharedTareaList entidad-tipo="cliente" :entidad-id="seleccionado.id" />
+  </div>
 
     <SharedModal
       v-if="seleccionado"
