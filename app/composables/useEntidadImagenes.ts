@@ -1,4 +1,4 @@
-export type EntidadImagenTipo = 'cliente_interaccion' | 'lead_interaccion' | 'ticket' | 'ticket_post_venta'
+export type EntidadImagenTipo = 'cliente_interaccion' | 'lead_interaccion' | 'ticket' | 'ticket_post_venta' | 'capacitacion_nota'
 
 export interface EntidadImagen {
   id: string

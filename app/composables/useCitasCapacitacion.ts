@@ -172,6 +172,17 @@ export function useCitasCapacitacion() {
     idsCitasDescartadas.value = new Set((data ?? []).map((d) => `${d.cita_id}:${d.umbral_minutos}`))
   }
 
+  async function fetchCitasCerradas(): Promise<CitaCapacitacionConNombres[]> {
+    const { data, error } = await supabase
+      .from('citas_capacitacion')
+      .select('*, clientes(razon_social), productos(nombre)')
+      .in('estado', ['completada', 'cancelada'])
+      .order('updated_at', { ascending: false })
+
+    if (error) throw error
+    return (data ?? []).map(mapearFila)
+  }
+
   async function eliminarCita(id: string): Promise<void> {
     const { data, error } = await supabase.from('citas_capacitacion').delete().eq('id', id).select()
     if (error) throw error
@@ -180,6 +191,7 @@ export function useCitasCapacitacion() {
 
   return {
     fetchCitas,
+    fetchCitasCerradas,
     crearCita,
     actualizarCita,
     eliminarCita,

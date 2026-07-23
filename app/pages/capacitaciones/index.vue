@@ -21,6 +21,14 @@ const filtroHasta = ref('')
 const fechaSeleccionada = ref<string | null>(null)
 const aEliminar = ref<CitaCapacitacionConNombres | null>(null)
 const eliminando = ref(false)
+const idsNotasAbiertas = ref<Set<string>>(new Set())
+
+function toggleNotas(id: string) {
+  const abiertas = new Set(idsNotasAbiertas.value)
+  if (abiertas.has(id)) abiertas.delete(id)
+  else abiertas.add(id)
+  idsNotasAbiertas.value = abiertas
+}
 
 function diaLocal(fechaIso: string): string {
   const d = new Date(fechaIso)
@@ -143,13 +151,18 @@ function formatearFecha(fecha: string) {
   <div class="p-6">
     <SharedPageHeader titulo="Capacitaciones">
       <template #accion>
-        <button
-          v-if="can('capacitaciones', 'create')"
-          class="bg-[#1075B5] hover:bg-[#0C5D91] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-          @click="abrirNueva"
-        >
-          + Nueva capacitación
-        </button>
+        <div class="flex items-center gap-2">
+          <NuxtLink to="/capacitaciones/historial" class="text-sm text-[#1075B5] hover:underline">
+            Ver historial
+          </NuxtLink>
+          <button
+            v-if="can('capacitaciones', 'create')"
+            class="bg-[#1075B5] hover:bg-[#0C5D91] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+            @click="abrirNueva"
+          >
+            + Nueva capacitación
+          </button>
+        </div>
       </template>
     </SharedPageHeader>
 
@@ -187,36 +200,48 @@ function formatearFecha(fecha: string) {
           <li
             v-for="c in citasFiltradas"
             :key="c.id"
-            class="border border-gray-100 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white"
+            class="border border-gray-100 rounded-xl bg-white overflow-hidden"
           >
-            <div class="min-w-0">
-              <p class="text-sm font-medium text-gray-800">{{ c.cliente_nombre }} — {{ c.producto_nombre }}</p>
-              <p class="text-xs text-gray-400">{{ formatearFecha(c.fecha_hora) }} · {{ c.titulo }}</p>
+            <div class="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div class="min-w-0">
+                <p class="text-sm font-medium text-gray-800">{{ c.cliente_nombre }} — {{ c.producto_nombre }}</p>
+                <p class="text-xs text-gray-400">{{ formatearFecha(c.fecha_hora) }} · {{ c.titulo }}</p>
+              </div>
+              <div class="flex items-center gap-2 flex-wrap">
+                <SharedBadge :label="colorCitaCapacitacion(c.estado).label" :clases="colorCitaCapacitacion(c.estado).clases" />
+                <button
+                  class="flex items-center gap-1 text-xs text-[#1075B5] hover:underline"
+                  @click="toggleNotas(c.id)"
+                >
+                  Notas
+                  <Icon name="mdi:chevron-down" class="w-3.5 h-3.5 transition-transform" :class="idsNotasAbiertas.has(c.id) ? 'rotate-180' : ''" />
+                </button>
+                <button class="text-xs text-[#1075B5] hover:underline" @click="abrirEditar(c)">Editar</button>
+                <button
+                  v-if="c.estado === 'pendiente'"
+                  class="text-xs text-green-600 hover:underline"
+                  @click="cambiarEstado(c, 'completada')"
+                >
+                  Completar
+                </button>
+                <button
+                  v-if="c.estado === 'pendiente'"
+                  class="text-xs text-red-600 hover:underline"
+                  @click="cambiarEstado(c, 'cancelada')"
+                >
+                  Cancelar
+                </button>
+                <button
+                  class="text-gray-300 hover:text-red-600 transition-colors p-1"
+                  title="Eliminar"
+                  @click="aEliminar = c"
+                >
+                  <Icon name="mdi:trash-can-outline" class="w-4 h-4" />
+                </button>
+              </div>
             </div>
-            <div class="flex items-center gap-2 flex-wrap">
-              <SharedBadge :label="colorCitaCapacitacion(c.estado).label" :clases="colorCitaCapacitacion(c.estado).clases" />
-              <button class="text-xs text-[#1075B5] hover:underline" @click="abrirEditar(c)">Editar</button>
-              <button
-                v-if="c.estado === 'pendiente'"
-                class="text-xs text-green-600 hover:underline"
-                @click="cambiarEstado(c, 'completada')"
-              >
-                Completar
-              </button>
-              <button
-                v-if="c.estado === 'pendiente'"
-                class="text-xs text-red-600 hover:underline"
-                @click="cambiarEstado(c, 'cancelada')"
-              >
-                Cancelar
-              </button>
-              <button
-                class="text-gray-300 hover:text-red-600 transition-colors p-1"
-                title="Eliminar"
-                @click="aEliminar = c"
-              >
-                <Icon name="mdi:trash-can-outline" class="w-4 h-4" />
-              </button>
+            <div v-if="idsNotasAbiertas.has(c.id)" class="border-t border-gray-100 bg-gray-50/60 p-4">
+              <CapacitacionesCapacitacionNotasTimeline :cita-id="c.id" />
             </div>
           </li>
         </ul>

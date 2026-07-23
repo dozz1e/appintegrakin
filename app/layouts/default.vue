@@ -139,9 +139,14 @@ const navCrm = [
 
         <div v-if="can('capacitaciones', 'view') || can('capacitaciones', 'view_all')">
           <p v-if="!sidebarMostrandoColapsado" class="px-3 text-[11px] font-semibold text-ink-muted uppercase tracking-wide mb-1">Capacitaciones</p>
-          <SharedNavLink to="/capacitaciones" icono="mdi:school-outline" :activo="esActivo('/capacitaciones')" :colapsado="sidebarMostrandoColapsado">
-            Agenda
-          </SharedNavLink>
+          <div class="space-y-0.5">
+            <SharedNavLink to="/capacitaciones" icono="mdi:school-outline" :activo="esActivo('/capacitaciones')" :colapsado="sidebarMostrandoColapsado">
+              Agenda
+            </SharedNavLink>
+            <SharedNavLink to="/capacitaciones/historial" icono="mdi:history" :activo="esActivo('/capacitaciones/historial')" :colapsado="sidebarMostrandoColapsado">
+              Historial
+            </SharedNavLink>
+          </div>
         </div>
 
         <div v-if="can('dashboard_widgets', 'assign') || can('auditoria', 'view_all')">
