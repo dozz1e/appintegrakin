@@ -136,13 +136,15 @@ watch(
 )
 
 const clientesFiltrados = computed(() => {
-  const q = busqueda.value.trim().toLowerCase()
+  const q = normalizarTexto(busqueda.value.trim())
   return props.clientes.filter((c) => {
     if (
       q &&
-      !c.razon_social.toLowerCase().includes(q) &&
-      !(c.nombre_contacto ?? '').toLowerCase().includes(q) &&
-      !(c.rut ?? '').toLowerCase().includes(q)
+      !normalizarTexto(c.razon_social).includes(q) &&
+      !normalizarTexto(c.nombre_contacto ?? '').includes(q) &&
+      !normalizarTexto(c.rut ?? '').includes(q) &&
+      !normalizarTexto(c.telefono ?? '').includes(q) &&
+      !normalizarTexto(c.email ?? '').includes(q)
     )
       return false
     if (filtroVendedor.value === 'sin_asignar' && c.owner_id !== null) return false

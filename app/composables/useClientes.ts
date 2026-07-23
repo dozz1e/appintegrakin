@@ -23,13 +23,30 @@ export interface Cliente {
 export const useClientes = () => {
   const supabase = useSupabaseClient()
 
+  // PostgREST corta cada select en 1000 filas por defecto - con miles de
+  // clientes eso descartaba silenciosamente los más antiguos de la lista
+  // (no aparecían en el buscador de /clientes aunque sí en el buscador
+  // general, que filtra en la base antes del límite). Se pagina con
+  // .range() hasta traer todas las filas.
+  const PAGE_SIZE = 1000
+
   const fetchClientes = async () => {
-    const { data, error } = await supabase
-      .from('clientes')
-      .select('*')
-      .order('created_at', { ascending: false })
-    if (error) throw error
-    return data as Cliente[]
+    const todos: Cliente[] = []
+    let desde = 0
+
+    while (true) {
+      const { data, error } = await supabase
+        .from('clientes')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .range(desde, desde + PAGE_SIZE - 1)
+      if (error) throw error
+      todos.push(...(data as Cliente[]))
+      if (!data || data.length < PAGE_SIZE) break
+      desde += PAGE_SIZE
+    }
+
+    return todos
   }
 
   const fetchClientesPorIds = async (ids: string[]): Promise<Pick<Cliente, 'id' | 'razon_social'>[]> => {
@@ -54,13 +71,13 @@ export const useClientes = () => {
   // clientes/leads/tickets con límite bajo (5), pensado para el buscador
   // global, no para un picker dedicado a clientes.
   const buscarClientes = async (termino: string): Promise<Cliente[]> => {
-    const q = termino.trim().replace(/[%_]/g, (m) => `\\${m}`)
+    const q = normalizarTexto(termino.trim()).replace(/[%_]/g, (m) => `\\${m}`)
     if (q.length < 2) return []
 
     const { data, error } = await supabase
       .from('clientes')
       .select('*')
-      .or(`razon_social.ilike.%${q}%,nombre_contacto.ilike.%${q}%,rut.ilike.%${q}%`)
+      .ilike('busqueda_normalizada', `%${q}%`)
       .order('razon_social', { ascending: true })
       .limit(8)
 

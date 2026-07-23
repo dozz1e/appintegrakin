@@ -26,28 +26,28 @@ export const useBusquedaGlobal = () => {
   const supabase = useSupabaseClient()
 
   const buscar = async (termino: string): Promise<ResultadoBusqueda> => {
-    const q = escaparIlike(termino.trim())
+    const q = escaparIlike(normalizarTexto(termino.trim()))
     if (q.length < 2) return { clientes: [], leads: [], tickets: [] }
 
     const [clientesRes, leadsRes, ticketsRes] = await Promise.all([
       supabase
         .from('clientes')
         .select('*')
-        .or(`razon_social.ilike.%${q}%,nombre_contacto.ilike.%${q}%,telefono.ilike.%${q}%,email.ilike.%${q}%,rut.ilike.%${q}%`)
+        .ilike('busqueda_normalizada', `%${q}%`)
         .order('created_at', { ascending: false })
         .limit(LIMITE_POR_CATEGORIA),
 
       supabase
         .from('leads')
         .select('*')
-        .or(`nombre.ilike.%${q}%,telefono.ilike.%${q}%,email.ilike.%${q}%`)
+        .ilike('busqueda_normalizada', `%${q}%`)
         .order('created_at', { ascending: false })
         .limit(LIMITE_POR_CATEGORIA),
 
       supabase
         .from('tickets')
         .select('*')
-        .or(`titulo.ilike.%${q}%,descripcion.ilike.%${q}%`)
+        .ilike('busqueda_normalizada', `%${q}%`)
         .order('created_at', { ascending: false })
         .limit(LIMITE_POR_CATEGORIA),
     ])
