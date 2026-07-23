@@ -22,6 +22,7 @@ const fechaSeleccionada = ref<string | null>(null)
 const aEliminar = ref<CitaCapacitacionConNombres | null>(null)
 const eliminando = ref(false)
 const idsNotasAbiertas = ref<Set<string>>(new Set())
+const vista = ref<'dia' | 'semana' | 'mes'>('mes')
 
 function toggleNotas(id: string) {
   const abiertas = new Set(idsNotasAbiertas.value)
@@ -151,13 +152,25 @@ function formatearFecha(fecha: string) {
   <div class="p-6">
     <SharedPageHeader titulo="Capacitaciones">
       <template #accion>
-        <div class="flex items-center gap-2">
-          <NuxtLink to="/capacitaciones/historial" class="text-sm text-[#1075B5] hover:underline">
+        <div class="flex items-center gap-3">
+          <div class="flex items-center bg-surface-2 rounded-lg p-0.5">
+            <button
+              v-for="opcion in [{ v: 'dia', l: 'Día' }, { v: 'semana', l: 'Semana' }, { v: 'mes', l: 'Mes' }]"
+              :key="opcion.v"
+              type="button"
+              class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors"
+              :class="vista === opcion.v ? 'bg-surface text-ink shadow-sm' : 'text-ink-muted hover:text-ink'"
+              @click="vista = opcion.v as typeof vista"
+            >
+              {{ opcion.l }}
+            </button>
+          </div>
+          <NuxtLink to="/capacitaciones/historial" class="text-sm text-primary hover:underline">
             Ver historial
           </NuxtLink>
           <button
             v-if="can('capacitaciones', 'create')"
-            class="bg-[#1075B5] hover:bg-[#0C5D91] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+            class="bg-primary hover:bg-primary/90 text-ink-onprimary px-4 py-2 rounded-lg text-sm font-medium transition-colors"
             @click="abrirNueva"
           >
             + Nueva capacitación
@@ -168,9 +181,18 @@ function formatearFecha(fecha: string) {
 
     <div class="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] gap-6">
       <CapacitacionesCalendarioMes
+        v-if="vista === 'mes'"
         :citas="citas"
         :fecha-seleccionada="fechaSeleccionada"
         @update:fecha-seleccionada="onDiaClick"
+      />
+      <CapacitacionesCalendarioSemana
+        v-else
+        :citas="citas"
+        :fecha-seleccionada="fechaSeleccionada"
+        :modo="vista"
+        @update:fecha-seleccionada="onDiaClick"
+        @editar-cita="abrirEditar"
       />
 
       <div>
@@ -178,61 +200,61 @@ function formatearFecha(fecha: string) {
           <input
             v-model="filtroDesde"
             type="date"
-            class="border border-gray-200 rounded-lg px-3 py-2 text-sm"
+            class="border border-border rounded-lg px-3 py-2 text-sm bg-surface text-ink"
             @click="abrirPicker"
             @change="fechaSeleccionada = null"
           />
           <input
             v-model="filtroHasta"
             type="date"
-            class="border border-gray-200 rounded-lg px-3 py-2 text-sm"
+            class="border border-border rounded-lg px-3 py-2 text-sm bg-surface text-ink"
             @click="abrirPicker"
             @change="fechaSeleccionada = null"
           />
-          <button class="text-sm text-[#1075B5] hover:underline" @click="filtrarHoy">Hoy</button>
-          <button class="text-sm text-[#1075B5] hover:underline" @click="filtrarEstaSemana">Esta semana</button>
+          <button class="text-sm text-primary hover:underline" @click="filtrarHoy">Hoy</button>
+          <button class="text-sm text-primary hover:underline" @click="filtrarEstaSemana">Esta semana</button>
         </div>
 
-        <p v-if="cargando" class="text-gray-400">Cargando...</p>
-        <p v-else-if="!citasFiltradas.length" class="text-gray-400">Sin capacitaciones para el rango elegido.</p>
+        <p v-if="cargando" class="text-ink-muted text-sm">Cargando...</p>
+        <p v-else-if="!citasFiltradas.length" class="text-ink-muted text-sm">Sin capacitaciones para el rango elegido.</p>
 
         <ul v-else class="space-y-2">
           <li
             v-for="c in citasFiltradas"
             :key="c.id"
-            class="border border-gray-100 rounded-xl bg-white overflow-hidden"
+            class="border border-border rounded-xl bg-surface overflow-hidden"
           >
             <div class="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div class="min-w-0">
-                <p class="text-sm font-medium text-gray-800">{{ c.cliente_nombre }} — {{ c.producto_nombre }}</p>
-                <p class="text-xs text-gray-400">{{ formatearFecha(c.fecha_hora) }} · {{ c.titulo }}</p>
+                <p class="text-sm font-medium text-ink">{{ c.cliente_nombre }} — {{ c.producto_nombre }}</p>
+                <p class="text-xs text-ink-muted">{{ formatearFecha(c.fecha_hora) }} · {{ c.titulo }}</p>
               </div>
               <div class="flex items-center gap-2 flex-wrap">
                 <SharedBadge :label="colorCitaCapacitacion(c.estado).label" :clases="colorCitaCapacitacion(c.estado).clases" />
                 <button
-                  class="flex items-center gap-1 text-xs text-[#1075B5] hover:underline"
+                  class="flex items-center gap-1 text-xs text-primary hover:underline"
                   @click="toggleNotas(c.id)"
                 >
                   Notas
                   <Icon name="mdi:chevron-down" class="w-3.5 h-3.5 transition-transform" :class="idsNotasAbiertas.has(c.id) ? 'rotate-180' : ''" />
                 </button>
-                <button class="text-xs text-[#1075B5] hover:underline" @click="abrirEditar(c)">Editar</button>
+                <button class="text-xs text-primary hover:underline" @click="abrirEditar(c)">Editar</button>
                 <button
                   v-if="c.estado === 'pendiente'"
-                  class="text-xs text-green-600 hover:underline"
+                  class="text-xs text-success-text hover:underline"
                   @click="cambiarEstado(c, 'completada')"
                 >
                   Completar
                 </button>
                 <button
                   v-if="c.estado === 'pendiente'"
-                  class="text-xs text-red-600 hover:underline"
+                  class="text-xs text-danger-text hover:underline"
                   @click="cambiarEstado(c, 'cancelada')"
                 >
                   Cancelar
                 </button>
                 <button
-                  class="text-gray-300 hover:text-red-600 transition-colors p-1"
+                  class="text-ink-muted hover:text-danger-text transition-colors p-1"
                   title="Eliminar"
                   @click="aEliminar = c"
                 >
@@ -240,7 +262,7 @@ function formatearFecha(fecha: string) {
                 </button>
               </div>
             </div>
-            <div v-if="idsNotasAbiertas.has(c.id)" class="border-t border-gray-100 bg-gray-50/60 p-4">
+            <div v-if="idsNotasAbiertas.has(c.id)" class="border-t border-border bg-surface-2/60 p-4">
               <CapacitacionesCapacitacionNotasTimeline :cita-id="c.id" />
             </div>
           </li>
