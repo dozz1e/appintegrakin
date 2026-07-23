@@ -34,6 +34,15 @@ async function cargar() {
 
 onMounted(cargar)
 
+watch(
+  () => [props.entidadTipo, props.entidadId],
+  () => {
+    idEditando.value = null
+    aEliminar.value = null
+    cargar()
+  }
+)
+
 // Si se omite la hora, la tarea vence al final del día elegido (23:59) en
 // vez de a medianoche — evita que una tarea "para hoy" se marque vencida
 // apenas empieza el día.

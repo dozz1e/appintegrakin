@@ -128,6 +128,13 @@ onMounted(async () => {
   ultimasInteracciones.value = await fetchUltimasInteracciones()
 })
 
+watch(
+  () => props.clienteIdInicial,
+  (id) => {
+    if (id) seleccionadoId.value = id
+  }
+)
+
 const clientesFiltrados = computed(() => {
   const q = busqueda.value.trim().toLowerCase()
   return props.clientes.filter((c) => {
