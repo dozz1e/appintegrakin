@@ -159,7 +159,7 @@ function formatearFecha(fecha: string | null) {
         </SharedCard>
 
         <div class="space-y-6">
-          <SharedCard titulo="Imágenes">
+          <SharedCard titulo="Archivos">
             <SharedGaleriaImagenes entidad-tipo="ticket_post_venta" :entidad-id="ticket.id" />
           </SharedCard>
 
