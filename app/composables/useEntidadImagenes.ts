@@ -25,8 +25,15 @@ export function useEntidadImagenes() {
     return data ?? []
   }
 
+  const DIACRITICOS = /[\u0300-\u036f]/g
+
+  function sanitizarNombreArchivo(nombre: string) {
+    const sinAcentos = nombre.normalize('NFD').replace(DIACRITICOS, '')
+    return sinAcentos.replace(/[^a-zA-Z0-9._-]/g, '_')
+  }
+
   async function subirImagen(entidadTipo: EntidadImagenTipo, entidadId: string, archivo: File): Promise<EntidadImagen> {
-    const path = `${entidadTipo}/${entidadId}/${Date.now()}-${archivo.name}`
+    const path = `${entidadTipo}/${entidadId}/${Date.now()}-${sanitizarNombreArchivo(archivo.name)}`
     const { error: errorSubida } = await supabase.storage.from('entidad-imagenes').upload(path, archivo)
     if (errorSubida) throw errorSubida
 
