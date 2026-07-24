@@ -46,7 +46,9 @@ function onClickAviso(aviso: AvisoConTipo) {
     return
   }
   const tarea = tareasProximas.value.find((t) => t.id === aviso.id)
-  if (tarea) router.push(`${rutaEntidad[tarea.entidad_tipo]}/${tarea.entidad_id}`)
+  if (!tarea) return
+  if (tarea.entidad_tipo === 'cliente') router.push(`/clientes?cliente_id=${tarea.entidad_id}`)
+  else router.push(`${rutaEntidad[tarea.entidad_tipo]}/${tarea.entidad_id}`)
 }
 
 function onCerrarAviso(aviso: AvisoConTipo) {
