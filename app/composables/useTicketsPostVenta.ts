@@ -154,6 +154,24 @@ export function useTicketsPostVenta() {
     return data
   }
 
+  async function editarSeguimiento(id: string, fecha: string, comentario: string): Promise<TicketPostVentaSeguimiento> {
+    const { data, error } = await supabase
+      .from('tickets_post_venta_seguimientos')
+      .update({ fecha, comentario })
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  }
+
+  async function eliminarSeguimiento(id: string): Promise<void> {
+    const { data, error } = await supabase.from('tickets_post_venta_seguimientos').delete().eq('id', id).select()
+    if (error) throw error
+    if (!data?.length) throw new Error('No se pudo eliminar el seguimiento')
+  }
+
   async function eliminarTicket(id: string): Promise<void> {
     const { data, error } = await supabase.from('tickets_post_venta').delete().eq('id', id).select()
     if (error) throw error
@@ -186,6 +204,8 @@ export function useTicketsPostVenta() {
     eliminarTicket,
     fetchSeguimientos,
     agregarSeguimiento,
+    editarSeguimiento,
+    eliminarSeguimiento,
     fetchTicketsPorIds,
     fetchCerrados,
   }
