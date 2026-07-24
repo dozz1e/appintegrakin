@@ -2,7 +2,7 @@
 <script setup lang="ts">
 import type { Producto } from '~/composables/useProductos'
 
-const props = defineProps<{ cargando?: boolean }>()
+const props = defineProps<{ cargando?: boolean; clienteIdFijo?: string; clienteNombreFijo?: string }>()
 const emit = defineEmits<{ submit: [payload: Record<string, unknown>, archivos: File[]] }>()
 
 const { fetchVentasPorCliente } = useVentas()
@@ -13,7 +13,7 @@ const comprados = ref<Pick<Producto, 'id' | 'nombre' | 'sku'>[]>([])
 
 const form = reactive({
   n_guia: '',
-  cliente_id: '',
+  cliente_id: props.clienteIdFijo ?? '',
   cliente_nombre_libre: '',
   cliente_rut_libre: '',
   cliente_celular_libre: '',
@@ -60,7 +60,8 @@ watch(
     const ventas = await fetchVentasPorCliente(clienteId)
     const ids = [...new Set(ventas.map((v) => v.producto_id))]
     comprados.value = await fetchProductosPorIds(ids)
-  }
+  },
+  { immediate: true }
 )
 
 function validar(): boolean {
@@ -107,34 +108,45 @@ const inputClase =
     </div>
 
     <div>
-      <label class="flex items-center gap-2 text-sm text-gray-700 mb-2">
-        <input v-model="clienteDesconocido" type="checkbox" />
-        Cliente no registrado
-      </label>
-
-      <template v-if="!clienteDesconocido">
+      <template v-if="clienteIdFijo">
         <label class="block text-sm font-medium mb-1 text-gray-700">Cliente *</label>
-        <ClientesClienteBuscador v-model="form.cliente_id" />
+        <input
+          type="text"
+          disabled
+          class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-gray-50 text-gray-500"
+          :value="clienteNombreFijo ?? clienteIdFijo"
+        />
       </template>
       <template v-else>
-        <div class="grid grid-cols-2 gap-3">
-          <div class="col-span-2">
-            <label class="block text-sm font-medium mb-1 text-gray-700">Nombre *</label>
-            <input v-model="form.cliente_nombre_libre" type="text" :class="inputClase" />
+        <label class="flex items-center gap-2 text-sm text-gray-700 mb-2">
+          <input v-model="clienteDesconocido" type="checkbox" />
+          Cliente no registrado
+        </label>
+
+        <template v-if="!clienteDesconocido">
+          <label class="block text-sm font-medium mb-1 text-gray-700">Cliente *</label>
+          <ClientesClienteBuscador v-model="form.cliente_id" />
+        </template>
+        <template v-else>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="col-span-2">
+              <label class="block text-sm font-medium mb-1 text-gray-700">Nombre *</label>
+              <input v-model="form.cliente_nombre_libre" type="text" :class="inputClase" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1 text-gray-700">Rut</label>
+              <input v-model="form.cliente_rut_libre" type="text" :class="inputClase" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1 text-gray-700">Celular</label>
+              <input v-model="form.cliente_celular_libre" type="text" :class="inputClase" />
+            </div>
+            <div class="col-span-2">
+              <label class="block text-sm font-medium mb-1 text-gray-700">Ciudad</label>
+              <input v-model="form.cliente_ciudad_libre" type="text" :class="inputClase" />
+            </div>
           </div>
-          <div>
-            <label class="block text-sm font-medium mb-1 text-gray-700">Rut</label>
-            <input v-model="form.cliente_rut_libre" type="text" :class="inputClase" />
-          </div>
-          <div>
-            <label class="block text-sm font-medium mb-1 text-gray-700">Celular</label>
-            <input v-model="form.cliente_celular_libre" type="text" :class="inputClase" />
-          </div>
-          <div class="col-span-2">
-            <label class="block text-sm font-medium mb-1 text-gray-700">Ciudad</label>
-            <input v-model="form.cliente_ciudad_libre" type="text" :class="inputClase" />
-          </div>
-        </div>
+        </template>
       </template>
       <p v-if="errores.cliente" class="text-sm text-red-600 mt-1">{{ errores.cliente }}</p>
     </div>

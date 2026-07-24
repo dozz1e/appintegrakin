@@ -178,6 +178,17 @@ export function useTicketsPostVenta() {
     if (!data?.length) throw new Error('No se pudo eliminar el ticket')
   }
 
+  async function fetchTicketsPorCliente(clienteId: string): Promise<TicketPostVenta[]> {
+    const { data, error } = await supabase
+      .from('tickets_post_venta')
+      .select('*')
+      .eq('cliente_id', clienteId)
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+    return data ?? []
+  }
+
   async function fetchTicketsPorIds(ids: string[]): Promise<Pick<TicketPostVenta, 'id' | 'n_guia'>[]> {
     if (!ids.length) return []
     const { data, error } = await supabase.from('tickets_post_venta').select('id, n_guia').in('id', ids)
@@ -206,6 +217,7 @@ export function useTicketsPostVenta() {
     agregarSeguimiento,
     editarSeguimiento,
     eliminarSeguimiento,
+    fetchTicketsPorCliente,
     fetchTicketsPorIds,
     fetchCerrados,
   }

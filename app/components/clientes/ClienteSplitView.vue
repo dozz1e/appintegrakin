@@ -1,15 +1,14 @@
 <script setup lang="ts">
 import type { Cliente } from '~/composables/useClientes'
-import type { Ticket } from '~/composables/useTickets'
+import type { TicketPostVenta } from '~/composables/useTicketsPostVenta'
 import type { Usuario } from '~/composables/useUsuarios'
 
 const props = defineProps<{ clientes: Cliente[]; usuarios: Usuario[]; clienteIdInicial?: string }>()
 const emit = defineEmits<{ eliminar: [cliente: Cliente]; actualizar: [cliente: Cliente] }>()
 
-const { fetchTicketsPorCliente, fetchConteoTicketsCliente, createTicket } = useTickets()
+const { fetchTicketsPorCliente, createTicket } = useTicketsPostVenta()
 const { fetchUltimasInteracciones } = useClienteInteracciones()
 const { asignarCliente, updateCliente, subirImagenCliente } = useClientes()
-const { agregarProductoATicket } = useTicketProductos()
 const { subirImagen } = useEntidadImagenes()
 const { can } = usePermissions()
 const { success, error } = useToast()
@@ -21,31 +20,19 @@ const modalNuevoTicketAbierto = ref(false)
 const guardandoTicket = ref(false)
 
 async function recargarTickets() {
-  if (!seleccionado.value) return
-  if (puedeVerResumenTickets.value) {
-    conteoTickets.value = await fetchConteoTicketsCliente(seleccionado.value.id)
-  }
-  if (puedeVerTickets.value) {
-    ticketsSeleccionado.value = await fetchTicketsPorCliente(seleccionado.value.id)
-  }
+  if (!seleccionado.value || !puedeVerTickets.value) return
+  ticketsSeleccionado.value = await fetchTicketsPorCliente(seleccionado.value.id)
 }
 
-async function onSubmitTicket(payload: Partial<Ticket>, archivo: File | null, productosIds: string[]) {
+async function onSubmitTicket(payload: Record<string, unknown>, archivos: File[]) {
   guardandoTicket.value = true
   try {
-    const ticket = await createTicket(payload)
-    if (archivo) {
+    const ticket = await createTicket(payload as any)
+    if (archivos.length) {
       try {
-        await subirImagen('ticket', ticket.id, archivo)
+        for (const archivo of archivos) await subirImagen('ticket_post_venta', ticket.id, archivo)
       } catch (e) {
-        error('Ticket creado, pero no se pudo subir la imagen')
-      }
-    }
-    if (productosIds.length) {
-      try {
-        await Promise.all(productosIds.map((id) => agregarProductoATicket(ticket.id, id)))
-      } catch (e) {
-        error('Ticket creado, pero no se pudieron asociar los productos')
+        error('Ticket creado, pero no se pudieron subir todos los archivos')
       }
     }
     modalNuevoTicketAbierto.value = false
@@ -107,13 +94,11 @@ const filtroFechaHasta = ref('')
 const filtroAntiguedad = ref('')
 const seleccionadoId = ref<string | null>(props.clienteIdInicial ?? null)
 const listaClientes = ref<HTMLElement | null>(null)
-const ticketsSeleccionado = ref<Ticket[]>([])
-const conteoTickets = ref({ total: 0, abiertos: 0, resueltos: 0 })
+const ticketsSeleccionado = ref<TicketPostVenta[]>([])
 const tabActiva = ref<'interacciones' | 'tickets' | 'ventas'>('interacciones')
 const ultimasInteracciones = ref<Record<string, string>>({})
 
-const puedeVerTickets = computed(() => can('tickets', 'view') || can('tickets', 'view_all'))
-const puedeVerResumenTickets = computed(() => can('clientes', 'view_tickets_resumen'))
+const puedeVerTickets = computed(() => can('tickets_post_venta', 'view') || can('tickets_post_venta', 'view_all'))
 const puedeVerVentas = computed(() => can('ventas', 'view') || can('ventas', 'view_all'))
 
 const opcionesAntiguedad = [
@@ -192,18 +177,14 @@ function formatearFechaCorta(fecha: string) {
 
 const seleccionado = computed(() => props.clientes.find((c) => c.id === seleccionadoId.value) ?? null)
 
-const totalTickets = computed(() => conteoTickets.value.total)
-const ticketsAbiertos = computed(() => conteoTickets.value.abiertos)
-const ticketsResueltos = computed(() => conteoTickets.value.resueltos)
+const totalTickets = computed(() => ticketsSeleccionado.value.length)
+const ticketsAbiertos = computed(() => ticketsSeleccionado.value.filter((t) => t.estado !== 'despachado').length)
+const ticketsResueltos = computed(() => ticketsSeleccionado.value.filter((t) => t.estado === 'despachado').length)
 
 watch(seleccionadoId, async (id) => {
   tabActiva.value = 'interacciones'
   ticketsSeleccionado.value = []
-  conteoTickets.value = { total: 0, abiertos: 0, resueltos: 0 }
   if (!id) return
-  if (puedeVerResumenTickets.value) {
-    conteoTickets.value = await fetchConteoTicketsCliente(id)
-  }
   if (puedeVerTickets.value) {
     ticketsSeleccionado.value = await fetchTicketsPorCliente(id)
   }
@@ -399,7 +380,7 @@ async function onInteraccionRegistrada() {
           </div>
         </div>
 
-        <div v-if="puedeVerResumenTickets" class="grid grid-cols-3 gap-3 mb-4">
+        <div v-if="puedeVerTickets" class="grid grid-cols-3 gap-3 mb-4">
           <div class="bg-gray-50 rounded-xl p-3 text-center">
             <p class="text-xs text-gray-400">Total tickets</p>
             <p class="text-xl font-semibold text-gray-800">{{ totalTickets }}</p>
@@ -449,9 +430,9 @@ async function onInteraccionRegistrada() {
 
         <div v-else-if="tabActiva === 'tickets'">
           <div class="flex items-center justify-between mb-3">
-            <p class="text-base font-semibold text-gray-700">Tickets de servicio técnico</p>
+            <p class="text-base font-semibold text-gray-700">Tickets de post-venta</p>
             <button
-              v-if="can('tickets', 'create')"
+              v-if="can('tickets_post_venta', 'create')"
               type="button"
               title="Nuevo ticket"
               class="w-8 h-8 flex items-center justify-center rounded-full bg-primary text-ink-onprimary hover:bg-primary-hover transition-colors duration-150"
@@ -466,10 +447,10 @@ async function onInteraccionRegistrada() {
               :key="t.id"
               class="text-sm bg-gray-50 rounded-xl p-3 flex items-center justify-between"
             >
-              <NuxtLink :to="`/tickets/${t.id}`" class="hover:underline text-gray-700 font-medium">
-                {{ t.titulo }}
+              <NuxtLink :to="`/post-venta/${t.id}`" class="hover:underline text-gray-700 font-medium">
+                {{ t.n_guia }}
               </NuxtLink>
-              <SharedBadge :label="colorTicket(t.estado).label" :clases="colorTicket(t.estado).clases" />
+              <SharedBadge :label="colorTicketPostVenta(t.estado).label" :clases="colorTicketPostVenta(t.estado).clases" />
             </li>
           </ul>
           <p v-else class="text-sm text-gray-400">Sin tickets todavía</p>
@@ -501,7 +482,7 @@ async function onInteraccionRegistrada() {
       titulo="Nuevo ticket"
       @cerrar="modalNuevoTicketAbierto = false"
     >
-      <TicketsTicketForm
+      <PostVentaTicketForm
         :cargando="guardandoTicket"
         :cliente-id-fijo="seleccionado.id"
         :cliente-nombre-fijo="seleccionado.razon_social"
